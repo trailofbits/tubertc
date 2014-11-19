@@ -1,0 +1,25 @@
+{
+    "name"         : "granite",
+    "version"      : "0.0.1",
+    "author"       : "94c3",
+    "description"  : "",
+
+    "private"      : true,
+
+    "scripts": {
+        "start"    : "node server.js"
+    },
+
+    "dependencies" : {
+        "easyrtc"   : "*",
+        "express"   : "*",
+        "markup-js" : "*",
+        "socket.io" : "0.9.x"
+    },
+
+    "license"      : "BSD2",
+
+    "engines": {
+        "node"     : ">=0.8"
+    }
+}
