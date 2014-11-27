@@ -7,7 +7,7 @@
         "webrtc",
         "easyrtc",
         "video"
-    ]
+    ],
 
     "dependencies" : {
         "easyrtc"   : "*",
