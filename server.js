@@ -1,4 +1,3 @@
-
 var fs = require('fs');
 var io = require('socket.io');
 var nconf = require('nconf');
@@ -7,13 +6,15 @@ var easyrtc = require('easyrtc');
 
 var webServer = null;
 
-// Try to find configuring files inthe following places (in order)
-//   1. settings.json file
+// Try to find configuring files in the following places (in order)
+//   1. Command-line arguments
 //   2. Environment variables
-//   3. Command-line arguments
-nconf.file({ file: 'settings.json' })
+//   3. settings.json file
+nconf.argv()
      .env()
-     .argv();
+     .file({ file:
+		 process.env.NODE_ENV + '.json'
+	 });
 
 // Web application setup (for setting up routes)
 var tubertcApp = express();
