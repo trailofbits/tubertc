@@ -1,6 +1,13 @@
 {
     "name"         : "tubertc",
     "version"      : "0.1.0",
+    "description"  : "Tuber-time Communications",
+    
+    "keywords" : [
+        "webrtc",
+        "easyrtc",
+        "video"
+    ]
 
     "dependencies" : {
         "easyrtc"   : "*",
@@ -9,6 +16,7 @@
         "socket.io" : "0.9.x"
     },
 
+    "author"        : "yying",
     "license"       : "BSD2",
     
     "engines"       : {
@@ -16,6 +24,7 @@
     },
 
     "scripts" : {
-        "start" : "node server.js"
+        "start" : "node server.js",
+        "test"  : "echo \"Error: no test specified\" && exit 1"
     }
 }
