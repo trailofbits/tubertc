@@ -3,9 +3,9 @@
   "repository": "https://github.com/trailofbits/tubertc",
   "keywords": ["node", "webrtc", "easyrtc", "video"]
   "env": {
-    "port": {
-      "description": "port to bind server to",
-      "value": "80"
+    "NODE_ENV": {
+      "description": "running environment",
+      "value": "production"
     }
   }
 }
