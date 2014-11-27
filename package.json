@@ -2,6 +2,13 @@
     "name"         : "tubertc",
     "version"      : "0.1.0",
     "description"  : "Tuber-time Communications",
+    "author"       : "yying",
+    "license"      : "BSD2",
+    
+    "repository" : {
+        "type" : "git",
+        "url"  : "http://github.com/trailofbits/tubertc.git"
+    },
     
     "keywords" : [
         "webrtc",
@@ -16,9 +23,6 @@
         "socket.io" : "0.9.x"
     },
 
-    "author"        : "yying",
-    "license"       : "BSD2",
-    
     "engines"       : {
         "node" : ">=0.8"
     },
