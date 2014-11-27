@@ -1,25 +1,21 @@
 {
-    "name"         : "granite",
-    "version"      : "0.0.1",
-    "author"       : "94c3",
-    "description"  : "",
-
-    "private"      : true,
-
-    "scripts": {
-        "start"    : "node server.js"
-    },
+    "name"         : "tubertc",
+    "version"      : "0.1.0",
 
     "dependencies" : {
         "easyrtc"   : "*",
         "express"   : "*",
-        "markup-js" : "*",
+        "nconf"     : "*",
         "socket.io" : "0.9.x"
     },
 
-    "license"      : "BSD2",
+    "license"       : "BSD2",
+    
+    "engines"       : {
+        "node" : ">=0.8"
+    },
 
-    "engines": {
-        "node"     : ">=0.8"
+    "scripts" : {
+        "start" : "node server.js"
     }
 }

@@ -1,22 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
-        <title> Vidyo </title>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-         <link rel="stylesheet" type="text/css" href="/easyrtc/easyrtc.css" />
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        
+        <title> tubertc </title>
 
-        <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1">
-        <link rel="stylesheet" type="text/css" href="/css/index.css" />
-        <script type="text/javascript" src="/js/index.js"></script>
+        <link href="/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/css/room.css" rel="stylesheet">
+        <link href="/css/main.css" rel="stylesheet">
+        <link href="/easyrtc/easyrtc.css" rel="stylesheet">
+
     </head>
-    <body onload="appInit()">
-        <dialog id="mainPage">
-            <h1> Vidyo </h1>
-            <div id="formField">
-                <input type="text" id="roomField">
-                <button id="goBtn"> Go! </button>
+    <body>
+        <nav class="navbar navbar-inverse navbar-fixed-top roomPage" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <span id="roomName" class="navbar-brand"></span>
+                </div>
+                <div class="navbar-header">
+                    <span class="navbar-brand">
+                        <a class="dashBtn" id="micToggleBtn"><img class="svg" src="/images/mic.svg" alt="[microphone toggle]"></a>
+                        <a class="dashBtn" id="cameraToggleBtn"><img class="svg" src="/images/camera.svg" alt="[camera toggle]"></a>
+                    </span>
+                </div>
+                <div id="navbar" class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a class="dashBtn" id="creditBtn">Credits</a></li>
+                    </ul>
+                </div>
             </div>
-        </dialog>
+        </nav>
+            
+        <div id="roomPageContainer" class="container roomPage">
+            <div id="roomMainContent" class="mainContent">
+                <video id="mainStream" muted></video>
+            </div>
+        </div>
+        
+        <div id="peerList" class="peerPanel roomPage">
+        </div>
+        
+        <div class="maskOverlay dialogBox"></div>
+        <div id="modalDialog" class="modalContent dialogBox">
+        </div>
+
+        <div id="mainPage" class="container">
+            <div class="logo">
+                tubertc
+            </div>
+            <form class="form-signin" role="form">
+                <div id="nameGroup" class="form-group">
+                    <label for="inputName" class="sr-only">Name</label>
+                    <input type="text" id="inputName" class="form-control" placeholder="Name" required autofocus>
+                </div>
+                <div id="roomGroup" class="form-group">
+                    <label for="inputRoom" class="sr-only">Room</label>
+                    <input type="text" id="inputRoom" class="form-control" placeholder="Room" required>
+                </div>
+                <button id="inputButton" class="btn btn-lg btn-primary btn-block" type="button">Go</button>
+            </form>
+        </div>
+
+        <script src="/js/jquery-2.1.1.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/easyrtc/easyrtc.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/vtc.js"></script>
+        <script src="/js/room.js"></script>
+        <script src="/js/main.js"></script>
     </body>
 </html>
-
