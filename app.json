@@ -2,10 +2,4 @@
   "name": "Tuber-time Communications Demo",
   "repository": "https://github.com/trailofbits/tubertc",
   "keywords": ["node", "webrtc", "easyrtc", "video"]
-  "env": {
-    "NODE_ENV": {
-      "description": "running environment",
-      "value": "production"
-    }
-  }
 }
