@@ -28,7 +28,6 @@ var Main = {
         $('#inputName').blur(function () {
             showValidationStatus('#nameGroup', '#inputName');
         });
-
         $('#inputRoom').blur(function () {
             showValidationStatus('#roomGroup', '#inputRoom');
         });
