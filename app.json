@@ -1,0 +1,5 @@
+{
+  "name": "Tuber-time Communications Demo",
+  "repository": "https://github.com/trailofbits/tubertc",
+  "keywords": ["node", "webrtc", "easyrtc", "video"]
+}

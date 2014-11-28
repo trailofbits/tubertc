@@ -1,4 +1,3 @@
-
 var fs = require('fs');
 var io = require('socket.io');
 var nconf = require('nconf');
@@ -7,20 +6,21 @@ var easyrtc = require('easyrtc');
 
 var webServer = null;
 
-// Try to find configuring files inthe following places (in order)
-//   1. settings.json file
+// Try to find configuring files in the following places (in order)
+//   1. Command-line arguments
 //   2. Environment variables
-//   3. Command-line arguments
-nconf.file({ file: 'settings.json' })
+//   3. settings.json file
+nconf.argv()
      .env()
-     .argv();
+     .file({ file:
+		 'settings.json'
+	 });
 
 // Web application setup (for setting up routes)
 var tubertcApp = express();
 var router = express.Router();
 
 // TODO: setup application routes here
-
 tubertcApp.use('/', router);
 tubertcApp.use(express.static(__dirname + "/static/"));
 
@@ -33,11 +33,8 @@ if (debugMode === undefined) {
     debugMode = true;
 }
 
-// By default the listening server port is 8080
-var serverPort = nconf.get('port');
-if (serverPort === undefined) {
-    serverPort = 8080;
-}
+// By default the listening server port is 8080 unless set by nconf or Heroku
+var serverPort = process.env.PORT || nconf.get('port') || 8080;
 
 // By default, HTTP is used
 var ssl = nconf.get('ssl');
@@ -84,4 +81,3 @@ if (iceServers !== undefined) {
 }
 
 var rtcServer = easyrtc.listen(tubertcApp, socketServer);
-

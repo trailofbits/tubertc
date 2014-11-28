@@ -1,3 +1,5 @@
-vidyo
+Tuber-time Communications
 =====
-[![Code Climate](https://codeclimate.com/repos/546cdc92e30ba062f8023298/badges/2e4ba710dfe7eaae4582/gpa.svg)](https://codeclimate.com/repos/546cdc92e30ba062f8023298/feed)
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/heroku/node-js-sample) [![Code Climate](https://codeclimate.com/github/trailofbits/tubertc/badges/gpa.svg)](https://codeclimate.com/github/trailofbits/tubertc)
+
+It's tuber-time!
