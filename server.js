@@ -47,7 +47,8 @@ if (ssl === undefined) {
         {
             key  : fs.readFileSync(ssl.key),
             cert : fs.readFileSync(ssl.cert)
-        }
+        },
+        tubertcApp
     ).listen(serverPort);
 }
 
