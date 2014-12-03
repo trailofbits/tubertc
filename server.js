@@ -80,5 +80,14 @@ var iceServers = nconf.get('appIceServers');
 if (iceServers !== undefined) {
     easyrtc.setOption('appIceServers', iceServers);
 }
+else {
+    easyrtc.setOption('appIceServers', [
+    	{url: "stun:stun.l.google.com:19302"},
+    	{url: "stun:stun.sipgate.net"},
+    	{url: "stun:217.10.68.152"},
+    	{url: "stun:stun.sipgate.net:10000"},
+    	{url: "stun:217.10.68.152:10000"}
+    ])
+}
 
 var rtcServer = easyrtc.listen(tubertcApp, socketServer);
