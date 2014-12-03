@@ -43,6 +43,7 @@ var VTC = {
             easyrtc.connect("VTC", function (myId) {
                 // FIXME: is there anything we should do here?
                 console.log('Got my peerId (' + myId + ')');
+                roomObj.updateMainVideo();
             }, function (errorCode, errText) {
                 roomObj.showError('Error ' + errCode, errText);
             });
