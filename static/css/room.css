@@ -41,7 +41,6 @@ div.peerPanel {
 }
 
 div.mainContent {
-    padding: 0px 15px;
     text-align: center;
     color: #fff;
 }
@@ -63,6 +62,14 @@ div.peerName {
     padding: 0;
     font-weight: bold;
     color: #fff;
+}
+
+div#roomPageContainer {
+    width: 100%;
+}
+
+#mainStream {
+
 }
 
 .dashBtn {
