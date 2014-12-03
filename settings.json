@@ -1,4 +1,26 @@
 {
     "port": 8080,
-    "debug": true
+    "debug": true,
+    "appIceServers": [
+        {
+            "url": "stun:stun.l.google.com:19302"
+        },
+        {
+            "url": "stun:stun.sipgate.net"
+        },
+        {
+            "url": "stun:217.10.68.152"
+        },
+        {
+            "url": "stun:stun.sipgate.net:10000"
+        },
+        {
+            "url": "stun:217.10.68.152:10000"
+        },
+        {
+            "url": "turn:104.236.58.250:3478",
+            "username": "tuber",
+            "credential": "isuckatpasswords"
+        }
+    ]
 }
