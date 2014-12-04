@@ -89,16 +89,17 @@ var Room = {
     // FIXME: this does not work well for portrait mode cameras (mobile devices) and also in situations where the browser
     //        window has portrait mode dimensions
     updateMainVideo : function () {
-        var navHeight = $('nav.navbar').height();
+        var borderPad = $(document).height() - $(window).height();
+        var navHeight = $('nav.navbar').height() + borderPad;
 
         var width = $('#roomPageContainer').width();
         var height = this.heightFromWidth(width) - navHeight;
         
         if (height > $(window).height() - navHeight) {
-            height = $(window).height();
+            height = $(window).height() - navHeight;
             width = this.widthFromHeight(height);
         }
-
+        
         $('#mainStream').css('width', width + 'px');
         $('#mainStream').css('height', height + 'px');
     },

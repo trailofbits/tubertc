@@ -1,6 +1,7 @@
 body {
     padding-top: 50px;
     background: #333;
+    overflow: hidden;
 }
 
 div.logo {

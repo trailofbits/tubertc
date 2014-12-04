@@ -32,6 +32,26 @@ var Main = {
             showValidationStatus('#roomGroup', '#inputRoom');
         });
         
+        // Handles ENTER button behavior
+        $('#inputName').keypress(function (e) {
+            // Detect when ENTER button is pressed
+            if (e.which === 13) {
+                if (room !== null) {
+                    // Room is already populated because it is in the query string. Simulate click
+                    $('#inputButton').click();
+                } else {
+                    // Room is not populated, switch focus to inputRoom input
+                    $('#inputRoom').focus();
+                }
+            }
+        });
+        $('#inputRoom').keypress(function (e) {
+            // Detect when ENTER button is pressed
+            if (e.which === 13) {
+                $('#inputButton').click();
+            }
+        });
+
         // Main validation function for room name and name
         $('#inputButton').click(function () {
             var rawUserName = $('#inputName').val();
