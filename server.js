@@ -38,16 +38,16 @@ var serverPort = process.env.PORT || nconf.get('port') || 8080;
 
 // By default, HTTP is used
 var ssl = nconf.get('ssl');
-if (ssl === undefined) {
-    webServer = require('http').createServer(
-        tubertcApp
-    ).listen(serverPort);
-} else {
+if (ssl !== undefined && ssl.key !== undefined && ssl.cert !== undefined) {
     webServer = require('https').createServer(
         {
             key  : fs.readFileSync(ssl.key),
             cert : fs.readFileSync(ssl.cert)
         },
+        tubertcApp
+    ).listen(serverPort);
+} else {
+    webServer = require('http').createServer(
         tubertcApp
     ).listen(serverPort);
 }
