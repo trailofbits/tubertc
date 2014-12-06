@@ -14,8 +14,7 @@ var rtcRoomName = function (rawName) {
 var Main = {
     init : function (room) {
         var showValidationStatus = function (groupId, inputId) {
-            $(groupId).removeClass('has-success');
-            $(groupId).removeClass('has-error');
+            $(groupId).removeClass('has-success').removeClass('has-error');
 
             if ($(inputId).val().length > 0) {
                 $(groupId).addClass('has-success');
@@ -102,8 +101,7 @@ var Main = {
 
         // Populate the room field if a room parameter is parsed from query string
         if (room !== null) {
-            $('#inputRoom').val(room.displayName);
-            $('#inputRoom').attr('disabled', true);
+            $('#inputRoom').val(room.displayName).attr('disabled', true);
         }
     }
 };

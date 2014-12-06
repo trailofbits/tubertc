@@ -59,7 +59,7 @@ var VTC = {
         // We need to setup a callback handler for when the Room object needs to switch video sources for the 
         // main video screen. A callback is needed because the Room object should have no concept of the VTC
         // mechanisms used.
-        this.roomObj.setSwitchMainVideoHandler(function (id, peerVideoObj) {
+        this.roomObj.setSwitchVideoHandler(function (id, peerVideoObj) {
             if (vtcObj.peerStreamMap[id] !== undefined) {
                 easyrtc.setVideoObjectSrc(peerVideoObj.get(0), vtcObj.peerStreamMap[id]);
             } else {

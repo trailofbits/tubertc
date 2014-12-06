@@ -46,7 +46,7 @@ var Room = {
     // and the inner-VTC mechanisms
     muteButtonHandler : null,
     toggleCameraHandler : null,
-    switchMainVideoHandler : null,
+    switchVideoHandler : null,
     
     // Defines the default state of the camera and microphone
     cameraIsOn : true,
@@ -81,10 +81,19 @@ var Room = {
     //
     // FIXME: what happens if we have more than 11 callers + ourselves in a room?
     updatePeerPanel : function () {
-        // Subtract 2 from the calculated width for the 2px margin (see div.peerInfo's CSS margin setting)
-        var width = parseInt($(window).width() / 12) - 4;
-        var height = this.heightFromWidth(width);
-        
+        var width = 0;
+        var height = 0;
+
+        if (!this.isDashMode) {
+            // Subtract 2 from the calculated width for the 2px margin (see div.peerInfo's CSS margin setting)
+            width = parseInt($(window).width() / 12) - 4;
+            height = this.heightFromWidth(width);
+        } else {
+            // Bigger boxes for dash mode
+            width = parseInt($(window).width() / 4) - 4;
+            height = this.heightFromWidth(width);
+        }
+
         $('.peerVideo').css('width', width + 'px');
         $('.peerVideo').css('height', height + 'px');
     },
@@ -94,19 +103,22 @@ var Room = {
     // FIXME: this does not work well for portrait mode cameras (mobile devices) and also in situations where the browser
     //        window has portrait mode dimensions
     updateMainVideo : function () {
-        var borderPad = $(document).height() - $(window).height();
-        var navHeight = $('nav.navbar').height() + borderPad;
+        // Only update the main video dimensions if not in dash mode
+        if (!this.isDashMode) {
+            var borderPad = $(document).height() - $(window).height();
+            var navHeight = $('nav.navbar').height() + borderPad;
 
-        var width = $('#roomPageContainer').width();
-        var height = this.heightFromWidth(width) - navHeight;
-        
-        if (height > $(window).height() - navHeight) {
-            height = $(window).height() - navHeight;
-            width = this.widthFromHeight(height);
+            var width = $('#roomPageContainer').width();
+            var height = this.heightFromWidth(width) - navHeight;
+            
+            if (height > $(window).height() - navHeight) {
+                height = $(window).height() - navHeight;
+                width = this.widthFromHeight(height);
+            }
+            
+            $('#mainStream').css('width', width + 'px');
+            $('#mainStream').css('height', height + 'px');
         }
-        
-        $('#mainStream').css('width', width + 'px');
-        $('#mainStream').css('height', height + 'px');
     },
       
     // Initializes the button and svg icon's properties and callback handlers
@@ -138,6 +150,13 @@ var Room = {
             $(btnId).blur();
         });
     },
+    
+    // Initializes the main video stream and fades the item into view
+    initMainStream : function () {
+        var mainStream = $('<video id="mainStream" muted></video>').css('display', 'none');
+        $('#roomMainContent').append(mainStream);
+        mainStream.fadeIn();
+    },
 
     // Sets up page items such as the microphone/camera disable icon buttons and callback handlers for their click events
     setupPage : function (displayName) {
@@ -149,6 +168,9 @@ var Room = {
         // Update the UI to display the room's display name
         $('#roomName').text(displayName);
         
+        // Setup main stream
+        this.initMainStream();
+
         this.setupIconButton('#micToggleBtn', '#micIcon', {
             "size":          navBarTextHeight,
             "activeColor":   "#009966",
@@ -199,27 +221,40 @@ var Room = {
     addPeer : function (id, name, fn) {
         var peerVidObj = $('<video class="peerVideo"></video>');
         if (id === 'self') {
-            peerVidObj.addClass('easyrtcMirror');
-            peerVidObj.attr('muted', true);
+            peerVidObj.addClass('easyrtcMirror').attr('muted', true);
         }
 
-        var peerInfo = $('<div class="peerInfo"></div>');
-        peerInfo.append(peerVidObj);
-        peerInfo.append($('<div class="peerName">' + name + '</div>'));
-        peerInfo.css('display', 'none');
+        var peerInfo = $('<div class="peerInfo"></div>')
+            .append(peerVidObj)
+            .append($('<div class="peerName">' + name + '</div>'))
+            .css('display', 'none');
         
         // Setup the handler for when the peerInfo DIV element is clicked. This should switch the main video source to 
         // the clicked source.
         var roomObj = this;
         peerInfo.click(function () {
-            roomObj.setMainPeer(id, roomObj.switchMainVideoHandler);
+            // Only change the main video stream if not in dash mode
+            if (!roomObj.isDashMode) {
+                roomObj.setMainPeer(id, roomObj.switchVideoHandler);
+            }
         });
-
+        
         fn(peerVidObj);
         
-        $('#peerList').append(peerInfo);
+        if (!roomObj.isDashMode) {
+            // Only add to the peerList if not in dash mode
+            $('#peerList').append(peerInfo);
+        } else {
+            // XXX TODO: do other stuff in dash mode
+            // should add to main window instead
+        }
+
         this.updatePeerPanel();
-        peerInfo.fadeIn();
+        
+        // Only fadeIn if not in dashMode
+        if (!roomObj.isDashMode) {
+            peerInfo.fadeIn();
+        }
 
         this.peers[id] = peerInfo;
     },
@@ -250,8 +285,7 @@ var Room = {
     // Sets the main video stream to the video stream of the specified peerId. The function that does the actual video
     // source switching should be in a callback function.
     setMainPeer : function (id, fn) {
-        var mainStream = $('#mainStream');
-        mainStream.removeClass('easyrtcMirror');
+        var mainStream = $('#mainStream').removeClass('easyrtcMirror');
         fn(id, mainStream);
         if (id === 'self') {
             mainStream.addClass('easyrtcMirror');
@@ -260,32 +294,61 @@ var Room = {
     
     // Pops up a modal dialog element in the Room main page showing an error message for the user to acknowledge
     showError : function (title, message) {
-        var closeBtn = $('<button type="button" class="btn btn-lg btn-primary closeBtn">Close</button>');
-        closeBtn.click(function () {
+        var closeBtn = $('<button type="button" class="btn btn-lg btn-primary closeBtn">Close</button>').click(function () {
             $('.dialogBox').fadeOut();
         });
         
-        $('#modalDialog').html('<h2>' + title + '</h2><p>' + message + '</p>');
-        $('#modalDialog').append(closeBtn);
+        $('#modalDialog').html('<h2>' + title + '</h2><p>' + message + '</p>').append(closeBtn);
         $('.dialogBox').fadeIn();
     },
     
     // Pops up a modal dialog element in the Room main page showing attribution information. This is to credit the creators
     // of the microphone and camera icon.
     showCredits : function () {
-        var closeBtn = $('<button type="button" class="btn btn-lg btn-primary closeBtn">Close</button>');
-        closeBtn.click(function () {
+        var closeBtn = $('<button type="button" class="btn btn-lg btn-primary closeBtn">Close</button>').click(function () {
             $('.dialogBox').fadeOut();
         });
        
-        $('#modalDialog').html($('<h3>Credits</h3>' + attributionInfo));
-        $('#modalDialog').append(closeBtn);
+        $('#modalDialog').html($('<h3>Credits</h3>' + attributionInfo)).append(closeBtn);
         $('.dialogBox').fadeIn();
     },
     
+    // XXX TODO: do prep for entering dash mode such as removing peerVideo from peerList
+    enterDashMode : function () {
+        $('#mainStream').fadeOut();
+        for (var peerId in this.peers) {
+            var peer = this.peers[peerId].fadeOut().remove();
+            
+            // XXX: add new dash stuff
+        }
+        $('#mainStream').remove();
+        $('#roomPageContainer').css('display', 'none');
+    },
+    
+    // XXX TODO: return to normal mode by adding peerVideo to peerList
+    // XXX XXX BUG: if you click fast enough, this peer doesn't fadeIn
+    exitDashMode : function () {
+        $('#roomPageContainer').css('display', 'block');
+        this.initMainStream();
+
+        // FIXME: for now, return to the mode with the user's own videostream
+        this.setMainPeer('self', this.switchVideoHandler);
+        
+        for (var peerId in this.peers) {
+            var peer = this.peers[peerId].stop(true, true).fadeOut();
+            
+            // XXX: remove added dash elms
+            
+            var videoObj = peer.find('.peerVideo');
+            this.switchVideoHandler(peerId, videoObj);
+            $('#peerList').append(peer);
+            peer.stop(true, true).fadeIn();
+        }
+    },
+
     // Is used by the VTC object to set the easyrtc specific code to perform the following actions.
-    setSwitchMainVideoHandler : function (fn) {
-        this.switchMainVideoHandler = fn;
+    setSwitchVideoHandler : function (fn) {
+        this.switchVideoHandler = fn;
     },
     
     setMuteButtonHandler : function (fn) {
@@ -320,7 +383,11 @@ var Room = {
     // Handles when the user clicks the dash button.
     onToggleDashButton : function () {
         this.isDashMode = !this.isDashMode;
-        // XXX TODO: actually do stuff
+        if (this.isDashMode) {
+            this.enterDashMode();
+        } else {
+            this.exitDashMode();
+        }
         return this.isDashMode;
     },
 
