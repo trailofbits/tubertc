@@ -1,6 +1,9 @@
 /* Implements the multiparty video chatroom */
 // TODO: document me a bit more
 
+// Icon attribution information
+var attributionInfo = '<div>Icons made by <a href="http://www.icons8.com" title="Icons8">Icons8</a>, <a href="http://www.icomoon.io" title="Icomoon">Icomoon</a>, <a href="http://www.freepik.com" title="Freepik">Freepik</a>, and <a href="http://yanlu.de" title="Yannick">Yannick</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a></div>';
+
 // Replace all SVG images in the "dashboard" with inline SVGs (added a callback handler for when the replacements are complete)
 // (see http://stackoverflow.com/questions/11978995/how-to-change-color-of-svg-image-using-css-jquery-svg-image-replacement)
 var svgInject = function (fn) {
@@ -48,6 +51,8 @@ var Room = {
     // Defines the default state of the camera and microphone
     cameraIsOn : true,
     micIsOn : true,
+    chatModeEnabled : false,
+    isDashMode : false,
 
     // Calculates height per a given width for an aspectRatio
     heightFromWidth : function (width) {
@@ -103,12 +108,35 @@ var Room = {
         $('#mainStream').css('width', width + 'px');
         $('#mainStream').css('height', height + 'px');
     },
-    
-    // Initializes the icon button's size and color (green for active)
-    initIconButton : function (item, size) {
-        $(item).css('height', size);
-        $(item).css('width', size);
-        $(item).css('fill', '#00ff00');
+      
+    // Initializes the button and svg icon's properties and callback handlers
+    // The clickHandler function should return the current status of the button (true -> active, false -> inactive).
+    // For buttons with no concept of being active or inactive, the default is inactive. The clickHandler should always
+    // return false.
+    setupIconButton : function (btnId, iconId, config, clickHandler) {
+        $(iconId).css('width', config.size);
+        $(iconId).css('height', config.size);
+        
+        if (config.isActive) {
+            $(iconId).css('fill', config.activeColor);
+        } else {
+            $(iconId).css('fill', config.inactiveColor);
+        }
+
+        $(iconId).hover(function () {
+            $(iconId).css('opacity', '0.5');
+        }, function () {
+            $(iconId).css('opacity', '1');
+        });
+
+        $(btnId).click(function () {
+            if (clickHandler()) {
+                $(iconId).css('fill', config.activeColor);
+            } else {
+                $(iconId).css('fill', config.inactiveColor);
+            }
+            $(btnId).blur();
+        });
     },
 
     // Sets up page items such as the microphone/camera disable icon buttons and callback handlers for their click events
@@ -120,19 +148,42 @@ var Room = {
         
         // Update the UI to display the room's display name
         $('#roomName').text(displayName);
-
-        $('#micToggleBtn').click(function () {
-            roomObj.onToggleMicrophoneClick();
+        
+        this.setupIconButton('#micToggleBtn', '#micIcon', {
+            "size":          navBarTextHeight,
+            "activeColor":   "#009966",
+            "inactiveColor": "#cc0033",
+            "isActive":      true
+        }, function () {
+            return roomObj.onToggleMicrophoneClick();
         });
-        this.initIconButton('#micIcon', navBarTextHeight);
-
-        $('#cameraToggleBtn').click(function () {
-            roomObj.onToggleCameraClick();
+        this.setupIconButton('#cameraToggleBtn', '#cameraIcon', {
+            "size":          navBarTextHeight,
+            "activeColor":   "#009966",
+            "inactiveColor": "#cc0033",
+            "isActive":      true
+        }, function () {
+            return roomObj.onToggleCameraClick();
         });
-        this.initIconButton('#cameraIcon', navBarTextHeight);
-
-        $('#creditBtn').click(function () {
-            roomObj.onCreditBtnClick();
+        this.setupIconButton('#dashBtn', '#dashIcon', {
+            "size":          navBarTextHeight,
+            "activeColor":   "#009966",
+            "inactiveColor": "#cc0033"
+        }, function () {
+            return roomObj.onToggleDashButton();
+        });
+        this.setupIconButton('#chatBtn', '#chatIcon', {
+            "size":          navBarTextHeight,
+            "activeColor":   "#009966",
+            "inactiveColor": "#cc0033"
+        }, function () {
+            return roomObj.onToggleChatButton();
+        });
+        this.setupIconButton('#creditsBtn', '#creditsIcon', {
+            "size":          navBarTextHeight,
+            "inactiveColor": "#ccc"
+        }, function () {
+            return roomObj.onCreditBtnClick();
         });
 
         // Install a callback for every window resize event
@@ -227,8 +278,7 @@ var Room = {
             $('.dialogBox').fadeOut();
         });
        
-        $('#modalDialog').html($('<h3>Credits</h3><p>Icons made by Freepik from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> ' +
-                                 'is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a></p>'));
+        $('#modalDialog').html($('<h3>Credits</h3>' + attributionInfo));
         $('#modalDialog').append(closeBtn);
         $('.dialogBox').fadeIn();
     },
@@ -249,27 +299,34 @@ var Room = {
     // Handles when the user clicks the mute/unmute button
     onToggleMicrophoneClick : function () {
         this.micIsOn = !this.micIsOn;
-        if (this.micIsOn) {
-            $('#micIcon').css('fill', '#00ff00');
-        } else {
-            $('#micIcon').css('fill', '#ff0000');
-        }
         this.muteButtonHandler(this.micIsOn);
+        return this.micIsOn;
     },
     
-    // Handles when the user clicks the enable/disable camera button
+    // Handles when the user clicks the enable/disable camera button.
     onToggleCameraClick : function () {
         this.cameraIsOn = !this.cameraIsOn;
-        if (this.cameraIsOn) {
-            $('#cameraIcon').css('fill', '#00ff00');
-        } else {
-            $('#cameraIcon').css('fill', '#ff0000');
-        }
         this.toggleCameraHandler(this.cameraIsOn);
+        return this.cameraIsOn;
+    },
+    
+    // Handles when the user clicks the chat button.
+    onToggleChatButton : function () {
+        this.chatModeEnabled = !this.chatModeEnabled;
+        // XXX TODO: actually do stuff
+        return this.chatModeEnabled;
+    },
+
+    // Handles when the user clicks the dash button.
+    onToggleDashButton : function () {
+        this.isDashMode = !this.isDashMode;
+        // XXX TODO: actually do stuff
+        return this.isDashMode;
     },
 
     // Handle when user clicks the credits button
     onCreditBtnClick : function () {
         this.showCredits();
+        return false;
     }
 };

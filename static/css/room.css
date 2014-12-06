@@ -74,8 +74,20 @@ div#roomPageContainer {
 
 .dashBtn {
     cursor: pointer;
+    border: 0px;
+    padding: 0;
+    margin: 0;
+    background: #222;
 }
 
 .dashBtn img {
     display: none;
+}
+
+.notImplemented {
+    display: none;
+}
+
+.navbar-padding {
+    padding-left: 20px;
 }
