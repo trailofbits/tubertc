@@ -38,6 +38,12 @@ var Room = {
     // Our aspect ration is 4/3. This may not be always true, especially for mobile devices (such as any Android phone with a current 
     // version of Chrome in portrait mode)
     aspectRatio : 4/3,
+    
+    // When more than one row is required to layout the dash, this number specifies the ideal number of elements per row
+    idealDashPanelsPerRow : 4,
+
+    // This specifies the ideal width of the elements in a row
+    idealDashPanelWidth : 300,
 
     // Stores the peer's peerInfo DIV element so that we can remove and modify it easily
     peers : {},
@@ -48,7 +54,7 @@ var Room = {
     toggleCameraHandler : null,
     switchVideoHandler : null,
     
-    // Defines the default state of the camera and microphone
+    // Defines the default state of the camera, microphone, chat mode, dash mode
     cameraIsOn : true,
     micIsOn : true,
     chatModeEnabled : false,
@@ -76,10 +82,40 @@ var Room = {
         });
     },
     
+    // Determines the width of each element in the dash panel row. This heavily favors browser windows with a "squarish" disposition.
+    // Window sizes such that width >>> height will not work well.
+    //
+    // FIXME: perhaps fix this to be more adaptive to the browser window
+    determineDashPanelWidth : function () {
+        var elemsAcross = this.idealDashPanelsPerRow;
+        var width = 0;
+        var totalCallers = Object.keys(this.peers).length;
+
+        if (totalCallers < elemsAcross) {
+            // For layout purposes, our minimal layout should be 2 per row...
+            if (totalCallers == 1) {
+                totalCallers++;
+            }
+
+            // If the number of callers is less than the default elements per row, calculate the width just by that
+            width = parseInt($('#roomPageContainer').width() / totalCallers) - 4;
+        } else {
+            // Try 4, 3, 2 per row configs til the dash element width is 300 pixels or above
+            while (width < this.idealDashPanelWidth && elemsAcross > 1) {
+                width = parseInt($('#roomPageContainer').width() / elemsAcross) - 4;
+                elemsAcross -= 1;
+            }
+        }
+
+        return width;
+    },
+
     // Updates the peerInfo windows in peerList to be of a proper size relative to the window size. Currently, this size should
     // fit 12 peerInfo windows horizontally. This is called on every window resize operation.
     //
-    // FIXME: what happens if we have more than 11 callers + ourselves in a room?
+    // FIXME: what happens if we have more than X callers + ourselves in a room?
+    // FIXME: for dash mode, it is likely that a more adaptive layout is needed to handle a greater diversity of browser window
+    //        sizes
     updatePeerPanel : function () {
         var width = 0;
         var height = 0;
@@ -90,7 +126,7 @@ var Room = {
             height = this.heightFromWidth(width);
         } else {
             // Bigger boxes for dash mode
-            width = parseInt($(window).width() / 4) - 4;
+            width = this.determineDashPanelWidth();
             height = this.heightFromWidth(width);
         }
 
@@ -168,7 +204,6 @@ var Room = {
         // Update the UI to display the room's display name
         $('#roomName').text(displayName);
         
-        // Setup main stream
         this.initMainStream();
 
         this.setupIconButton('#micToggleBtn', '#micIcon', {
@@ -214,7 +249,19 @@ var Room = {
             roomObj.updateMainVideo();
         });
     },
-    
+
+    // Setup the handler for when the peerInfo DIV element is clicked. This should switch the main video source to 
+    // the clicked source.
+    addPeerInfoClickHandler : function (id, peerInfo) {
+        var roomObj = this;
+        peerInfo.click(function () {
+            // Only change the main video stream if not in dash mode
+            if (!roomObj.isDashMode) {
+                roomObj.setMainPeer(id, roomObj.switchVideoHandler);
+            }
+        });
+    },
+
     // Adds a new peerInfo UI object to the peerList and invokes a caller provided callback (mostly for VTC to switch
     // video sources). We also add the newly created peerInfo DIV into a dictionary (peers) that maps peerIds to peerInfo
     // DIV elements.
@@ -229,34 +276,22 @@ var Room = {
             .append($('<div class="peerName">' + name + '</div>'))
             .css('display', 'none');
         
-        // Setup the handler for when the peerInfo DIV element is clicked. This should switch the main video source to 
-        // the clicked source.
-        var roomObj = this;
-        peerInfo.click(function () {
-            // Only change the main video stream if not in dash mode
-            if (!roomObj.isDashMode) {
-                roomObj.setMainPeer(id, roomObj.switchVideoHandler);
-            }
-        });
-        
+        this.addPeerInfoClickHandler(id, peerInfo);
+
         fn(peerVidObj);
         
-        if (!roomObj.isDashMode) {
-            // Only add to the peerList if not in dash mode
+        if (!this.isDashMode) {
             $('#peerList').append(peerInfo);
         } else {
-            // XXX TODO: do other stuff in dash mode
-            // should add to main window instead
+            peerInfo.css('cursor', 'initial')
+                .css('float', 'left');
+            $('#roomPageContainer').append(peerInfo);
         }
+        
+        this.peers[id] = peerInfo;
 
         this.updatePeerPanel();
-        
-        // Only fadeIn if not in dashMode
-        if (!roomObj.isDashMode) {
-            peerInfo.fadeIn();
-        }
-
-        this.peers[id] = peerInfo;
+        peerInfo.fadeIn();
     },
     
     // Updates the peerName DIV text with the actual user's display name. This is used for scenarios where the video
@@ -280,6 +315,10 @@ var Room = {
             // FIXME: should this case ever exist?
             console.log(id + ' does not exist in Room.peers!');
         }
+
+        // This forces an update of the dash elements when dash mode is enabled. If this is not here, the layout will
+        // not change until a window resize event.
+        this.updatePeerPanel();
     },
     
     // Sets the main video stream to the video stream of the specified peerId. The function that does the actual video
@@ -313,35 +352,63 @@ var Room = {
         $('.dialogBox').fadeIn();
     },
     
-    // XXX TODO: do prep for entering dash mode such as removing peerVideo from peerList
+    // Prepares the DOM for entering dash mode.
     enterDashMode : function () {
+        // Remove the main video stream by hiding it from view
         $('#mainStream').fadeOut();
-        for (var peerId in this.peers) {
-            var peer = this.peers[peerId].fadeOut().remove();
-            
-            // XXX: add new dash stuff
-        }
-        $('#mainStream').remove();
-        $('#roomPageContainer').css('display', 'none');
-    },
-    
-    // XXX TODO: return to normal mode by adding peerVideo to peerList
-    // XXX XXX BUG: if you click fast enough, this peer doesn't fadeIn
-    exitDashMode : function () {
-        $('#roomPageContainer').css('display', 'block');
-        this.initMainStream();
 
-        // FIXME: for now, return to the mode with the user's own videostream
-        this.setMainPeer('self', this.switchVideoHandler);
+        // Change the float behavior so that new screens are added to the right.
+        // Since the panels are not clickable, the cursor should reflect this.
+        $('.peerInfo').css('cursor', 'initial')
+            .css('float', 'left');
         
         for (var peerId in this.peers) {
-            var peer = this.peers[peerId].stop(true, true).fadeOut();
-            
-            // XXX: remove added dash elms
-            
+            // Remove each of the peerInfos in peerList
+            var peer = this.peers[peerId].stop(true, true).fadeOut().remove();
             var videoObj = peer.find('.peerVideo');
+            
+            // Add the peerInfo to the main room container and update its size and video source
+            $('#roomPageContainer').append(peer);
+            this.updatePeerPanel();
             this.switchVideoHandler(peerId, videoObj);
+            peer.stop(true, true).fadeIn();
+        }
+        $('#mainStream').remove();
+        $('#roomMainContent').css('display', 'none');
+    },
+    
+    // Prepares the DOM for exiting dash mode.
+    exitDashMode : function () {
+        $('#roomMainContent').css('display', 'block');
+
+        // Readd the main video stream
+        this.initMainStream();
+
+        // Since non-dash mode peerInfos need to be clickable in order to change video source, mark
+        // it as such. Also, we want our original layout back.
+        $('.peerInfo').css('cursor', 'pointer')
+            .css('float', 'right');
+
+        // FIXME: for now, return to the mode with the user's own videostream
+        //
+        // Set the main video stream and update its size
+        this.setMainPeer('self', this.switchVideoHandler);
+        this.updateMainVideo();
+
+        for (var peerId in this.peers) {
+            // Hide and remove the dash mode peerInfo items
+            var peer = this.peers[peerId].stop(true, true).fadeOut().remove();
+            
+            // Set the video sources for the peerInfo object
+            var videoObj = peer.find('.peerVideo');
             $('#peerList').append(peer);
+            this.updatePeerPanel();
+            this.switchVideoHandler(peerId, videoObj);
+            
+            // Removing and readding DOM objects affect their event handlers. Since we need click() to be
+            // registered in order to have a mechanism for changing the main video stream source, we need
+            // to redefine the click() event handler.
+            this.addPeerInfoClickHandler(peerId, peer);
             peer.stop(true, true).fadeIn();
         }
     },
