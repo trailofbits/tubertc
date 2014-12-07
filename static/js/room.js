@@ -106,11 +106,11 @@ var Room = {
             }
 
             // If the number of callers is less than the default elements per row, calculate the width just by that
-            width = parseInt($('#roomPageContainer').width() / totalCallers) - 4;
+            width = parseInt($('#roomPageContainer').width() / totalCallers) - 8;
         } else {
             // Try 4, 3, 2 per row configs til the dash element width is 300 pixels or above
             while (width < this.idealDashPanelWidth && elemsAcross > 1) {
-                width = parseInt($('#roomPageContainer').width() / elemsAcross) - 4;
+                width = parseInt($('#roomPageContainer').width() / elemsAcross) - 8;
                 elemsAcross -= 1;
             }
         }
@@ -142,10 +142,14 @@ var Room = {
         $('.peerVideo').css('height', height + 'px');
     },
     
-    // Updates the chat pane's height
+    // Updates the chat pane's height using the window's height minus navbar height
     updateChatPaneHeight : function () {
+        var borderPad = $(document).height() - $(window).height();
+        var navHeight = $('nav.navbar').height() + borderPad;
+        var windowHeight = $(window).height() - navHeight;
+
         if (this.chatModeEnabled) {
-            var chatPaneHeight = $('#roomPageContainer').height();
+            var chatPaneHeight = windowHeight;
             $('#chatPane').css('height', chatPaneHeight + 'px');
 
             var sendMsgHeight = $('#sendMsgField').height();
@@ -162,7 +166,7 @@ var Room = {
         if (!this.isDashMode) {
             var borderPad = $(document).height() - $(window).height();
             var navHeight = $('nav.navbar').height() + borderPad;
-
+            
             var width = $('#roomPageContainer').width();
             var height = this.heightFromWidth(width) - navHeight;
             
@@ -171,6 +175,8 @@ var Room = {
                 width = this.widthFromHeight(height);
             }
             
+            console.log('setting to ' + width + 'x' + height);
+        
             $('#mainStream').css('width', width + 'px');
             $('#mainStream').css('height', height + 'px');
         }
@@ -207,10 +213,10 @@ var Room = {
     },
     
     // Initializes the main video stream and fades the item into view
-    initMainStream : function () {
+    initMainStream : function (fn) {
         var mainStream = $('<video id="mainStream" muted></video>').css('display', 'none');
         $('#roomMainContent').append(mainStream);
-        mainStream.fadeIn();
+        mainStream.fadeIn(fn);
     },
     
     // Sets up the chat pane event handlers
@@ -439,21 +445,14 @@ var Room = {
     
     // Prepares the DOM for exiting dash mode.
     exitDashMode : function () {
-        $('#roomMainContent').css('display', 'block');
+        var roomObj = this;
 
-        // Readd the main video stream
-        this.initMainStream();
+        $('#roomMainContent').css('display', 'block');
 
         // Since non-dash mode peerInfos need to be clickable in order to change video source, mark
         // it as such. Also, we want our original layout back.
         $('.peerInfo').css('cursor', 'pointer')
             .css('float', 'right');
-
-        // FIXME: for now, return to the mode with the user's own videostream
-        //
-        // Set the main video stream and update its size
-        this.setMainPeer('self', this.switchVideoHandler);
-        this.updateMainVideo();
 
         for (var peerId in this.peers) {
             // Hide and remove the dash mode peerInfo items
@@ -471,6 +470,15 @@ var Room = {
             this.addPeerInfoClickHandler(peerId, peer);
             peer.stop(true, true).fadeIn();
         }
+
+         // Prepare the main video stream, the function gets executed after the fadeIn animation
+        this.initMainStream(function () {
+            // FIXME: for now, return to the mode with the user's own videostream
+            //
+            // Set the main video stream and update its size
+            roomObj.setMainPeer('self', roomObj.switchVideoHandler);
+            roomObj.updateMainVideo();            
+        });       
     },
 
     // Uses jQuery to encode HTML characters for safety
@@ -497,13 +505,22 @@ var Room = {
             .done(function () {
                 $('#chatPane').css('width', '25%')
                     .fadeIn(function () {
-                        roomObj.updateChatPaneHeight();   
+                        // updatePeerPanel() is called first to fix up the dash elements in dash mode.
+                        // Anything needing to use $(document).height() should be executed afterwards.
+                        roomObj.updatePeerPanel();
+                        roomObj.updateMainVideo();
+                        
+                        // This needs to be last because updatePeerPanel in dash mode might have to fix
+                        // layout issues. If this is called prior, the document's height will be grossly
+                        // large and mess up roomObj.updateMainVideo()
+                        roomObj.updateChatPaneHeight();
                     });
             });
     },
 
     // Removes the chat pane
     hideChatPane : function () {
+        var roomObj = this;
         $('#chatPane').fadeOut(function () {
             $('#chatPane').css('width', '0%');
 
@@ -511,6 +528,8 @@ var Room = {
                 .promise()
                 .done(function () {
                     $('#roomPageContainer').css('float', 'inherit');  
+                    roomObj.updatePeerPanel();
+                    roomObj.updateMainVideo();
                 });
         });
     },
