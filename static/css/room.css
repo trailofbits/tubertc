@@ -91,3 +91,24 @@ div#roomPageContainer {
 .navbar-padding {
     padding-left: 20px;
 }
+
+#chatPane {
+    display: none;
+    float: left;
+    background: #fff;
+    border-right: 10px solid #222;
+}
+
+#chatHistory {
+    overflow-y: scroll;
+    /* FIXME: do this for long inputs? */
+    word-wrap: break-word;
+}
+
+#sendMsgField {
+    border: 0px;
+    width: 100%;
+    padding: 0;
+    background: #eee;
+    font-size: 14pt;
+}

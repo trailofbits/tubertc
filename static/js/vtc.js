@@ -76,6 +76,11 @@ var VTC = {
         this.roomObj.setToggleCameraHandler(function (turnOn) { 
             easyrtc.enableCamera(turnOn);
         });
+        this.roomObj.setSendChatMessageHandler(function (room, content) {
+            easyrtc.sendDataWS({
+                "targetRoom" : room
+            }, 'chat', content);
+        });
 
         // Set the handler for listening to control messages (and possibly chat)
         easyrtc.setPeerListener(function (peerId, msgType, content) {
@@ -158,6 +163,9 @@ var VTC = {
                     }
                 }
             }
+        } else if (msgType === "chat") {
+            // Handles chat room messages
+            this.roomObj.addChatMessage(content);
         }
     },
     

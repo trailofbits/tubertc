@@ -35,6 +35,10 @@ var svgInject = function (fn) {
 
 // Handles the UI aspects of the Room
 var Room = {
+    // Stores our name and username
+    name : null,
+    userName : null,
+
     // Our aspect ration is 4/3. This may not be always true, especially for mobile devices (such as any Android phone with a current 
     // version of Chrome in portrait mode)
     aspectRatio : 4/3,
@@ -53,7 +57,8 @@ var Room = {
     muteButtonHandler : null,
     toggleCameraHandler : null,
     switchVideoHandler : null,
-    
+    sendChatMessage : null,
+
     // Defines the default state of the camera, microphone, chat mode, dash mode
     cameraIsOn : true,
     micIsOn : true,
@@ -74,6 +79,9 @@ var Room = {
     init : function (userName, displayName, roomName) {
         $('.roomPage').fadeIn();
         
+        this.name = roomName;
+        this.userName = userName;
+
         // Replace all the image SVGs (namely the icon for microphone and camera) with inline SVGs so we can change their color.
         // Only when the operation is complete do we setup the page.
         var roomObj = this;
@@ -134,6 +142,17 @@ var Room = {
         $('.peerVideo').css('height', height + 'px');
     },
     
+    // Updates the chat pane's height
+    updateChatPaneHeight : function () {
+        if (this.chatModeEnabled) {
+            var chatPaneHeight = $('#roomPageContainer').height();
+            $('#chatPane').css('height', chatPaneHeight + 'px');
+
+            var sendMsgHeight = $('#sendMsgField').height();
+            $('#chatHistory').css('height', (chatPaneHeight - sendMsgHeight) + 'px');
+        }
+    },
+
     // Updates the main video screen to fit the main page content container.
     //
     // FIXME: this does not work well for portrait mode cameras (mobile devices) and also in situations where the browser
@@ -193,6 +212,44 @@ var Room = {
         $('#roomMainContent').append(mainStream);
         mainStream.fadeIn();
     },
+    
+    // Sets up the chat pane event handlers
+    setupChatPane : function () {
+        var roomObj = this;
+        var defaultText = 'Type message here...';
+
+        // Show a default message when the input state is empty
+        $('#sendMsgField').blur(function () {
+            var msgText = $.trim($('#sendMsgField').val());
+            if (msgText.length === 0) {
+                $('#sendMsgField').css('font-style', 'italic')
+                    .val(defaultText);
+            }
+        })
+        .focus(function () {
+            var msgText = $.trim($('#sendMsgField').val());
+            if (msgText === defaultText || msgText.length === 0) {
+                $('#sendMsgField').css('font-style', 'normal')
+                    .val('');
+            }
+        });
+
+        $('#sendMsgField').keypress(function (e) {
+            // Handles the ENTER key so that we can submit a chat message
+            if (e.which === 13) {
+                var msgText = $('#sendMsgField').val();
+                var content = {
+                    "user" : roomObj.userName,
+                    "message" : msgText
+                };
+                roomObj.sendChatMessage(roomObj.name, content);
+
+                // Also show our own text
+                roomObj.addChatMessage(content);
+                $('#sendMsgField').val('').focus();
+            }
+        });
+    },
 
     // Sets up page items such as the microphone/camera disable icon buttons and callback handlers for their click events
     setupPage : function (displayName) {
@@ -242,11 +299,14 @@ var Room = {
         }, function () {
             return roomObj.onCreditBtnClick();
         });
+        
+        this.setupChatPane();
 
         // Install a callback for every window resize event
         $(window).resize(function () {
             roomObj.updatePeerPanel();
             roomObj.updateMainVideo();
+            roomObj.updateChatPaneHeight();
         });
     },
 
@@ -413,6 +473,53 @@ var Room = {
         }
     },
 
+    // Uses jQuery to encode HTML characters for safety
+    htmlEncode : function (val) {
+        return $('<div/>').html(val).text();
+    },
+
+    // This is usually called by VTC or the local client to add to chatHistory
+    addChatMessage : function (content) {
+        var userName = this.htmlEncode(content.user);
+        var msgText = this.htmlEncode(content.message);
+
+        // FIXME XXX: make this more fancy?
+        $('#chatHistory').append($('<b>' + userName + '</b>: ' + msgText + '<br>'))
+            .animate({"scrollTop" : $(document).height()}, 'slow');
+    },
+
+    // Sets up the chat pane for room-wide conversation
+    showChatPane : function () {
+        var roomObj = this;
+        $('#roomPageContainer').css('float', 'right')
+            .animate({"width" : "-=30%"})
+            .promise()
+            .done(function () {
+                $('#chatPane').css('width', '25%')
+                    .fadeIn(function () {
+                        roomObj.updateChatPaneHeight();   
+                    });
+            });
+    },
+
+    // Removes the chat pane
+    hideChatPane : function () {
+        $('#chatPane').fadeOut(function () {
+            $('#chatPane').css('width', '0%');
+
+            $('#roomPageContainer').animate({"width" : "+=30%"})
+                .promise()
+                .done(function () {
+                    $('#roomPageContainer').css('float', 'inherit');  
+                });
+        });
+    },
+    
+    // For sending chat messages to the room
+    setSendChatMessageHandler : function (fn) {
+        this.sendChatMessage = fn;
+    },
+
     // Is used by the VTC object to set the easyrtc specific code to perform the following actions.
     setSwitchVideoHandler : function (fn) {
         this.switchVideoHandler = fn;
@@ -443,7 +550,11 @@ var Room = {
     // Handles when the user clicks the chat button.
     onToggleChatButton : function () {
         this.chatModeEnabled = !this.chatModeEnabled;
-        // XXX TODO: actually do stuff
+        if (this.chatModeEnabled) {
+            this.showChatPane();
+        } else {
+            this.hideChatPane();
+        }
         return this.chatModeEnabled;
     },
 
