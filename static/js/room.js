@@ -483,7 +483,7 @@ var Room = {
 
     // Uses jQuery to encode HTML characters for safety
     htmlEncode : function (val) {
-        return $('<div/>').html(val).text();
+        return val.replace(/[^\w\s]/gi, '');
     },
 
     // This is usually called by VTC or the local client to add to chatHistory
