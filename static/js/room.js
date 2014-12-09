@@ -64,6 +64,12 @@ var Room = {
     micIsOn : true,
     chatModeEnabled : false,
     isDashMode : false,
+    
+    // Denotes the whether setupPage has been run yet
+    pageIsSetup : false,
+    
+    // Events that need to be handled upon page setup (mainly for making sure icons are in correct state)
+    setupPageEventQueue : [],
 
     // Calculates height per a given width for an aspectRatio
     heightFromWidth : function (width) {
@@ -90,6 +96,22 @@ var Room = {
         });
     },
     
+    toggleCameraButton : function () {
+        if (this.pageIsSetup) {
+            $('#cameraToggleBtn').click();
+        } else {
+            this.setupPageEventQueue.push({
+                "event" : "click",
+                "id"    : "#cameraToggleBtn"
+            });
+            this.setupPageEventQueue.push({
+                "event"           : "unbind",
+                "id"              : "#cameraToggleBtn",
+                "unbindEventType" : "click"
+            });
+        }
+    },
+
     // Determines the width of each element in the dash panel row. This heavily favors browser windows with a "squarish" disposition.
     // Window sizes such that width >>> height will not work well.
     //
@@ -175,8 +197,6 @@ var Room = {
                 width = this.widthFromHeight(height);
             }
             
-            console.log('setting to ' + width + 'x' + height);
-        
             $('#mainStream').css('width', width + 'px');
             $('#mainStream').css('height', height + 'px');
         }
@@ -314,6 +334,23 @@ var Room = {
             roomObj.updateMainVideo();
             roomObj.updateChatPaneHeight();
         });
+        
+        // Dispatch events queued
+        while (this.setupPageEventQueue.length > 0) {
+            var eventDesc = this.setupPageEventQueue.shift();
+
+            // Support for 'click' and 'unbind' events
+            if (eventDesc.event === 'click') {
+                $(eventDesc.id).click();
+            } else if (eventDesc.event === 'unbind') {
+                $(eventDesc.id).unbind(eventDesc.unbindEventType);
+            } else {
+                // FIXME: unknown event
+                console.log(eventDesc);
+            }
+        }
+        
+        this.pageIsSetup = true;
     },
 
     // Setup the handler for when the peerInfo DIV element is clicked. This should switch the main video source to 

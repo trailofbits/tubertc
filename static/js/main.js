@@ -55,7 +55,8 @@ var Main = {
         $('#inputButton').click(function () {
             var rawUserName = $('#inputName').val();
             var rawRoomName = $('#inputRoom').val();
-            
+            var enableCamera = $('#enableCamera').prop('checked');
+
             if (rawUserName.length === 0) {
                 showValidationStatus('#nameGroup', '#inputName');
                 $('#inputName').focus();
@@ -92,7 +93,7 @@ var Main = {
                 }
 
                 Room.init(userName, roomDisplayName, roomName);
-                VTC.init(userName, roomName, Room);
+                VTC.init(userName, roomName, Room, enableCamera);
 
                 // Change the browser's URL bar so that people can use the URL to give out as invite links
                 history.pushState({}, '', '/?room=' + escape(roomDisplayName));

@@ -15,10 +15,21 @@ var VTC = {
     deferredJoin : {},
     
     // VTC entry point
-    init : function (userName, roomName, roomObj) {
+    init : function (userName, roomName, roomObj, enableVideo) {
         this.roomObj = roomObj;
         this.userName = userName;
         
+        // Disable the video stream for users who do not wish to automatically enable video stream
+        //
+        // FIXME: I think ideally, this is element should be removed for a unified interface similar to 
+        //        Google Hangouts. The navbar should ideally stay where it is at and an user can click
+        //        the camera/microphone toggle button prior to "sign in" to disable video/audio for the
+        //        chat session. For now, this checkbox is "good enough".
+        if (!enableVideo) {
+            easyrtc.enableVideo(false);
+            roomObj.toggleCameraButton();
+        }
+
         // This is mostly for easyrtc.easyApp() and probably not needed (I think)
         easyrtc.dontAddCloseButtons(true);
         
@@ -27,7 +38,7 @@ var VTC = {
         easyrtc.joinRoom(roomName, null, null, null);
 
         this.setupCallbacks();
-                
+        
         easyrtc.initMediaSource(function () {
             // Our own videostream will be a member of the peerList as well. It will be mapped with the name
             // "self" for ease-of-use.
