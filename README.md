@@ -12,6 +12,7 @@ Peer-to-peer video chat that works. It's tuber-time!
 
 ## Anti-Features
 * Does not require client software
+* Does not require a Google+ account
 * Does not send video stream through a 3rd party
 * Does not spike your CPU at 100% utilization
 
@@ -32,8 +33,8 @@ cd tubertc
 heroku create --http-git
 git push heroku master
 heroku ps:scale web=1
-heroku open
 heroku logs --tail
+heroku open
 ```
 
 ## Configuration
