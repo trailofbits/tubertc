@@ -24,7 +24,7 @@ Peer-to-peer video chat that works. It's tuber-time!
 * [NodeJS](http://nodejs.org/)
 
 ## Install to Heroku
-tubertc supports Heroku as a demonstration platform. Deployment can be done via the one-click [Deploy to Heroku](https://heroku.com/deploy?template=https://github.com/heroku/node-js-sample) button or the commands below:
+tubertc supports Heroku as a demonstration platform. Deployment can be done via the one-click [Deploy to Heroku](https://heroku.com/deploy?template=https://github.com/trailofbits/tubertc) button or the commands below:
 
 ```
 heroku login
@@ -33,8 +33,8 @@ cd tubertc
 heroku create --http-git
 git push heroku master
 heroku ps:scale web=1
-heroku logs --tail
 heroku open
+heroku logs --tail
 ```
 
 ## Configuration
