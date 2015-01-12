@@ -18,11 +18,6 @@ nconf.argv()
 
 // Web application setup (for setting up routes)
 var tubertcApp = express();
-var router = express.Router();
-
-// TODO: setup application routes here
-tubertcApp.use('/', router);
-tubertcApp.use(express.static(__dirname + "/static/"));
 
 // Setup web servers according to configuration file
 
@@ -32,6 +27,9 @@ var debugMode = nconf.get('debug');
 if (debugMode === undefined) {
     debugMode = true;
 }
+
+// TODO: setup application routes here
+tubertcApp.use('/', express.static(__dirname + "/static/"));
 
 // By default the listening server port is 8080 unless set by nconf or Heroku
 var serverPort = process.env.PORT || nconf.get('port') || 8080;

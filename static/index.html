@@ -1,87 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        
-        <title> tubertc </title>
-
-        <link href="/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/css/room.css" rel="stylesheet">
-        <link href="/css/main.css" rel="stylesheet">
-        <link href="/easyrtc/easyrtc.css" rel="stylesheet">
-
+        <title> </title>
+        <link rel="stylesheet" type="text/css" href="/css/min.css">
+        <link rel="stylesheet" type="text/css" href="/css/app.css">
+        <link rel="stylesheet" type="text/css" href="/css/chat.css">
     </head>
     <body>
-        <nav class="navbar navbar-inverse navbar-fixed-top roomPage" role="navigation">
-            <div class="container">
-                <div class="navbar-header">
-                    <span id="roomName" class="navbar-brand"></span>
-                </div>
-                
-                <div class="navbar-padding navbar-header">
-                &nbsp;
-                </div>
-
-                <div class="navbar-header">
-                    <span class="navbar-brand">
-                        <button class="dashBtn" id="micToggleBtn"><img class="svg" src="/images/mic.svg" alt="[microphone]"></button>
-                        <button class="dashBtn" id="cameraToggleBtn"><img class="svg" src="/images/camera.svg" alt="[camera]"></button>
-                        <button class="dashBtn staticBtn" id="dashBtn"><img class="svg" src="/images/dash.svg" alt="[dashboard]"></button>
-                        <button class="dashBtn staticBtn" id="chatBtn"><img class="svg" src="/images/chat.svg" alt="[chat]"></button>
-                        <button class="dashBtn staticBtn" id="creditsBtn"><img class="svg" src="/images/credits.svg" alt="[credits]"></button>
-                    </span>
-                </div>
-            </div>
-        </nav>
-        
-        <div id="chatPane">
-            <div id="chatHistory">
-            </div>
-            <input type="text" id="sendMsgField">
-        </div>
-        
-        <div id="roomPageContainer" class="container roomPage">
-            <div id="roomMainContent" class="mainContent">
-            </div>
-        </div>
-        
-        <div id="peerList" class="peerPanel roomPage">
-        </div>
-        
-        <div class="maskOverlay dialogBox"></div>
-        <div id="modalDialog" class="modalContent dialogBox">
-        </div>
-
-        <div id="mainPage" class="container">
+        <div class="mainPanel">
             <div class="logo">
-                tubertc
+                <img src="/images/logo.svg" alt="[tubertc]">
             </div>
-            <form class="form-signin" role="form">
-                <div id="nameGroup" class="form-group">
-                    <label for="inputName" class="sr-only">Name</label>
-                    <input type="text" id="inputName" class="form-control" placeholder="Name" required autofocus>
+            <div class="dashboardCenterer">
+                <div class="dashboardBar">
+                    <button><img src="/images/camera.svg" alt="[camera]"></button>
+                    <button><img src="/images/mic.svg" alt="[mic]"></button>
+                    <button><img src="/images/dash.svg" alt="[dashboard]"></button>
+                    <button><img src="/images/credits.svg" alt="[attr]"></button>
                 </div>
-                <div id="roomGroup" class="form-group">
-                    <label for="inputRoom" class="sr-only">Room</label>
-                    <input type="text" id="inputRoom" class="form-control" placeholder="Room" required>
+            </div>
+            <div class="roomName">
+                <strong>{roomname}</strong>
+            </div>
+        </div>
+        <div class="sidePanel">
+            <div class="sidePanelContent">
+                <div class="chatHistoryPane">
+
                 </div>
-                <div id="optionGroup" class="form-group">
-                    <label>
-                        <input type="checkbox" id="enableCamera" value="enable-camera" checked>
-                        Enable Camera
-                    </label>
+                <div class="chatControlPane">
+
                 </div>
-                <button id="inputButton" class="btn btn-lg btn-primary btn-block" type="button">Go</button>
-            </form>
+            </div>
         </div>
 
-        <script src="/js/jquery-2.1.1.min.js"></script>
-        <script src="/js/bootstrap.min.js"></script>
-        <script src="/easyrtc/easyrtc.js"></script>
-        <script src="/socket.io/socket.io.js"></script>
-        <script src="/js/vtc.js"></script>
-        <script src="/js/room.js"></script>
-        <script src="/js/main.js"></script>
+        <script type="text/javascript" src="/js/jquery-2.1.3.min.js"></script>
+        <script type="text/javascript" src="/js/handlebars-v2.0.0.js"></script>
     </body>
 </html>
