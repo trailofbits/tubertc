@@ -12,6 +12,12 @@ var Dialog = {
         $('#modalDialogTitle').text(title);
         $('#modalDialogContent').html(content);
     },
+    
+    _centerVertically : function () {
+        // The subtract 15 comes from the padding property of #modalDialog
+        var newTop = (($(window).height() / 2) - ($('#modalDialog').height() / 2) - 15) + 'px';
+        $('#modalDialog').css('top', newTop);
+    },
 
     /* Parameters:
      *   config - an Object that contains the following properties:
@@ -40,6 +46,7 @@ var Dialog = {
 
             $('.appPage').css('pointer-events', 'none');
             
+            Dialog._centerVertically();
             $('#modalDialog').fadeIn();
         }
     }
@@ -51,7 +58,8 @@ $('#modalDialogClose').click(function () {
         $('#modalDialog').fadeOut(function () {
             var config = Dialog._queued.shift();
             Dialog._setDialogContent(config.title, config.content);
-
+            
+            Dialog._centerVertically();
             $('#modalDialog').fadeIn();
         });
     } else {
@@ -62,6 +70,5 @@ $('#modalDialogClose').click(function () {
 });
 
 $(window).resize(function () {
-    var newTop = ($(window).height() / 2 - $('#modalDialog').height() / 2) + 'px';
-    $('#modalDialog').css('top', newTop);
+    Dialog._centerVertically();
 });
