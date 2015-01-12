@@ -1,0 +1,90 @@
+body {
+    background-color: #383838;
+    overflow: hidden;
+}
+
+.mainPanel {
+    position: absolute;
+    float: left;
+    height: 100vh;
+    width: 80vw;
+}
+
+.logo {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+}
+
+.logo img {
+    height: 5vmin;
+}
+
+.dashboardCenterer {
+    display: block;
+    position: absolute;
+    left: 50%;
+}
+
+.dashboardBar {
+    position: relative;
+    padding: 5px 5px 5px 5px;
+    top: 5px;
+    left: -50%;
+
+    /* This value is derived from the height of ".dashboardBar button" which is dependent on
+     * ".dashboardBar img". In this example, ".dashboardBar button"'s height is 35px. This means
+     * the height value below should also be 35px.
+     *
+     * FIXME: is there a way to make this relationship explicit in CSS as oppose to be done manually
+     *        or via JavaScript?
+     */
+    height: 35px;
+
+    border-radius: 5px;
+    background-color: #202020;
+}
+
+.dashboardBar img {
+    /* WARNING: If this value is modified, be sure to update the height attribute for 
+     *          ".dashboardBar button" and also ".dashbaordBar"
+     */
+    height: 30px;
+
+    width: 25px;
+}
+
+.dashboardBar button {
+    display: block;
+    float: left;
+    border: 0px;
+    background: #202020;
+    outline: none;
+
+    /* This value depends on ".dashboardBar img"'s height attribute and also propagates to
+     * ".dashboardBar"'s height attribute. If modified, be sure to update ".dashboardBar"'s 
+     * height attribute as well.
+     */
+    height: 35px;
+}
+
+.roomName {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #e0e0e0;
+}
+
+.sidePanel {
+    float: right;
+    height: 100vh;
+    width: 20vw;
+}
+
+.sidePanelContent {
+    padding: 5px 5px 5px 5px;
+    width: 100%;
+    height: 100vh;
+    background: #ffffff;
+}
+
