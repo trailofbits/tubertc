@@ -22,20 +22,21 @@ body {
     height: 5vmin;
 }
 
-.dashboardCenterer {
+.navCenterer {
     display: block;
     position: absolute;
     left: 50%;
 }
 
-.dashboardBar {
+.navBar {
     position: relative;
+    display: none;
     padding: 5px 5px 5px 5px;
     top: 5px;
     left: -50%;
 
-    /* This value is derived from the height of ".dashboardBar button" which is dependent on
-     * ".dashboardBar img". In this example, ".dashboardBar button"'s height is 35px. This means
+    /* This value is derived from the height of ".navBar button" which is dependent on
+     * ".navBar img". In this example, ".navBar button"'s height is 35px. This means
      * the height value below should also be 35px.
      *
      * FIXME: is there a way to make this relationship explicit in CSS as oppose to be done manually
@@ -47,24 +48,24 @@ body {
     background-color: #202020;
 }
 
-.dashboardBar img {
+.navBar img, svg {
+    width: 25px;
+
     /* WARNING: If this value is modified, be sure to update the height attribute for 
-     *          ".dashboardBar button" and also ".dashbaordBar"
+     *          ".navBar button" and also ".navBar"
      */
     height: 30px;
-
-    width: 25px;
 }
 
-.dashboardBar button {
+.navBar button {
     display: block;
     float: left;
     border: 0px;
     background: #202020;
     outline: none;
 
-    /* This value depends on ".dashboardBar img"'s height attribute and also propagates to
-     * ".dashboardBar"'s height attribute. If modified, be sure to update ".dashboardBar"'s 
+    /* This value depends on ".navBar img"'s height attribute and also propagates to
+     * ".navBar"'s height attribute. If modified, be sure to update ".navBar"'s 
      * height attribute as well.
      */
     height: 35px;
