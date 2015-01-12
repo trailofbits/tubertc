@@ -15,8 +15,8 @@ var Dialog = {
     
     _centerVertically : function () {
         // The subtract 15 comes from the padding property of #modalDialog
-        var newTop = (($(window).height() / 2) - ($('#modalDialog').height() / 2) - 15) + 'px';
-        $('#modalDialog').css('top', newTop);
+        var newTop = ($(window).height() / 2) - ($('#modalDialog').height() / 2) - 15;
+        $('#modalDialog').css('top', newTop + 'px');
     },
 
     /* Parameters:

@@ -1,7 +1,38 @@
-.chatHistoryPanel {
-
+.chatHistoryPane {
+    height: 90vh;
+    overflow: auto;
+    background-color: #ffffff;
+    word-wrap: break-word;
 }
 
-.chatControlPanel {
+.chatControlPane {
+    height: 10vh;
+    overflow: hidden;
+}
 
+.chatControlPane input {
+    resize: none;
+    width: 100%;
+    /* height: 100%; */
+    margin-top: 5px;
+    border: 0px;
+    background-color: #ffffff;
+}
+
+.chatUsername {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.chatNotification {
+    font-size: 13px;
+}
+
+.chatMessage {
+    font-size: 13px;
+}
+
+.chatRoomName {
+    font-size: 13px;
+    font-weight: bold;
 }
