@@ -1,11 +1,13 @@
 body {
     background-color: #383838;
     overflow: hidden;
+    position: fixed;
 }
 
 .mainPanel {
-    position: absolute;
-    float: left;
+    position: fixed;
+    top: 0px;
+    left: 0px;
     height: 100vh;
     width: 80vw;
 }
@@ -76,7 +78,9 @@ body {
 }
 
 .sidePanel {
-    float: right;
+    position: fixed;
+    right: 0px;
+    top: 0px;
     height: 100vh;
     width: 20vw;
 }

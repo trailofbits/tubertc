@@ -1,0 +1,32 @@
+#modalDialog {
+    position: fixed;
+    display: none;
+    background-color: #ffffff;
+    padding: 15px 15px 15px 15px;
+    top: 40%;
+    left: 50%;
+    width: 400px;
+    height: auto;
+    margin-left: -200px;
+    z-index: 10;
+
+    /* The 9999px might need to be changed in the future if ultra-ultra-ultra
+     * high definition screens come out with even more ridiculous resolutions.
+     */
+    outline: 9999px solid rgba(0, 0, 0, 0.5);
+}
+
+#modalDialogTitle {
+    font-size: 24px;
+    font-weight: bold;
+    border-bottom: 1px solid #000000;
+}
+
+#modalDialogContent {
+    padding-top: 10px;
+}
+
+#modalDialogControls {
+    padding-top: 25px;
+    text-align: right;
+}
