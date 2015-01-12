@@ -11,6 +11,8 @@ var getRandomColor = function () {
     return 'hsl(' + h + ', 100%, 25%)';
 };
 
+// TODO: Think about using Notifications for when users enter/leave the room
+
 var Chat = function (roomName) {
     // Default color palette for chatTextEntry. 'Idle' means that the text entry element does
     // not contain any text worth saving.
@@ -137,6 +139,8 @@ var Chat = function (roomName) {
      * for the Chat UI. This connects the components such that messages can get sent out.
      */
     this.initialize = function (userName, sendMessageFn) {
+        // TODO: request Notification permissions
+
         this.userName = userName;
         this.userEntered(userName);
         
