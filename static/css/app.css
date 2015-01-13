@@ -2,6 +2,7 @@ body {
     background-color: #383838;
     overflow: hidden;
     position: fixed;
+    margin: 0;
 }
 
 .mainPanel {
