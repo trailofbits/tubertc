@@ -1,19 +1,22 @@
 .chatHistoryPane {
-    height: 90vh;
+    /* height: 90vh; */
     overflow: auto;
     background-color: #ffffff;
     word-wrap: break-word;
 }
 
 .chatControlPane {
-    height: 10vh;
+    /* FIXME: document me!
+     *
+     */
+    height: 40px;
+
     overflow: hidden;
 }
 
 .chatControlPane input {
     resize: none;
     width: 100%;
-    /* height: 100%; */
     margin-top: 5px;
     border: 0px;
     background-color: #ffffff;

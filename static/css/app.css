@@ -58,7 +58,6 @@ body {
 }
 
 .navBar button {
-    display: block;
     float: left;
     border: 0px;
     background: #202020;
@@ -80,6 +79,7 @@ body {
 
 .sidePanel {
     position: fixed;
+    display: none;
     right: 0px;
     top: 0px;
     height: 100vh;
@@ -92,3 +92,6 @@ body {
     background: #e0e0e0;
 }
 
+.appPage {
+
+}

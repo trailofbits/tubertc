@@ -2,8 +2,8 @@
  */
 
 var resizeChatPanes = function () {
-    var controlPaneHeight = $('.sidePanelContent').height() - $('.chatHistoryPane').height() - 10;
-    $('.chatControlPane').css('height', controlPaneHeight + 'px');
+    var historyPaneHeight = $('.sidePanelContent').height() - $('.chatControlPane').height() - 10;
+    $('.chatHistoryPane').css('height', historyPaneHeight + 'px');
 };
 
 var getRandomColor = function () {
@@ -11,13 +11,14 @@ var getRandomColor = function () {
     return 'hsl(' + h + ', 100%, 25%)';
 };
 
-// TODO: Think about using Notifications for when users enter/leave the room
-
 var Chat = function (roomName) {
     // Default color palette for chatTextEntry. 'Idle' means that the text entry element does
     // not contain any text worth saving.
     this.kIdleTextColor = '#c0c0c0';
     this.kActiveTextColor = $('#chatTextEntry').css('color');
+    
+    // Default time-to-live for notifications (in seconds)
+    this.kDefaultNotificationTimeout = 6.5;
 
     this._appendLine = function (content) {
         $('.chatHistoryPane')
@@ -51,19 +52,47 @@ var Chat = function (roomName) {
         return hsvColor;
     };
     
+    this._notify = function (title, msg, ttl) {
+        if (this.showNotifications) {
+            var notification = new Notification(title, {
+                body : msg
+            });
+            
+            // Use default time-to-live if none is provided.
+            // (time-to-live is in seconds)
+            if (ttl === undefined) {
+                ttl = this.kDefaultNotificationTimeout;
+            }
+
+            setInterval(function () {
+                notification.close();
+            }, ttl * 1000);
+        }
+    };
+
     /* Parameters:
      *   userName : String
      *     The name of the user that entered the chatroom
      */
     this.userEntered = function (userName) {
         var chatObj = this;
-        var hsvColor = this._generateUniqueColor(userName);
-        var content = this.userEnteredTmpl({
-            color : hsvColor,
-            user  : userName,
-            room  : chatObj.roomName
-        });
-        this._appendLine(content);
+        if (this.userName !== null) {
+            var hsvColor = this._generateUniqueColor(userName);
+            var content = this.userEnteredTmpl({
+                color : hsvColor,
+                user  : userName,
+                room  : chatObj.roomName
+            });
+            
+            // Do not show self events
+            if (this.userName !== userName) {
+                this._notify('Room Status', userName + ' has entered the room');
+            }
+
+            this._appendLine(content);
+        } else {
+            ErrorMetric.log('Chat.userEntered => userEnter invoked without Chat.userName');
+        }
     };
     
     /* Parameters:
@@ -72,23 +101,33 @@ var Chat = function (roomName) {
      */
     this.userLeft = function (userName) {
         var chatObj = this;
-        var hsvColor = this.userColorMap[userName];
-        if (hsvColor !== undefined) {
-            var content = this.userLeftTmpl({
-                color : hsvColor,
-                user  : userName,
-                room  : chatObj.roomName     
-            });
-            this._appendLine(content);
+        if (this.userName !== null) {
+            var hsvColor = this.userColorMap[userName];
+            if (hsvColor !== undefined) {
+                var content = this.userLeftTmpl({
+                    color : hsvColor,
+                    user  : userName,
+                    room  : chatObj.roomName     
+                });
+                
+                // Do not show self events
+                if (this.userName !== userName) {
+                    this._notify('Room Status', userName + ' has left the room');
+                }
 
-            delete this.userColorMap[userName];
+                this._appendLine(content);
 
-            var idx = this.colorsUsed.indexOf(hsvColor);
-            if (idx > -1) {
-                this.colorsUsed.splice(idx, 1);
+                delete this.userColorMap[userName];
+
+                var idx = this.colorsUsed.indexOf(hsvColor);
+                if (idx > -1) {
+                    this.colorsUsed.splice(idx, 1);
+                }
+            } else {
+                ErrorMetric.log('Chat.userLeft => "' + userName + '" is not a valid key'); 
             }
         } else {
-            ErrorMetric.log('Chat.userLeft => "' + userName + '" is not a valid key'); 
+            ErrorMetric.log('Chat.userLeft => userLeft invoked without Chat.userName');
         }
     };
     
@@ -114,16 +153,20 @@ var Chat = function (roomName) {
      */
     this.addMessage = function (userName, message) {
         var chatObj = this;
-        var hsvColor = this.userColorMap[userName];
-        if (hsvColor !== undefined) {
-            var content = this.messageTmpl({
-                color : hsvColor,
-                user  : userName,
-                msg   : message
-            });
-            this._appendLine(content);
+        if (this.userName !== null) {
+            var hsvColor = this.userColorMap[userName];
+            if (hsvColor !== undefined) {
+                var content = this.messageTmpl({
+                    color : hsvColor,
+                    user  : userName,
+                    msg   : message
+                });
+                this._appendLine(content);
+            } else {
+                ErrorMetric.log('Chat.addMessage => "' + userName + '" is not a valid key');
+            }
         } else {
-            ErrorMetric.log('Chat.addMessage => "' + userName + '" is not a valid key');
+            ErrorMetric.log('Chat.addMessage => addMessage invoked without Chat.userName');
         }
     };
     
@@ -139,13 +182,12 @@ var Chat = function (roomName) {
      * for the Chat UI. This connects the components such that messages can get sent out.
      */
     this.initialize = function (userName, sendMessageFn) {
-        // TODO: request Notification permissions
+        var chatObj = this;
 
         this.userName = userName;
         this.userEntered(userName);
         
         var defaultText = 'Type message here...';
-        var chatObj = this;
         $('#chatTextEntry')
             .prop('disabled', false)
             .blur(function () {
@@ -181,13 +223,26 @@ var Chat = function (roomName) {
                         .val('');
                 }
             });
+
+        Notification.requestPermission(function (permission) {
+            if (permission === 'granted') {
+                chatObj.showNotifications = true;
+            } else {
+                ErrorMetric.log('Chat.initialize -> Notifications are denied');
+            }
+        });
     };
 
+    // Stores mappings of userName : String -> hsvColor : String pairs
     this.userColorMap = {};
+
+    // Stores a list of hsvColor strings
     this.colorsUsed = [];
     
     this.roomName = roomName;
     this.userName = null;
+    
+    this.showNotifications = false;
 
     this.notificationTmpl = Handlebars.compile(
         '<span class="chatNotification">' +
@@ -213,7 +268,7 @@ var Chat = function (roomName) {
     );
 
     return this;
-}
+};
 
 // Force a redraw of the control pane
 resizeChatPanes();

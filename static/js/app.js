@@ -41,5 +41,8 @@ var svgToInlineSvg = function (completionFn) {
 $(document).ready(function () {
     svgToInlineSvg(function () {
         $('.navBar').fadeIn();
+
+        // TODO: when chat is started, slideDown() it
+        $('.sidePanel').slideDown();
     });
 });
