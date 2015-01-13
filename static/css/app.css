@@ -79,7 +79,6 @@ body {
 
 .sidePanel {
     position: fixed;
-    display: none;
     right: 0px;
     top: 0px;
     height: 100vh;

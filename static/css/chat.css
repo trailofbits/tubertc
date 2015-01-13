@@ -1,13 +1,18 @@
+.chatPanel {
+    display: none;
+}
+
 .chatHistoryPane {
-    /* height: 90vh; */
     overflow: auto;
     background-color: #ffffff;
     word-wrap: break-word;
 }
 
 .chatControlPane {
-    /* FIXME: document me!
-     *
+    /* This value is roughly calculated from "#chatTextEntry". By virtue of min.css framework, INPUT text fields
+     * have an intrinsic height of 16px with 8px padding all around. This gives us roughly 32px. However, empirical
+     * testing shows that 32px still truncates the bottom of the INPUT field. Making it 40px makes the INPUT field
+     * look "better".
      */
     height: 40px;
 

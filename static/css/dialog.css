@@ -5,9 +5,17 @@
     padding: 15px 15px 15px 15px;
     top: 35%;
     left: 50%;
+
+    /* If this value is modify, also modify margin-left as per the comments above margin-left.
+     */
     width: 400px;
     height: auto;
+
+    /* In order to correctly center this object, margin-left should be -width*0.5. In this case,
+     * height is 400px so -width*0.5 is -200px.
+     */
     margin-left: -200px;
+    
     z-index: 10;
 
     /* The 9999px might need to be changed in the future if ultra-ultra-ultra

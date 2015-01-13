@@ -37,12 +37,12 @@ var svgToInlineSvg = function (completionFn) {
     });    
 };
 
+
 // Main entry point
 $(document).ready(function () {
     svgToInlineSvg(function () {
         $('.navBar').fadeIn();
-
-        // TODO: when chat is started, slideDown() it
-        $('.sidePanel').slideDown();
+        
+        // TODO: connect the buttons
     });
 });
