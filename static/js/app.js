@@ -41,8 +41,7 @@ var svgToInlineSvg = function (completionFn) {
 // Main entry point
 $(document).ready(function () {
     svgToInlineSvg(function () {
-        $('.navBar').fadeIn();
-        
-        // TODO: connect the buttons
+        NavBar.initialize();
+
     });
 });
