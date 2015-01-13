@@ -1,0 +1,18 @@
+#loginContent {
+    position: absolute;
+    background-color: #ffffff;
+    padding: 15px 15px 15px 15px;
+    top: 20%;
+    left: 50%;
+    
+    /* If this value is modify, also modify margin-left as per the comments above margin-left.
+     */
+    width: 500px;
+
+    height: auto;
+
+    /* In order to correctly center this object, margin-left should be -width*0.5. In this case,
+     * height is 500px so -width*0.5 is -250px.
+     */
+    margin-left: -250px;
+}
