@@ -24,7 +24,12 @@
  *   js/error.js
  *   js/navbar.js
  *   js/dialog.js
+ *   Chance.js
  */
+
+var generateRoomName = function () {
+    return chance.word() + '-' + chance.hash().substring(0, 8);
+};
 
 var toRtcRoomName = function (roomName) {
     return roomName
@@ -217,6 +222,11 @@ var Login = {
             $('#roomNameEntry')
                 .val(roomName)
                 .prop('disabled', true);
+        } else {
+            // No roomName was specified, to make it friendly to the user, generate one.
+            // We don't set roomName because we want to make this field modifiable.
+            $('#roomNameEntry')
+                .val(generateRoomName());
         }
     
         $('#userNameEntry').keypress(function (e) {
@@ -248,7 +258,7 @@ var Login = {
                 var params = {
                     userName        : $('#userNameEntry').val(),
                     roomName        : $('#roomNameEntry').val(),
-                    rtcName         : toRtcRoomName(roomName),
+                    rtcName         : toRtcRoomName($('#roomNameEntry').val()),
                     cameraIsEnabled : config.cameraBtn.isEnabled(),
                     micIsEnabled    : config.micBtn.isEnabled(),
                     dashIsEnabled   : config.dashBtn.isEnabled()

@@ -49,10 +49,13 @@ var svgToInlineSvg = function (completionFn) {
 var attrDialogTmpl = Handlebars.compile(
     // TODO: add some blob of text/image here
     // FIXME: modify attribution information here
+    // TODO: check the LICENSE for each of the used frameworks to figure out if there
+    //       are any instances of being not compliant
     '<ul>' +
     '<li>Icons made by <a href="http://www.icons8.com" title="Icons8">Icons8</a>, <a href="http://www.icomoon.io" title="Icomoon">Icomoon</a>, <a href="http://www.freepik.com" title="Freepik">Freepik</a>, and <a href="http://yanlu.de" title="Yannick">Yannick</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a></li>' +
     '<li>Using the <a href="http://mincss.com/">Min</a> CSS framework</li>' +
     '<li>Using <a href="http://handlebarsjs.com/">handlebars</a> for templating</li>' +
+    '<li>Using <a href="http://chancejs.com/">Chance</a> for generating random room names</li>' +
     '<li>Using <a href="http://easyrtc.com/">easyRTC</a> for the WebRTC backend</li>' +
     '</ul>'
 );
@@ -83,7 +86,11 @@ $(document).ready(function () {
                 // TODO: verify that this is a safe operation!
                 $('#roomNameField')
                     .text(params.roomName)
-                    .fadeIn();
+                    .fadeIn(function () {
+                        // Change the browser's URL bar so that people can use it to give out
+                        // links to other future callers
+                        history.pushState({}, '', '/?room=' + escape(params.roomName));   
+                    });
 
                 // TODO: set handlers for NavBar.*Btn buttons
                 // TODO: initialize easyrtc/chat based off of information from params
