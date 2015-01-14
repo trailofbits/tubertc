@@ -42,6 +42,10 @@ var svgToInlineSvg = function (completionFn) {
 $(document).ready(function () {
     svgToInlineSvg(function () {
         NavBar.initialize();
+        Login
+            .initialize()
+            .done(function () {
 
+            });
     });
 });

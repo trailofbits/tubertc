@@ -2,6 +2,13 @@
  */
 
 // TODO: define the navbar buttons here
+var StatefulButton = function (id) {
+    this.id = id;
+
+    this.isEnabled = function () {
+
+    };
+};
 
 var NavBar = {
     initialize : function () {

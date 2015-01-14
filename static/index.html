@@ -26,7 +26,20 @@
             </div>
 
             <div id="loginContent">
-                <!-- TODO: this is where we put roomName, userName, rememberMe options -->
+                <div class="msg warning" id="loginAlert">
+                    
+                </div>
+                <div id="userGroup">
+                    <label for="userNameEntry" class="mediumFnt">Name</label>
+                    <input type="text" class="smooth mediumFnt" id="userNameEntry">
+                </div>
+                <div id="roomGroup">
+                    <label for="roomNameEntry" class="mediumFnt">Room</label>
+                    <input type="text" class="smooth mediumFnt" id="roomNameEntry">
+                </div>
+                <div id="btnGroup">
+                    <button class="btn btn-b smooth mediumFnt" id="joinBtn">Join Room</button>
+                </div>
             </div>
         </div>
         <div class="sidePanel appPage">
@@ -46,7 +59,7 @@
 
             </div>
             <div id="modalDialogControls">
-                <button id="modalDialogClose" class="btn btn-sm btn-c">Close</button>
+                <button id="modalDialogClose" class="btn btn-sm btn-c smooth">Close</button>
             </div>
         </div>
 

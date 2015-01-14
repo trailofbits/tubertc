@@ -1,6 +1,5 @@
 #loginContent {
     position: absolute;
-    background-color: #ffffff;
     padding: 15px 15px 15px 15px;
     top: 20%;
     left: 50%;
@@ -15,4 +14,56 @@
      * height is 500px so -width*0.5 is -250px.
      */
     margin-left: -250px;
+}
+
+#loginContent label {
+    padding-right: 10px;
+    color: #ffffff;
+}
+
+#loginContent input {
+    background-color: #ffffff;
+
+    /* This value might need to be modified...
+     */
+    width: 16em;
+}
+
+#loginContent input[disabled] {
+    background-color: #e0e0e0;
+}
+
+#loginAlert {
+    display: none;
+}
+
+#userGroup {
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#roomGroup {
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#btnGroup {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+#btnGroup button {
+    width: 100%;
+}
+
+.warning {
+    background: #fdd;
+    border-left: 5px solid #e44;
+}
+
+.mediumFnt {
+    font-size: 1.5em;
 }
