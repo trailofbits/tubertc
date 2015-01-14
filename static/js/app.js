@@ -3,6 +3,9 @@
  * Requires:
  *   js/navbar.js
  *   js/login.js
+ *   js/dialog.js
+ *   js/chat.js
+ *   js/viewports.js
  *   Handlebars.js
  */
 

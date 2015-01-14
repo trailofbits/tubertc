@@ -1,0 +1,35 @@
+#trtc_dashboard {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: blue;
+    box-sizing: border-box;
+    border: 50px solid transparent;
+}
+
+.trtc_row {
+    width:100%;
+    /* background: green; */
+    position: relative;
+}
+
+.trtc_column {
+    height: 100%;
+    float: left;
+    position: relative;
+}
+
+.trtc_viewport {
+    position: relative;
+    float: left;
+    box-sizing: border-box;
+    border: 8px solid transparent;
+}
+
+.trtc_view {
+    background: red;
+    height: 100%;
+    width: 100%;
+  
+    position: relative;
+}

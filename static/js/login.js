@@ -29,7 +29,7 @@
 var toRtcRoomName = function (roomName) {
     return roomName
             .replace(/[^\w\s]/gi, '')
-            .replace(' ', '_');
+            .replace(/ /gi, '_');
 };
 
 // Provides a namespace to parse the room name from the querystring
