@@ -17,14 +17,19 @@
  *       }
  *   + Bind the Join button with a handler that performs the following actions:
  *     - Verifies that userName and roomName are valid values, if not, use visual indication 
- *       and focus to direct user to problematic field
- *     - Maybe this class should take a "completed" callback which will be passed arguments for
- *       the userName, roomName, and capabilities for the next step.
- *     - Populate #roomName in index.html with the roomName
+ *       and focus to direct user to the problematic field
+ *   + Update localStorage fields with the new values.
+ *
+ * Requires:
+ *   js/error.js
+ *   js/navbar.js
+ *   js/dialog.js
  */
 
 var toRtcRoomName = function (roomName) {
-    return roomName.replace(/[^\w\s]/gi, '');
+    return roomName
+            .replace(/[^\w\s]/gi, '')
+            .replace(' ', '_');
 };
 
 // Provides a namespace to parse the room name from the querystring
@@ -50,7 +55,7 @@ var Query = {
 var StorageCookie = {
     /* The Object structure for our StorageCookie should look like the dictionary below:    
      *   {
-     *     "userName" : <string>,
+     *     "userName"        : <string>,
      *     "cameraIsEnabled" : <bool>,
      *     "micIsEnabled"    : <bool>,
      *     "dashModeEnabled" : <bool>
@@ -60,12 +65,12 @@ var StorageCookie = {
         return (typeof dict.userName === 'string' && 
                 typeof dict.cameraIsEnabled === 'boolean' &&
                 typeof dict.micIsEnabled === 'boolean' &&
-                typeof dashModeEnabled === 'boolean');
+                typeof dict.dashModeEnabled === 'boolean');
     },
 
     set : function (config) {
         if (this._validate(config)) {
-            localStorage.tubertc = config;
+            localStorage.tubertc = JSON.stringify(config);
             return true;
         } else {
             ErrorMetric.log('StorageCookie.set => invalid Object structure');
@@ -74,20 +79,72 @@ var StorageCookie = {
         }
     },
     
-    /* DO NOT TRUST INPUT FROM THIS FUNCTION
+    /* Parameters:
+     *   key : String
+     *     Key part of the key-value pair.
+     *
+     *   value : *
+     *     This value can be of any type and is returned whenever key is referenced.
+     *
+     *   This function assumes the existence of localStorage.tubertc. If it doesn't exist,
+     *   it will fail. Otherwise, it will find the "key" in localStorage.tubertc and 
+     *   update it to the new value.
      */
-    get : function (key) {
-        if (localStorage.tubertc !== undefined && this._validate(localStorage.tubertc)) {
-            var config = localStorage.tubertc;
+    setValue : function (key, value) {
+        var config = this.get();
+        if (config === null) {
+            ErrorMetric.log('StorageCookie.setValue => StorageCookie.get had invalid return value');
+            return false;
+        } else {
+            if (config[key] !== undefined) {
+                ErrorMetric.log('StorageCookie.setValue => invalid key "' + key + '"');
+                return false;
+            } else {
+                config[key] = value;
+                return this.set(config);
+            }
+        }
+    },
+
+    /* DO NOT TRUST THE RETURNED OBJECT: The userName field needs to be sanitized.
+     */
+    get : function () {
+        var rawConfig = localStorage.tubertc;
+        if (rawConfig !== undefined) {
+            // TODO: are we certain we can trust JSON.parse to parse localStorage?
+            try {
+                var config = JSON.parse(rawConfig);
+                if (this._validate(config)) {
+                    return config;
+                } else {
+                    ErrorMetric.log('StorageCookie.get => localStorage.tubertc Object is invalid');
+                    ErrorMetric.log('                  => ' + JSON.stringify(config));
+                    return null;
+                }
+            } catch (e) {
+                ErrorMetric.log('StorageCookie.get => exception while trying to validate localStorage.tubertc');
+                ErrorMetric.log('                  => ' + e);
+                return null;
+            }
+        } else {
+            ErrorMetric.log('StorageCookie.get => localStorage.tubertc does not exist');
+            return null;
+        }
+    },
+
+    /* DO NOT TRUST userName: it needs to be sanitized before use!
+     */
+    getValue : function (key) {
+        var config = this.get();
+        if (config !== null) {
             if (config[key] === undefined) {
-                ErrorMetric.log('StorageCookie.get => invalid key "' + key + '"');
+                ErrorMetric.log('StorageCookie.getKey => invalid key "' + key + '"');
                 return null;
             } else {
                 return config[key];
             }
         } else {
-            ErrorMetric.log('StorageCookie.get => invalid localStorage.tubertc Object (might not exist)');
-            ErrorMetric.log('                  => ' + JSON.stringify(localStorage.tubertc));
+            ErrorMetric.log('StorageCookie.getKey => StorageCookie.get had invalid return value');
             return null;
         }
     }
@@ -102,7 +159,7 @@ var Login = {
 
         if (userName.length === 0) {
             $('#loginAlert')
-                .text('Please provide a user name.')
+                .html('Please provide a <b>user name</b>.')
                 .stop(true, false)
                 .slideDown();
             $('#userNameEntry').focus();
@@ -111,7 +168,7 @@ var Login = {
 
         if (roomName.length === 0) {
             $('#loginAlert')
-                .text('Please provide a room name.')
+                .html('Please provide a <b>room name</b>.')
                 .stop(true, false)
                 .slideDown();
             $('#roomNameEntry').focus();
@@ -121,8 +178,7 @@ var Login = {
         return true;
     },
 
-    /* BELOW IS TODO
-     * Parameters:
+    /* Parameters:
      *   config : Object
      *     {
      *       cameraBtn : <StatefulButton>,
@@ -135,14 +191,25 @@ var Login = {
      *
      * This function is responsible for setting up the handlers for the initial "page" form.
      */
-    initialize : function () {
+    initialize : function (config) {
         var _this = this;
+        if (typeof config.cameraBtn !== 'object' ||
+            typeof config.micBtn !== 'object' ||
+            typeof config.dashBtn !== 'object') {
+            ErrorMetric.log('Log.initialize => config parameter is not valid');
+            ErrorMetric.log('               => config.cameraBtn is ' + config.cameraBtn);
+            ErrorMetric.log('               => config.micBtn is ' + config.micBtn);
+            ErrorMetric.log('               => config.dashBtn is ' + config.dashBtn);
 
-        var userName = StorageCookie.get('userName');
+            // Break chaining to indicate error
+            return null;
+        }
+
+        var userName = StorageCookie.getValue('userName');
         var roomName = Query.getRoomName();
 
         if (userName !== null) {
-            // FIXME: verify that this doesn't introduce XSS
+            // TODO: verify that this doesn't introduce XSS
             $('#userNameEntry').val(userName);
         }
 
@@ -152,9 +219,25 @@ var Login = {
                 .prop('disabled', true);
         }
     
-        // TODO: add keypress handlers to #userNameEntry to detect ENTER and either submit form or tab to #roomNameEntry
-        //       depending on whether or not roomName was already provided via querystring
-        // TODO: add keypress handlers to #roomNameEntry to detect ENTER and simulate a joinBtn click event
+        $('#userNameEntry').keypress(function (e) {
+            // Detect when ENTER button is pressed
+            if (e.which === 13) {
+                if (roomName !== null) {
+                    // Room is already populated from query string, simulate a click event
+                    $('#joinBtn').click();
+                } else {
+                    // Room is not populated, switch focus to roomNameEntry
+                    $('#roomNameEntry').focus();
+                }
+            }
+        });
+
+        $('#roomNameEntry').keypress(function (e) {
+            // Detect when ENTER button is pressed
+            if (e.which === 13) {
+                $('#joinBtn').click();
+            }
+        });
 
         $('#joinBtn').click(function () {
             if (_this._validate()) {
@@ -162,11 +245,36 @@ var Login = {
                     .stop(true, false)
                     .slideUp();
                 
-                // TODO: grab all capabilities information (from navBar...)
-                // TODO: set localStorage with new userName and capabilities
-                // TODO: is _completionFn not null?
-                // TODO: pass localStorage and capabilities to callback function
-                console.log('validated!');
+                var params = {
+                    userName        : $('#userNameEntry').val(),
+                    roomName        : $('#roomNameEntry').val(),
+                    rtcName         : toRtcRoomName(roomName),
+                    cameraIsEnabled : config.cameraBtn.isEnabled(),
+                    micIsEnabled    : config.micBtn.isEnabled(),
+                    dashIsEnabled   : config.dashBtn.isEnabled()
+                };
+
+                var trtcConfig = {
+                    userName        : params.userName,
+                    cameraIsEnabled : params.cameraIsEnabled,
+                    micIsEnabled    : params.micIsEnabled,
+                    dashModeEnabled : params.dashIsEnabled
+                };
+                StorageCookie.set(trtcConfig);
+
+                if (_this._completionFn !== null) {
+                    $('#loginContent').fadeOut(function () {
+                        _this._completionFn(params);
+                    });
+                } else {
+                    ErrorMetric.log('joinBtn.click => _completionFn not set');
+                    
+                    // FIXME: this case should not happen since we immediately call
+                    //        done() to set the completion handler
+                    Dialog.show('An Error Has Occurred', 'tubertc has broke!');
+                }
+            } else {
+                ErrorMetric.log('joinBtn.click => failed to validate');
             }
         });
 
@@ -174,7 +282,14 @@ var Login = {
     },
 
     /* Parameters:
-     *   completionFn : function(userName, roomName, cameraIsEnabled, micIsEnabled, dashModeEnabled) 
+     *   completionFn : function({
+     *                    userName        : <String>,
+     *                    roomName        : <String>,
+     *                    rtcName         : <String>,
+     *                    cameraIsEnabled : <boolean>,
+     *                    micIsEnabled    : <boolean>,
+     *                    dashModeEnabled : <boolean>
+     *                  }) 
      *     This function is called when the "Join Room" button is clicked and all the input is validated.
      *     At this point, both the userName and roomName are considered UNTRUSTED and should be sanitized
      *     using Handlebars.

@@ -1,4 +1,9 @@
 /* Defines the main tubertc application logic.
+ *
+ * Requires:
+ *   js/navbar.js
+ *   js/login.js
+ *   Handlebars.js
  */
 
 /* Replace all SVG images in the ".navBar" with inline SVGs so that we can style SVG elements
@@ -37,14 +42,60 @@ var svgToInlineSvg = function (completionFn) {
     });    
 };
 
+// About dialog template
+var attrDialogTmpl = Handlebars.compile(
+    // TODO: add some blob of text/image here
+    // FIXME: modify attribution information here
+    '<ul>' +
+    '<li>Icons made by <a href="http://www.icons8.com" title="Icons8">Icons8</a>, <a href="http://www.icomoon.io" title="Icomoon">Icomoon</a>, <a href="http://www.freepik.com" title="Freepik">Freepik</a>, and <a href="http://yanlu.de" title="Yannick">Yannick</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a></li>' +
+    '<li>Using the <a href="http://mincss.com/">Min</a> CSS framework</li>' +
+    '<li>Using <a href="http://handlebarsjs.com/">handlebars</a> for templating</li>' +
+    '<li>Using <a href="http://easyrtc.com/">easyRTC</a> for the WebRTC backend</li>' +
+    '</ul>'
+);
 
 // Main entry point
 $(document).ready(function () {
+    NavBar.initialize();
+    NavBar.attrBtn.onClick(function () {
+        Dialog.show({
+            title   : 'About',
+            content : attrDialogTmpl({})
+        });
+    });
+
     svgToInlineSvg(function () {
-        NavBar.initialize();
+        NavBar.show();
         Login
-            .initialize()
-            .done(function () {
+            .initialize({
+                cameraBtn : NavBar.cameraBtn,
+                micBtn    : NavBar.micBtn,
+                dashBtn   : NavBar.dashBtn
+            })
+            .done(function (params) {
+                // This is called if the userName and roomName are valid and we are ready to join
+                // the chat
+                console.log(params);
+                
+                // TODO: verify that this is a safe operation!
+                $('#roomNameField')
+                    .text(params.roomName)
+                    .fadeIn();
+
+                // TODO: set handlers for NavBar.*Btn buttons
+                // TODO: initialize easyrtc/chat based off of information from params
+                //
+                //       params = {
+                //         userName        : <String>,
+                //         roomName        : <String>,
+                //         rtcName         : <String>,
+                //         cameraIsEnabled : <boolean>,
+                //         micIsEnabled    : <boolean>,
+                //         dashModeEnabled : <boolean>
+                //       }
+                //
+                // TODO: implement a vtc.js that "wraps" most of easyrtc so in the future,
+                //       we can easily re-implement our own WebRTC wrapper
 
             });
     });

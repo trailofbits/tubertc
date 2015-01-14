@@ -95,3 +95,7 @@ body {
 .appPage {
 
 }
+
+#roomNameField {
+    display: none;
+}

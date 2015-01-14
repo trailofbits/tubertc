@@ -1,4 +1,8 @@
 /* Defines the chat panel UI elements.
+ *
+ * Requires:
+ *   Handlebars.js
+ *   js/error.js
  */
 
 var resizeChatPanes = function () {

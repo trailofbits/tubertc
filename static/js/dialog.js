@@ -2,6 +2,9 @@
  *
  * See css/dialog.css and index.html (look for DIV.modalDialog*) for HTML
  * and CSS implementation details.
+ *
+ * Requires:
+ *   js/error.js
  */
 
 var Dialog = {
