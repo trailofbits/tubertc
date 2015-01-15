@@ -8,8 +8,15 @@
  */
 
 // TODO: easyrtc.setOnError -> use this to handle errors with our Dialog class
-//
-var VTC = {
+// TODO: expose WebRTC support checking functions
+var VTCCore = {
+    // A function that checks browser support for WebRTC API. This can be called without
+    // calling VTCCore.initialize
+    isBrowserSupported : function () {
+        return easyrtc.supportsGetUserMedia() && easyrtc.supportsPeerConnections();
+    },
+
+    
     initialize : function () {
 
     },

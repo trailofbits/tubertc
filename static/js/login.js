@@ -24,6 +24,7 @@
  *   js/error.js
  *   js/navbar.js
  *   js/dialog.js
+ *   js/vtc.js
  *   Chance.js
  */
 
@@ -163,6 +164,48 @@ var _roomNameEntry = $('#roomNameEntry');
 
 var Login = {
     _completionFn : null,
+    
+    /* Returns:
+     *   status : (String|null)
+     *     The return status value has three possible states which mean the following:
+     *       'full'     - All APIs are supported and browser is well tested
+     *       'untested' - All APIs are supported but browser is not as well tested
+     *       null       - Some required APIs are not supported
+     *
+     * This function checks to ensure that the current browser has the support needed
+     * to successfully use tubertc
+     */
+    _browserCompatCheck : function () {
+        var userAgent = navigator.userAgent;
+
+        if (!('Notification' in window)) {
+            ErrorMetric.log('_browserCompatCheck => browser does not support Notifications');
+            ErrorMetric.log('                    => userAgent: ' + userAgent);
+
+            return null;
+        }
+
+        if (!('localStorage' in window)) {
+            ErrorMetric.log('_browserCompatCheck => browser does not support LocalStorage');
+            ErrorMetric.log('                    => userAgent: ' + userAgent);   
+
+            return null;
+        }
+
+        if (!VTCCore.isBrowserSupported()) {
+            ErrorMetric.log('_browserCompatCheck => browser does not support WebRTC');
+            ErrorMetric.log('                    => userAgent: ' + userAgent);
+
+            return null;
+        }
+        
+        // FIXME: We only have tested Chrome, need to refactor this once more browsers are tested
+        if ('chrome' in window) {
+            return 'full';
+        } else {
+            return 'untested';
+        }
+    },
 
     _validate : function () {
         var userName = $.trim(_userNameEntry.val());
@@ -188,7 +231,7 @@ var Login = {
 
         return true;
     },
-
+    
     /* Parameters:
      *   config : Object
      *     {
@@ -215,7 +258,36 @@ var Login = {
             // Break chaining to indicate error
             return null;
         }
+        
+        var compatStatus = this._browserCompatCheck();
+        if (compatStatus === null) {
+            _userNameEntry.prop('disabled', true);
+            _roomNameEntry.prop('disabled', true);
+            _joinBtn.prop('disabled', true);
+            
+            // FIXME: proofread and make this better
+            _loginAlert
+                .html(
+                    'Your browser <b>does not</b> support some of the APIs required.<br><br>' +
+                    'We recommend using <a href="http://www.google.com/chrome/">Google Chrome</a>.'
+                )
+                .slideDown();
+            ErrorMetric.log('Login.initialize => ' + navigator.userAgent + ' is not supported');
 
+            // Break chaining to indicate error
+            return null;
+        } else if (compatStatus === 'untested') {
+            // FIXME: proofread and make this better
+            _loginAlert
+                .html(
+                    'Your browser has not been extensively tested. ' +
+                    'There maybe user interface artifacts or missing functionality.<br><br>' +
+                    'We recommend using <a href="http://www.google.com/chrome/">Google Chrome</a>.'
+                )
+                .slideDown();
+            ErrorMetric.log('Login.initialize => ' + navigator.userAgent + ' is untested');
+        }
+        
         var userName = StorageCookie.getValue('userName');
         var roomName = Query.getRoomName();
 
