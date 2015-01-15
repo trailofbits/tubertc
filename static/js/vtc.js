@@ -7,10 +7,16 @@
  *   js/error.js
  */
 
+// TODO: easyrtc.setOnError -> use this to handle errors with our Dialog class
+//
 var VTC = {
     initialize : function () {
 
     },
 
-    //
+    finalize : function () {
+        // TODO: hangupAll
+        // TODO: leave room
+        // TODO: disconnect from server
+    }
 };

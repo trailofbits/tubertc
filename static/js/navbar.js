@@ -6,12 +6,14 @@
 
 // Defines a normal button
 var Button = function (id) {
+    var idSel = $(id);
+
     this.id = id;
     this.clickFn = null;
 
     var _this = this;
     var _paintColor = function () {
-        $(id).css('fill', '#cccccc');
+        idSel.css('fill', '#cccccc');
     };
     
     /* Parameters:
@@ -22,20 +24,20 @@ var Button = function (id) {
         this.clickFn = clickFn;
     };
 
-    $(id).hover(function () {
-        $(id).css('opacity', '0.5');
+    idSel.hover(function () {
+        idSel.css('opacity', '0.5');
     }, function () {
-        $(id).css('opacity', '1');
+        idSel.css('opacity', '1');
     });
     
-    $(id).click(function () {
+    idSel.click(function () {
         if (_this.clickFn !== null) {
             _this.clickFn();
         } else {
             ErrorMetric.log(id + '.click => Button.clickFn not defined');
         }
 
-        $(id).blur();
+        idSel.blur();
     });
 
     _paintColor();
@@ -45,6 +47,8 @@ var Button = function (id) {
 
 // Defines a button that acts like a checkbox
 var StatefulButton = function (id, enabled) {
+    var idSel = $(id);
+
     this.id = id;
     this.enabledFn = null;
     this.disabledFn = null;
@@ -57,9 +61,9 @@ var StatefulButton = function (id, enabled) {
     var _this = this;
     var _paintColor = function () {
         if (_this.enabled) {
-            $(id).css('fill', '#009966');
+            idSel.css('fill', '#009966');
         } else {
-            $(id).css('fill', '#cc0033');
+            idSel.css('fill', '#cc0033');
         }
     };
 
@@ -93,13 +97,13 @@ var StatefulButton = function (id, enabled) {
         return this.enabled; 
     };
 
-    $(id).hover(function () {
-        $(id).css('opacity', '0.5');
+    idSel.hover(function () {
+        idSel.css('opacity', '0.5');
     }, function () {
-        $(id).css('opacity', '1');
+        idSel.css('opacity', '1');
     });
     
-    $(id).click(function () {
+    idSel.click(function () {
         _this.toggle();
         
         if (_this.isEnabled()) {
@@ -116,7 +120,7 @@ var StatefulButton = function (id, enabled) {
             }
         }
 
-        $(id).blur();
+        idSel.blur();
     });
 
     _paintColor();

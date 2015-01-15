@@ -155,28 +155,34 @@ var StorageCookie = {
     }
 };
 
+// jQuery selectors
+var _joinBtn = $('#joinBtn');
+var _loginAlert = $('#loginAlert');
+var _userNameEntry = $('#userNameEntry');
+var _roomNameEntry = $('#roomNameEntry');
+
 var Login = {
     _completionFn : null,
 
     _validate : function () {
-        var userName = $.trim($('#userNameEntry').val());
-        var roomName = $.trim($('#roomNameEntry').val());
+        var userName = $.trim(_userNameEntry.val());
+        var roomName = $.trim(_roomNameEntry.val());
 
         if (userName.length === 0) {
-            $('#loginAlert')
+            _loginAlert
                 .html('Please provide a <b>user name</b>.')
                 .stop(true, false)
                 .slideDown();
-            $('#userNameEntry').focus();
+            _userNameEntry.focus();
             return false;
         }
 
         if (roomName.length === 0) {
-            $('#loginAlert')
+            _loginAlert
                 .html('Please provide a <b>room name</b>.')
                 .stop(true, false)
                 .slideDown();
-            $('#roomNameEntry').focus();
+            _roomNameEntry.focus();
             return false;
         }
 
@@ -215,50 +221,50 @@ var Login = {
 
         if (userName !== null) {
             // TODO: verify that this doesn't introduce XSS
-            $('#userNameEntry').val(userName);
+            _userNameEntry.val(userName);
         }
 
         if (roomName !== null) {
-            $('#roomNameEntry')
+            _roomNameEntry
                 .val(roomName)
                 .prop('disabled', true);
         } else {
             // No roomName was specified, to make it friendly to the user, generate one.
             // We don't set roomName because we want to make this field modifiable.
-            $('#roomNameEntry')
+            _roomNameEntry
                 .val(generateRoomName());
         }
     
-        $('#userNameEntry').keypress(function (e) {
+        _userNameEntry.keypress(function (e) {
             // Detect when ENTER button is pressed
             if (e.which === 13) {
                 if (roomName !== null) {
                     // Room is already populated from query string, simulate a click event
-                    $('#joinBtn').click();
+                    _joinBtn.click();
                 } else {
                     // Room is not populated, switch focus to roomNameEntry
-                    $('#roomNameEntry').focus();
+                    _roomNameEntry.focus();
                 }
             }
         });
 
-        $('#roomNameEntry').keypress(function (e) {
+        _roomNameEntry.keypress(function (e) {
             // Detect when ENTER button is pressed
             if (e.which === 13) {
-                $('#joinBtn').click();
+                _joinBtn.click();
             }
         });
 
-        $('#joinBtn').click(function () {
+        _joinBtn.click(function () {
             if (_this._validate()) {
-                $('#loginAlert')
+                _loginAlert
                     .stop(true, false)
                     .slideUp();
                 
                 var params = {
-                    userName        : $('#userNameEntry').val(),
-                    roomName        : $('#roomNameEntry').val(),
-                    rtcName         : toRtcRoomName($('#roomNameEntry').val()),
+                    userName        : _userNameEntry.val(),
+                    roomName        : _roomNameEntry.val(),
+                    rtcName         : toRtcRoomName(_roomNameEntry.val()),
                     cameraIsEnabled : config.cameraBtn.isEnabled(),
                     micIsEnabled    : config.micBtn.isEnabled(),
                     dashIsEnabled   : config.dashBtn.isEnabled()

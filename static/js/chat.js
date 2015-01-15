@@ -5,9 +5,13 @@
  *   js/error.js
  */
 
+// jQuery selectors
+var _chatTextEntry = $('#chatTextEntry');
+var _chatHistoryPane = $('.chatHistoryPane');
+
 var resizeChatPanes = function () {
     var historyPaneHeight = $('.sidePanelContent').height() - $('.chatControlPane').height() - 10;
-    $('.chatHistoryPane').css('height', historyPaneHeight + 'px');
+    _chatHistoryPane.css('height', historyPaneHeight + 'px');
 };
 
 var getRandomColor = function () {
@@ -19,17 +23,17 @@ var Chat = function (roomName) {
     // Default color palette for chatTextEntry. 'Idle' means that the text entry element does
     // not contain any text worth saving.
     this.kIdleTextColor = '#c0c0c0';
-    this.kActiveTextColor = $('#chatTextEntry').css('color');
+    this.kActiveTextColor = _chatTextEntry.css('color');
     
     // Default time-to-live for notifications (in seconds)
     this.kDefaultNotificationTimeout = 6.5;
 
     this._appendLine = function (content) {
-        $('.chatHistoryPane')
+        _chatHistoryPane
             .append(content)
             .stop(true, false)
             .animate({
-                scrollTop : $('.chatHistoryPane').prop('scrollHeight')
+                scrollTop : _chatHistoryPane.prop('scrollHeight')
             }, 'slow');
     };
     
@@ -192,21 +196,21 @@ var Chat = function (roomName) {
         this.userEntered(userName);
         
         var defaultText = 'Type message here...';
-        $('#chatTextEntry')
+        _chatTextEntry
             .prop('disabled', false)
             .blur(function () {
-                var msg = $.trim($('#chatTextEntry').val());
+                var msg = $.trim(_chatTextEntry.val());
                 if (msg.length === 0) {
-                    $('#chatTextEntry')
+                    _chatTextEntry
                         .css('font-style', 'italic')
                         .css('color', chatObj.kIdleTextColor)
                         .val(defaultText);
                 }
             })
             .focus(function () {
-                var msg = $.trim($('#chatTextEntry').val());
+                var msg = $.trim(_chatTextEntry.val());
                 if (msg === defaultText || msg.length === 0) {
-                    $('#chatTextEntry')
+                    _chatTextEntry
                         .css('font-style', 'normal')
                         .css('color', chatObj.kActiveTextColor)
                         .val('');
@@ -215,7 +219,7 @@ var Chat = function (roomName) {
             .keyup(function (e) {
                 // Handles the ENTER key so we can send a chat message
                 if (e.which === 13) {
-                    var msg = $('#chatTextEntry').val();
+                    var msg = _chatTextEntry.val();
                     if (sendMessageFn(msg)) {
                         chatObj.addMessage(chatObj.userName, msg);
                     } else {
@@ -223,7 +227,7 @@ var Chat = function (roomName) {
                         chatObj.addNotification('Failed to send last message');
                     }
 
-                    $('#chatTextEntry')
+                    _chatTextEntry
                         .val('');
                 }
             });

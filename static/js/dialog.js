@@ -7,6 +7,10 @@
  *   js/error.js
  */
 
+// jQuery selectors
+var _appPage = $('.appPage');
+var _modalDialog = $('#modalDialog');
+
 var Dialog = {
     // Stores a list of queued messages to display to the user
     _queued : [],
@@ -18,8 +22,8 @@ var Dialog = {
     
     _centerVertically : function () {
         // The subtract 15 comes from the padding property of #modalDialog
-        var newTop = ($(window).height() / 2) - ($('#modalDialog').height() / 2) - 15;
-        $('#modalDialog').css('top', newTop + 'px');
+        var newTop = ($(window).height() / 2) - (_modalDialog.height() / 2) - 15;
+        _modalDialog.css('top', newTop + 'px');
     },
 
     /* Parameters:
@@ -41,16 +45,16 @@ var Dialog = {
             return false;
         }
 
-        var displayStatus = $('#modalDialog').css('display');
+        var displayStatus = _modalDialog.css('display');
         if (displayStatus === 'block') {
             Dialog._queued.push(config);
         } else {
             this._setDialogContent(config.title, config.content);
 
-            $('.appPage').css('pointer-events', 'none');
+            _appPage.css('pointer-events', 'none');
             
             Dialog._centerVertically();
-            $('#modalDialog').fadeIn();
+            _modalDialog.fadeIn();
         }
     }
 };
@@ -58,17 +62,17 @@ var Dialog = {
 $('#modalDialogClose').click(function () {
     if (Dialog._queued.length > 0) {
         // Fade out and in to denote a new message arrived
-        $('#modalDialog').fadeOut(function () {
+        _modalDialog.fadeOut(function () {
             var config = Dialog._queued.shift();
             Dialog._setDialogContent(config.title, config.content);
             
             Dialog._centerVertically();
-            $('#modalDialog').fadeIn();
+            _modalDialog.fadeIn();
         });
     } else {
-        $('#modalDialog').fadeOut();
+        _modalDialog.fadeOut();
     
-        $('.appPage').css('pointer-events', 'auto');
+        _appPage.css('pointer-events', 'auto');
     }
 });
 
