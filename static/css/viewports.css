@@ -7,9 +7,16 @@
     border: 50px solid transparent;
 }
 
+.vtcRoom {
+    position: fixed;
+    display: none;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
 .trtc_row {
     width:100%;
-    /* background: green; */
     position: relative;
 }
 

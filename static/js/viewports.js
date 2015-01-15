@@ -1,4 +1,4 @@
-var PARENT_CONTAINER_ID = 'dashboardHolder';
+var PARENT_CONTAINER_ID = 'vtcRoom';
 var trtc_dash = null;
 
 var Dashboard = function(){

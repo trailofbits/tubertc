@@ -89,7 +89,10 @@ $(document).ready(function () {
                     .fadeIn(function () {
                         // Change the browser's URL bar so that people can use it to give out
                         // links to other future callers
-                        history.pushState({}, '', '/?room=' + escape(params.roomName));   
+                        history.pushState({}, '', '/?room=' + escape(params.roomName));
+                        
+                        // Fade in the vtcRoom container used for placing the videos
+                        $('.vtcRoom').fadeIn();   
                     });
 
                 // TODO: set handlers for NavBar.*Btn buttons
