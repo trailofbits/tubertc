@@ -84,7 +84,6 @@ $(document).ready(function () {
             .done(function (params) {
                 // This is called if the userName and roomName are valid and we are ready to join
                 // the chat
-                console.log(params);
                 
                 // TODO: verify that this is a safe operation!
                 $('#roomNameField')
@@ -97,8 +96,12 @@ $(document).ready(function () {
                         // Fade in the vtcRoom container used for placing the videos
                         $('.vtcRoom').fadeIn();   
                     });
+                
+                VTCCore.initialize({
+                    cameraIsEnabled : params.cameraIsEnabled,
+                    micIsEnabled    : params.micIsEnabled
+                });
 
-                // TODO: set handlers for NavBar.*Btn buttons
                 // TODO: initialize easyrtc/chat based off of information from params
                 //
                 //       params = {
@@ -110,6 +113,7 @@ $(document).ready(function () {
                 //         dashModeEnabled : <boolean>
                 //       }
                 //
+                // TODO: set handlers for NavBar.*Btn buttons
                 // TODO: implement a vtc.js that "wraps" most of easyrtc so in the future,
                 //       we can easily re-implement our own WebRTC wrapper
 

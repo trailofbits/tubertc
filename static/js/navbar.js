@@ -110,12 +110,14 @@ var StatefulButton = function (id, enabled) {
             if (_this.enabledFn !== null) {
                 _this.enabledFn();
             } else {
+                // FIXME: is this spamming my telemetry log?
                 ErrorMetric.log(id + '.click => StatefulButton.enabledFn not defined');
             }
         } else {
             if (_this.disabledFn !== null) {
                 _this.disabledFn();
             } else {
+                // FIXME: is this spamming my telemetry log?
                 ErrorMetric.log(id + '.click => StatefulButton.disabledFn not defined');
             }
         }
