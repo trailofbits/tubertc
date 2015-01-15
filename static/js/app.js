@@ -51,9 +51,11 @@ var attrDialogTmpl = Handlebars.compile(
     // FIXME: modify attribution information here
     // TODO: check the LICENSE for each of the used frameworks to figure out if there
     //       are any instances of being not compliant
-    '<div style="text-align: center"><img src="/images/about_tubertc.svg" alt="[about]"></div>' +
+    '<div style="text-align: center">' +
+    '  <img style="width: 176px; height: 203px;" src="/images/about_tubertc.svg" alt="[about]">' +
+    '</div>' +
     '<ul>' +
-    '<li>Icons made by <a href="http://www.icons8.com" title="Icons8">Icons8</a>, <a href="http://www.icomoon.io" title="Icomoon">Icomoon</a>, <a href="http://www.freepik.com" title="Freepik">Freepik</a>, and <a href="http://yanlu.de" title="Yannick">Yannick</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a></li>' +
+    '<li>Icons made by: <a href="http://www.icons8.com" title="Icons8">Icons8</a>, <a href="http://www.icomoon.io" title="Icomoon">Icomoon</a>, <a href="http://www.freepik.com" title="Freepik">Freepik</a>, and <a href="http://yanlu.de" title="Yannick">Yannick</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a></li>' +
     '<li>Using the <a href="http://mincss.com/">Min</a> CSS framework</li>' +
     '<li>Using <a href="http://handlebarsjs.com/">handlebars</a> for templating</li>' +
     '<li>Using <a href="http://chancejs.com/">Chance</a> for generating random room names</li>' +
