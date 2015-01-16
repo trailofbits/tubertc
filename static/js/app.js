@@ -74,60 +74,98 @@ var vtcMain = function (params) {
             history.pushState({}, '', '/?room=' + escape(params.roomName));
             
             // Fade in the vtcRoom container used for placing the videos
-            $('.vtcRoom').fadeIn();   
+            $('#vtcRoom').fadeIn();   
         });
     
-    VTCCore.initialize({
-        cameraIsEnabled : params.cameraIsEnabled,
-        micIsEnabled    : params.micIsEnabled
-    });
+    // Instantiate the Chat object
+    var chatRoom = new Chat(params.roomName);
     
-    VTCCore.onPeerMessage(function (client, peerId, msgType, content) {
-        // TODO: parse and handle chat messages
-    });
+    // Maps peerIds to Viewport objects
+    var idToViewPort = {};
 
-    VTCCore.onStreamAccept(function (peerId, stream) {
-        // TODO: new user registration
-    });
-    
-    VTCCore.onStreamClose(function (peerId) {
-        // TODO: user deletion
-    });
+    VTCCore
+        .initialize({
+            cameraIsEnabled : params.cameraIsEnabled,
+            micIsEnabled    : params.micIsEnabled
+        })
+        .onError(function (config) {
+            Dialog.show(config);
+        })
+        .onPeerMessage(function (client, peerId, msgType, content) {
+            if (msgType === 'chat' && typeof content.msg === 'string') {
+                var peerName = client.idToName(peerId);
+                chatRoom.addMessage(peerName, content.msg);
+            } else {
+                // FIXME: right now we don't have other messages to take care of
+                ErrorMetric.log('peerMessage => got a peer message that is unexpected');
+                ErrorMetric.log('            => peerId:  ' + peerId);
+                ErrorMetric.log('            =>   name: ' + client.idToName(peerId));
+                ErrorMetric.log('            => msgType: ' + msgType);
+                ErrorMetric.log('            => content: ' + JSON.stringify(content));
+            }
+        })
+        .onStreamAccept(function (client, peerId, stream) {
+            var peerName = client.idToName(peerId);
+            chatRoom.userEntered(peerName);
+            
+            // TODO: init viewport
+            var port = trtc_dash.createGridForNewUser();
+            port.videoSrc.prop('muted', false);
+            client.setVideoObjectSrc(port.videoSrc, stream);
 
-    // TODO: initialize easyrtc/chat based off of information from params
-    //
-    //       params = {
-    //         userName        : <String>,
-    //         roomName        : <String>,
-    //         rtcName         : <String>,
-    //         cameraIsEnabled : <boolean>,
-    //         micIsEnabled    : <boolean>,
-    //         dashModeEnabled : <boolean>
-    //       }
-    //
-    // TODO: set handlers for NavBar.*Btn buttons
-    NavBar.cameraBtn.handle(function () {
-        // TODO: camera is enabled
-    }, function () {
-        // TODO: camera is disabled
-    });
-    
-    NavBar.micBtn.handle(function () {
-        // TODO: mic is enabled
-    }, function () {
-        // TODO: mic is disabled
-    });
+            idToViewPort[peerId] = port;
+        })
+        .onStreamClose(function (client, peerId) {
+            chatRoom.userLeft(null, peerId);
+            
+            // TODO: teardown viewport
+            var port = idToViewPort[peerId];
+            if (port !== undefined) {
+                trtc_dash.removeUserWithGrid(port);
+                delete idToViewPort[peerId];
+            } else {
+                // TODO: error!
+            }
+        })
+        .connect(params.userName, params.rtcName, function (client) {
+            chatRoom
+                .initialize(params.userName, function (message) {
+                    return client.sendPeerMessage({
+                        room : params.rtcName
+                    }, 'chat', {
+                        msg : message
+                    });
+                })
+                .show();
 
-    NavBar.dashBtn.handle(function () {
-        // TODO: dash mode is enabled
-    }, function () {
-        // TODO: hangouts mode is enabled
-    });
+            NavBar.cameraBtn.handle(function () {
+                client.enableCamera(true);
+            }, function () {
+                client.enableCamera(false);
+            });
+            
+            NavBar.micBtn.handle(function () {
+                client.enableMicrophone(true);
+            }, function () {
+                client.enableMicrophone(false);
+            });
 
-    // TODO: implement a vtc.js that "wraps" most of easyrtc so in the future,
-    //       we can easily re-implement our own WebRTC wrapper
-    // TODO: call VTCCore.connect?
-    // TODO: inside VCTCore.connect's successFn, initialize chat as well
+            NavBar.dashBtn.handle(function () {
+                trtc_dash.hangoutsMode = false;
+                trtc_dash.placeViewports();
+            }, function () {
+                trtc_dash.hangoutsMode = true;
+                trtc_dash.placeViewports();
+            });
+
+            // TODO: map localStream to viewport UI
+            var port = trtc_dash.createGridForNewUser();
+            port.videoSrc.addClass('.video_mirror');
+            client.setVideoObjectSrc(port.videoSrc, client.getLocalStream());
+
+            // TODO: store port in some map
+            idToViewPort[client.getId()] = port;
+    });
 };
 
 // Main entry point

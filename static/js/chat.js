@@ -20,6 +20,9 @@ var getRandomColor = function () {
 };
 
 var Chat = function (roomName) {
+    // An Object storing mappings of peerId : String => userName : String
+    var _peerIdMap = {};
+
     // Default color palette for chatTextEntry. 'Idle' means that the text entry element does
     // not contain any text worth saving.
     this.kIdleTextColor = '#c0c0c0';
@@ -27,7 +30,7 @@ var Chat = function (roomName) {
     
     // Default time-to-live for notifications (in seconds)
     this.kDefaultNotificationTimeout = 6.5;
-
+    
     this._appendLine = function (content) {
         _chatHistoryPane
             .append(content)
@@ -63,6 +66,7 @@ var Chat = function (roomName) {
     this._notify = function (title, msg, ttl) {
         if (this.showNotifications) {
             var notification = new Notification(title, {
+                icon : '/images/tubertc_icon.png',
                 body : msg
             });
             
@@ -81,8 +85,11 @@ var Chat = function (roomName) {
     /* Parameters:
      *   userName : String
      *     The name of the user that entered the chatroom
+     *
+     *   peerId : String
+     *     The RTC peer ID of the user that entered the chatroom
      */
-    this.userEntered = function (userName) {
+    this.userEntered = function (userName, peerId) {
         var chatObj = this;
         if (this.userName !== null) {
             var hsvColor = this._generateUniqueColor(userName);
@@ -92,6 +99,10 @@ var Chat = function (roomName) {
                 room  : chatObj.roomName
             });
             
+            if (peerId !== undefined) {
+                _peerIdMap[peerId] = userName;
+            }
+
             // Do not show self events
             if (this.userName !== userName) {
                 this._notify('Room Status', userName + ' has entered the room');
@@ -101,15 +112,33 @@ var Chat = function (roomName) {
         } else {
             ErrorMetric.log('Chat.userEntered => userEnter invoked without Chat.userName');
         }
+
+        return this;
     };
     
     /* Parameters:
      *   userName : String
-     *     The name of the user that left the chatroom
+     *     The name of the user that left the chatroom. This can be null.
+     *   peerId : String
+     *     The peerId of the user that left the chatroom
+     *
+     *   If userName is provided, it tries to find the user using the userName and 
+     *   removes them from the chat. If userName is null, peerId must be defined.
+     *   It uses peerId to lookup the userName and uses the found userName.
      */
-    this.userLeft = function (userName) {
+    this.userLeft = function (userName, peerId) {
         var chatObj = this;
         if (this.userName !== null) {
+            if (userName === null && peerId !== undefined) {
+                userName = _peerIdMap[peerId];
+                if (userName === undefined) {
+                    ErrorMetric.log('Chat.userLeft => invalid peer ' + peerId);
+
+                    // Break chaining
+                    return null;
+                }
+            }
+
             var hsvColor = this.userColorMap[userName];
             if (hsvColor !== undefined) {
                 var content = this.userLeftTmpl({
@@ -137,6 +166,8 @@ var Chat = function (roomName) {
         } else {
             ErrorMetric.log('Chat.userLeft => userLeft invoked without Chat.userName');
         }
+
+        return this;
     };
     
     /* Parameters:
@@ -150,6 +181,8 @@ var Chat = function (roomName) {
             msg  : message
         });
         this._appendLine(content);
+
+        return this;
     };
 
     /* Parameters:
@@ -176,6 +209,8 @@ var Chat = function (roomName) {
         } else {
             ErrorMetric.log('Chat.addMessage => addMessage invoked without Chat.userName');
         }
+
+        return this;
     };
     
     /* Parameter:
@@ -239,6 +274,19 @@ var Chat = function (roomName) {
                 ErrorMetric.log('Chat.initialize -> Notifications are denied');
             }
         });
+
+        return this;
+    };
+    
+    // Slides the chat panel down
+    this.show = function () {
+        $('.chatPanel')
+            .stop(false, true)
+            .slideDown(function () {
+                resizeChatPanes()
+            });
+
+        return this;
     };
 
     // Stores mappings of userName : String -> hsvColor : String pairs

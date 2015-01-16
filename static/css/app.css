@@ -9,6 +9,9 @@ body {
     position: fixed;
     top: 0px;
     left: 0px;
+
+    /* vtcRoom's height and width depends on the values below as well
+     */
     height: 100vh;
     width: 80vw;
 }
@@ -98,4 +101,16 @@ body {
 
 #roomNameField {
     display: none;
+}
+
+#vtcRoom {
+    position: relative;
+    display: none;
+
+    /* The bottom two properties should be mirrored from that of mainPanel's width and height
+     */
+    width: 80vw;
+    height: 100vh;
+
+    z-index: -1;
 }

@@ -5,27 +5,139 @@
  * Requires:
  *   easyrtc
  *   js/error.js
- *   js/dialog.js
  */
 
 // FIXME: what functions are contained in here?
 // TODO: Functionality that needs to be exported
 //   * sendPeerMessage
-//   * enableCamera
-//   * enableMicrophone
-//   * getRoomName
 //   * map of peerId -> viewport divs?
 // TODO: should we have a map that maps peerId to div element? (PROBABLY)
-var VTCClient = function () {
-    this.getRoomName = function () {
-
+var VTCClient = function (myId, roomName, onErrorFn) {
+    var _id = myId;
+    var _room = roomName;
+    
+    this.getId = function () {
+        return _id;
     };
 
+    this.getRoomName = function () {
+        return _room;
+    };
+    
+    /* Parameters:
+     *   id : String
+     *     The peer ID to be translated
+     *
+     * Translates peer IDs to user names
+     */
+    this.idToName = function (id) {
+        return easyrtc.idToName(id);
+    };
+
+    /* Parameters:
+     *   state : boolean
+     *     The new state of the camera.
+     *
+     * Enables or disables the camera based off the value of state.
+     */
+    this.enableCamera = function (state) {
+        easyrtc.enableCamera(state);
+    };
+    
+    /* Parameters:
+     *   state : boolean
+     *     The new state of the microphone.
+     *
+     * Enables or disables the microphone based off of the value of state.
+     */
+    this.enableMicrophone = function (state) {
+        easyrtc.enableMicrophone(state);
+    };
+    
+    /* Parameters:
+     *   dest      : Object
+     *     A Object that should contain at just one of the following fields:
+     *       rtcId : String
+     *       room  : String
+     *
+     *   msgType   : String
+     *     Type of message (specific to the application)
+     *
+     *   msgData   : Object
+     *     Message contents (must be JSON-able)
+     *
+     *   successFn : function(msgType, msgData)
+     *     Callback function with server response results
+     *
+     * This sends a message to another peer.
+     */
+    this.sendPeerMessage = function (dest, msgType, msgData, successFn) {
+        var target = {};
+        if (typeof dest !== 'object' || 
+            (typeof dest.rtcId !== 'string' && typeof dest.room !== 'string')) {
+            ErrorMetric.log('VTCClient.sendPeerMessage => dest object is invalid');
+            ErrorMetric.log('                          => ' + JSON.stringify(dest));
+
+            return false;
+        }
+        
+        if (typeof dest.rtcId === 'string' && typeof dest.room === 'string') {
+            ErrorMetric.log('VTCClient.sendPeerMessage => both rtcId and room fields provided');
+
+            return false;
+        } else if (typeof dest.rtcId === 'string') {
+            target.targetEasyrtcid = dest.rtcId;
+        } else if (typeof dest.room === 'string') {
+            target.targetRoom = dest.room;
+        } else {
+            ErrorMetric.log('VTCClient.sendPeerMessage => unexpected state');
+            ErrorMetric.log('                          => ' + JSON.stringify(dest));
+
+            return false;
+        }
+        
+        easyrtc.sendPeerMessage(target, msgType, msgData, function (msgType, msgData) {
+            if (successFn !== undefined) {
+                successFn(msgType, msgData);
+            }
+        }, function (errorCode, errorText) {
+            ErrorMetric.log('easyrtc.sendPeerMessage => failed to send peer message');
+            ErrorMetric.log('                        => ' + errorCode + ': ' + errorText);
+
+            if (onErrorFn !== undefined) {
+                onErrorFn({
+                    title   : 'Failed to Send Message',
+                    content : 'An error occurred while sending an internal message.<br><br>' +
+                              '<b>Error Code</b>: ' + errorCode + '<br>' +
+                              '<b>Error Text</b>: ' + errorText
+                });
+            }
+        });
+        return true
+    };
+    
+    // Returns the local video/audio stream
+    this.getLocalStream = function () {
+        return easyrtc.getLocalStream();
+    };
+
+    // FIXME: document me better
+    // Sets the video DOM element's source with the specified stream.
+    // videoSel is a jQuery element!
+    this.setVideoObjectSrc = function (videoSel, stream) {
+        easyrtc.setVideoObjectSrc(videoSel.get(0), stream);
+    };
+
+    // TODO: map peerID -> viewport div?
     return this;
 };
 
 // FIXME: what functions are contained in here?
 var VTCCore = {
+    // This function is an user-defined error handler.
+    // Type: function(Object({title: String, content: String}))
+    _errorFn : null,
+
     // Contains the configuration of the media devices
     // Object structure:
     //   {
@@ -71,6 +183,7 @@ var VTCCore = {
      *     Contains three fields denoting the initial state of the media devices.
      */
     initialize : function (config) {
+        var _this = this;
         if (!this._validateConfig(config)) {
             ErrorMetric.log('VTCCore.initialize => config is invalid');
             ErrorMetric.log('                   => ' + JSON.stringify(config));
@@ -85,14 +198,16 @@ var VTCCore = {
             ErrorMetric.log('easyrtc.onError => An error has occurred with easyrtc');
             ErrorMetric.log('                => code: ' + errorObject.errorCode);
             ErrorMetric.log('                => text: ' + errorObject.errorText);
-
-            Dialog.show({
-                title   : 'An Error Has Occurred',
-                content : 'There has been a problem with the VTC session, please reload the page.' + 
-                          '<br><br>' +
-                          '<b>Error Code</b>: ' + errorObject.errorCode + '<br>' +
-                          '<b>Summary</b>: ' + errorObject.errorText
-            });
+            
+            if (_this._errorFn !== undefined) {
+                _this._errorFn({
+                    title   : 'An Error Has Occurred',
+                    content : 'There has been a problem with the VTC session, please reload the page.' + 
+                              '<br><br>' +
+                              '<b>Error Code</b>: ' + errorObject.errorCode + '<br>' +
+                              '<b>Summary</b>: ' + errorObject.errorText
+                });
+            }
         });
         
         return this;
@@ -112,6 +227,8 @@ var VTCCore = {
         easyrtc.setPeerListener(function (peerId, msgType, content) {
             peerMessageFn(_this.client, peerId, msgType, content);
         });
+
+        return this;
     },
     
     /* Parameters:
@@ -127,6 +244,8 @@ var VTCCore = {
         easyrtc.setStreamAcceptor(function (peerId, stream) {
             streamAcceptFn(_this.client, peerId, stream);
         });
+        
+        return this;
     },
 
     /* Parameters:
@@ -141,6 +260,20 @@ var VTCCore = {
         easyrtc.setOnStreamClosed(function (peerId) {
             streamCloseFn(_this.client, peerId);
         });
+
+        return this;
+    },
+    
+    /* Parameters:
+     *   errorFn : function(Object({
+     *               title   : String,
+     *               content : String<HTML>
+     *             })
+     *     Callback that is called when an error condition arises
+     */
+    onError : function (errorFn) {
+        this._errorFn = errorFn;
+        return this;
     },
 
     // Parameters:
@@ -178,47 +311,71 @@ var VTCCore = {
         }
         
         easyrtc.setRoomOccupantListener(function (roomName, peerList) {
-            // TODO: call everyone in the peer list
+            var peersToCall = Object.keys(peerList);
+            var callPeers = function (i) {
+                var peerId = peersToCall[i];
+                easyrtc.call(peerId, function () {
+                    if (i > 0) {
+                        callPeers(i - 1);
+                    }
+                }, function (errorCode, errorText) {
+                    ErrorMetric.log('easyrtc.call => failed to call ' + peerId);
+                    ErrorMetric.log('             => ' + errorCode + ': ' + errorText);
+
+                    if (i > 0) {
+                        callPeers(i - 1);
+                    }
+                });
+            };
+
+            if (peersToCall.length > 0) {
+                callPeers(peersToCall.length - 1);
+            }
+
+            easyrtc.setRoomOccupantListener(null);
         });
         
-        // TODO: initMediaStream and connect
+        var _this = this;
         easyrtc.initMediaSource(function () {
             easyrtc.connect('tubertc', function (myId) {
-                // TODO: instantiate VTCClient object
-                // TODO: add myId to VTCClient object
-                // TODO: add userName, roomName to VTCClient object
-                // TODO: call successFn with VTCClient object as argument
+                _this.client = new VTCClient(myId, roomName, _this._errorFn);
+
+                if (successFn !== undefined) {
+                    successFn(_this.client);
+                }
             }, function (errorCode, errorText) {
                 ErrorMetric.log('easyrtc.connect => failed to connect');
                 ErrorMetric.log('                => ' + errorCode + ': ' + errorText);
                 
                 // FIXME: proofread and make this text better
-                Dialog.show({
-                    title   : 'An Error Has Occurred',
-                    content : 'We are unable to join the video teleconferencing session.<br><br>' +
-                              '<b>Error Code</b>: ' + errorCode + '<br>' +
-                              '<b>Error Text</b>: ' + errorText
-                });
+                if (_this._errorFn !== undefined) {
+                    _this._errorFn({
+                        title   : 'An Error Has Occurred',
+                        content : 'We are unable to join the video teleconferencing session.<br><br>' +
+                                  '<b>Error Code</b>: ' + errorCode + '<br>' +
+                                  '<b>Error Text</b>: ' + errorText
+                    });
+                }
             });
         }, function (errorCode, errorText) {
             ErrorMetric.log('easyrtc.initMediaSource => unable to initialize media source');
             ErrorMetric.log('                        => ' + errorCode + ': '+ errorText);
             
             // FIXME: proofread and make this text better
-            Dialog.show({
-                title   : 'Unable to Initialize Media Sources',
-                content : 'We are unable to gain access to your media sources. ' +
-                          'Did you forget to grant us permission to use the camera/microphone?<br><br>' +
-                          '<b>Error Code</b>: ' + errorCode + '<br>' +
-                          '<b>Error Text</b>: ' + errorText
-            });
+            if (_this._errorFn !== undefined) {
+                _this._errorFn({
+                    title   : 'Unable to Initialize Media Sources',
+                    content : 'We are unable to gain access to your media sources. ' +
+                              'Did you forget to grant us permission to use the camera/microphone?<br><br>' +
+                              '<b>Error Code</b>: ' + errorCode + '<br>' +
+                              '<b>Error Text</b>: ' + errorText
+                });
+            }
         });
 
         return this;
     },
     
-    // TODO: what other API to put here?
-
     // Returns the VTCClient instance
     getClient : function () {
         return this.client;

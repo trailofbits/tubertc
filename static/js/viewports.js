@@ -198,6 +198,10 @@ var Viewport = function(){
   this.elem = $('<div></div>', {class:'trtc_viewport'});
   this.view = $('<div></div>', {class:'trtc_view'});
 
+  // By default, mute everything. Unmute only when we are sure it isn't a "self" stream
+  this.videoSrc = $('<video></video>').prop('muted', true);
+  
+  this.view.append(this.videoSrc);
   this.elem.append(this.view);
 
   return this;
