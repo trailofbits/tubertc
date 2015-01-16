@@ -180,6 +180,20 @@ var Dashboard = function(){
     }
     return {'rows': 2, 'grid': [1, this.viewportArray.length-1]}
   }
+  
+  this.showDashMode = function () {
+    this.hangoutsMode = false;
+    if (this.viewportArray.length > 1) {
+      this.placeViewports();
+    }
+  },
+
+  this.showHangoutsMode = function () {
+    this.hangoutsMode = true;
+    if (this.viewportArray.length > 1) {
+      this.placeViewports();
+    }
+  },
 
   this.createGridForNewUser = function(){
 

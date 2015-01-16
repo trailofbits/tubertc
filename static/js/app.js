@@ -151,11 +151,9 @@ var vtcMain = function (params) {
             });
 
             NavBar.dashBtn.handle(function () {
-                trtc_dash.hangoutsMode = false;
-                trtc_dash.placeViewports();
+                trtc_dash.showDashMode();
             }, function () {
-                trtc_dash.hangoutsMode = true;
-                trtc_dash.placeViewports();
+                trtc_dash.showHangoutsMode();
             });
 
             // TODO: map localStream to viewport UI
