@@ -63,6 +63,73 @@ var attrDialogTmpl = Handlebars.compile(
     '</ul>'
 );
 
+// Entry point for when the VTC chat is ready to start (after user clicks Join Room button)
+var vtcMain = function (params) {
+    // TODO: verify that this is a safe operation!
+    $('#roomNameField')
+        .text(params.roomName)
+        .fadeIn(function () {
+            // Change the browser's URL bar so that people can use it to give out
+            // links to other future callers
+            history.pushState({}, '', '/?room=' + escape(params.roomName));
+            
+            // Fade in the vtcRoom container used for placing the videos
+            $('.vtcRoom').fadeIn();   
+        });
+    
+    VTCCore.initialize({
+        cameraIsEnabled : params.cameraIsEnabled,
+        micIsEnabled    : params.micIsEnabled
+    });
+    
+    VTCCore.onPeerMessage(function (client, peerId, msgType, content) {
+        // TODO: parse and handle chat messages
+    });
+
+    VTCCore.onStreamAccept(function (peerId, stream) {
+        // TODO: new user registration
+    });
+    
+    VTCCore.onStreamClose(function (peerId) {
+        // TODO: user deletion
+    });
+
+    // TODO: initialize easyrtc/chat based off of information from params
+    //
+    //       params = {
+    //         userName        : <String>,
+    //         roomName        : <String>,
+    //         rtcName         : <String>,
+    //         cameraIsEnabled : <boolean>,
+    //         micIsEnabled    : <boolean>,
+    //         dashModeEnabled : <boolean>
+    //       }
+    //
+    // TODO: set handlers for NavBar.*Btn buttons
+    NavBar.cameraBtn.handle(function () {
+        // TODO: camera is enabled
+    }, function () {
+        // TODO: camera is disabled
+    });
+    
+    NavBar.micBtn.handle(function () {
+        // TODO: mic is enabled
+    }, function () {
+        // TODO: mic is disabled
+    });
+
+    NavBar.dashBtn.handle(function () {
+        // TODO: dash mode is enabled
+    }, function () {
+        // TODO: hangouts mode is enabled
+    });
+
+    // TODO: implement a vtc.js that "wraps" most of easyrtc so in the future,
+    //       we can easily re-implement our own WebRTC wrapper
+    // TODO: call VTCCore.connect?
+    // TODO: inside VCTCore.connect's successFn, initialize chat as well
+};
+
 // Main entry point
 $(document).ready(function () {
     NavBar.initialize();
@@ -83,40 +150,8 @@ $(document).ready(function () {
             })
             .done(function (params) {
                 // This is called if the userName and roomName are valid and we are ready to join
-                // the chat
-                
-                // TODO: verify that this is a safe operation!
-                $('#roomNameField')
-                    .text(params.roomName)
-                    .fadeIn(function () {
-                        // Change the browser's URL bar so that people can use it to give out
-                        // links to other future callers
-                        history.pushState({}, '', '/?room=' + escape(params.roomName));
-                        
-                        // Fade in the vtcRoom container used for placing the videos
-                        $('.vtcRoom').fadeIn();   
-                    });
-                
-                VTCCore.initialize({
-                    cameraIsEnabled : params.cameraIsEnabled,
-                    micIsEnabled    : params.micIsEnabled
-                });
-
-                // TODO: initialize easyrtc/chat based off of information from params
-                //
-                //       params = {
-                //         userName        : <String>,
-                //         roomName        : <String>,
-                //         rtcName         : <String>,
-                //         cameraIsEnabled : <boolean>,
-                //         micIsEnabled    : <boolean>,
-                //         dashModeEnabled : <boolean>
-                //       }
-                //
-                // TODO: set handlers for NavBar.*Btn buttons
-                // TODO: implement a vtc.js that "wraps" most of easyrtc so in the future,
-                //       we can easily re-implement our own WebRTC wrapper
-
+                // the chat. At this point, when call vtcMain()
+                vtcMain(params);
             });
     });
 });
