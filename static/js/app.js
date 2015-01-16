@@ -106,7 +106,7 @@ var vtcMain = function (params) {
         })
         .onStreamAccept(function (client, peerId, stream) {
             var peerName = client.idToName(peerId);
-            chatRoom.userEntered(peerName);
+            chatRoom.userEntered(peerName, peerId);
             
             // TODO: init viewport
             var port = trtc_dash.createGridForNewUser();
@@ -160,7 +160,7 @@ var vtcMain = function (params) {
 
             // TODO: map localStream to viewport UI
             var port = trtc_dash.createGridForNewUser();
-            port.videoSrc.addClass('.video_mirror');
+            port.videoSrc.addClass('video_mirror');
             client.setVideoObjectSrc(port.videoSrc, client.getLocalStream());
 
             // TODO: store port in some map

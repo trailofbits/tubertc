@@ -82,6 +82,10 @@ var Dashboard = function(){
 
         row.append(viewport.elem);
 
+        // When the video is removed from being displayed, it needs load() to be
+        // called on it before the video continues.
+        viewport.videoSrc.get(0).load();
+
         whichGrid+=1;
       }
       
@@ -90,7 +94,7 @@ var Dashboard = function(){
     if (_this.hangoutsMode && _this.viewportArray.length > 0) {
       var hangoutsViewport = _this.viewportArray[0];
       hangoutsViewport.elem.css({width:'100%'});
-      hangoutsViewport.view.css({background:'white'});
+      // hangoutsViewport.view.css({background:'white'});
 
       _this.rowArray[0].css({height:'100%', left:0});
       _this.rowArray[1].css({height:'120px', 'bottom':'120px'});
@@ -194,6 +198,7 @@ var Dashboard = function(){
 
 }
 
+// TODO: add labels for each viewport
 var Viewport = function(){
   this.elem = $('<div></div>', {class:'trtc_viewport'});
   this.view = $('<div></div>', {class:'trtc_view'});
