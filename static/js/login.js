@@ -228,7 +228,7 @@ var Login = {
             _roomNameEntry.focus();
             return false;
         }
-
+        
         return true;
     },
     
@@ -239,6 +239,33 @@ var Login = {
      *       micBtn    : <StatefulButton>,
      *       dashBtn   : <StatefulButton>
      *     }
+     *
+     * Returns:
+     *   status : boolean
+     *     True if the media settings checks out. Otherwise, false.
+     *
+     * This function just makes sure that at least a microphone or camera is enabled. If both are disabled,
+     * we will get an exception. To avoid this error, we nip it at the bud here.
+     */
+    _checkMediaSettings : function (config) {
+        if (!config.cameraBtn.isEnabled() && !config.micBtn.isEnabled()) {
+            _loginAlert
+                .html('Cannot disable both camera <b>and</b> microphone. Please choose at least one.')
+                .stop(true, false)
+                .slideDown();
+            return false;
+        }
+        return true;
+    },
+
+    /* Parameters:
+     *   config : Object
+     *     {
+     *       cameraBtn : <StatefulButton>,
+     *       micBtn    : <StatefulButton>,
+     *       dashBtn   : <StatefulButton>
+     *     }
+     * 
      * Return:
      *   Login
      *     This returns itself for chaining purposes.
@@ -306,7 +333,26 @@ var Login = {
             _roomNameEntry
                 .val(generateRoomName());
         }
-    
+        
+        var scCameraEnabled = StorageCookie.getValue('cameraIsEnabled');
+        var scMicEnabled = StorageCookie.getValue('micIsEnabled');
+        var scDashMode = StorageCookie.getValue('dashModeEnabled');
+        var _setInitialBtnState = function (initValue, btn) {
+            if (initValue !== null && initValue !== btn.isEnabled()) {
+                btn.toggle();
+            }
+        };
+        
+        // Set button's initial state (from localStorage)
+        _setInitialBtnState(scCameraEnabled, config.cameraBtn);
+        _setInitialBtnState(scMicEnabled, config.micBtn);
+        _setInitialBtnState(scDashMode, config.dashBtn);
+        
+        if (scMicEnabled !== null && scMicEnabled !== config.micBtn.isEnabled()) {
+            config.micBtn.toggle();
+        }
+        
+
         _userNameEntry.keypress(function (e) {
             // Detect when ENTER button is pressed
             if (e.which === 13) {
@@ -328,7 +374,7 @@ var Login = {
         });
 
         _joinBtn.click(function () {
-            if (_this._validate()) {
+            if (_this._validate() && _this._checkMediaSettings(config)) {
                 _loginAlert
                     .stop(true, false)
                     .slideUp();

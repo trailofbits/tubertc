@@ -94,7 +94,7 @@ var Dashboard = function(){
     if (_this.hangoutsMode && _this.viewportArray.length > 0) {
       var hangoutsViewport = _this.viewportArray[0];
       hangoutsViewport.elem.css({width:'100%'});
-      // hangoutsViewport.view.css({background:'white'});
+      hangoutsViewport.view.css({background:'white'});
 
       _this.rowArray[0].css({height:'100%', left:0});
       _this.rowArray[1].css({height:'120px', 'bottom':'120px'});
@@ -194,7 +194,8 @@ var Dashboard = function(){
       this.placeViewports();
     }
   },
-
+  
+  // TODO: add peerName as a argument to this function
   this.createGridForNewUser = function(){
 
     var newViewport = new Viewport();
@@ -212,7 +213,7 @@ var Dashboard = function(){
 
 }
 
-// TODO: add labels for each viewport
+// TODO: add labels for each viewport (make constructor take peerName
 var Viewport = function(){
   this.elem = $('<div></div>', {class:'trtc_viewport'});
   this.view = $('<div></div>', {class:'trtc_view'});
