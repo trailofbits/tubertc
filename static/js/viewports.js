@@ -26,13 +26,15 @@ var Dashboard = function(){
         h = container.height();
 
     var aspect_ratio = w/h;
-    if (aspect_ratio < 1.0) {
+
+    // Hangouts mode should always be in landscape orientation
+    if (aspect_ratio < 1.0 && !this.hangoutsMode) {
       this.orientation = 'portrait';
     }
     else {
       this.orientation = 'landscape';
     }
-
+    
     this.placeViewports();
   }
 
@@ -94,7 +96,7 @@ var Dashboard = function(){
     if (_this.hangoutsMode && _this.viewportArray.length > 0) {
       var hangoutsViewport = _this.viewportArray[0];
       hangoutsViewport.elem.css({width:'100%'});
-      hangoutsViewport.view.css({background:'white'});
+      // XXX: hangoutsViewport.view.css({background:'white'});
 
       _this.rowArray[0].css({height:'100%', left:0});
       _this.rowArray[1].css({height:'120px', 'bottom':'120px'});
