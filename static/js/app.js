@@ -56,6 +56,7 @@ var attrDialogTmpl = Handlebars.compile(
     '</div>' +
     '<ul>' +
     '<li>Icons made by: <a href="http://www.icons8.com" title="Icons8">Icons8</a>, <a href="http://www.icomoon.io" title="Icomoon">Icomoon</a>, <a href="http://www.freepik.com" title="Freepik">Freepik</a>, and <a href="http://yanlu.de" title="Yannick">Yannick</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a></li>' +
+    '<li>Using <a href="http://soundbible.com/2067-Blop.html">Blop</a> by Mark Dingelo which is licensed under <a href="https://creativecommons.org/licenses/by/3.0/legalcode" title="Attribution 3.0">Attribution 3.0</a></li>' +
     '<li>Using the <a href="http://mincss.com/">Min</a> CSS framework</li>' +
     '<li>Using <a href="http://handlebarsjs.com/">handlebars</a> for templating</li>' +
     '<li>Using <a href="http://chancejs.com/">Chance</a> for generating random room names</li>' +

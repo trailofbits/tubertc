@@ -2,6 +2,7 @@
  *
  * Requires:
  *   Handlebars.js
+ *   js/sound.js
  *   js/error.js
  */
 
@@ -22,6 +23,8 @@ var getRandomColor = function () {
 var Chat = function (roomName) {
     // An Object storing mappings of peerId : String => userName : String
     var _peerIdMap = {};
+    
+    var _audio = new SoundClip($('#chatAlertSound')[0]);
 
     // Default color palette for chatTextEntry. 'Idle' means that the text entry element does
     // not contain any text worth saving.
@@ -70,12 +73,14 @@ var Chat = function (roomName) {
                 body : msg
             });
             
+            _audio.play();
+
             // Use default time-to-live if none is provided.
             // (time-to-live is in seconds)
             if (ttl === undefined) {
                 ttl = this.kDefaultNotificationTimeout;
             }
-
+        
             setInterval(function () {
                 notification.close();
             }, ttl * 1000);
@@ -124,7 +129,16 @@ var Chat = function (roomName) {
      *
      *   If userName is provided, it tries to find the user using the userName and 
      *   removes them from the chat. If userName is null, peerId must be defined.
-     *   It uses peerId to lookup the userName and uses the found userName.
+     *   It uses peerId to lookup the userName and uses the found userName. 
+     *
+     *   This minorly complex model is used because of how the VTC module's onStreamClose
+     *   event handler works. Since the peer user has already disconnected, idToName will
+     *   not correctly map to the peer userName. Instead, it just returns the peerId. 
+     *   However, userEntered *does* map to a userName so in order to counter this issue,
+     *   we need to store both the userName and peerId. Later on, when userLeft is called
+     *   on a stream close event, we can correctly map the peerId to userName and mark
+     *   that the user has left the chat.
+     *
      */
     this.userLeft = function (userName, peerId) {
         var chatObj = this;
@@ -283,7 +297,7 @@ var Chat = function (roomName) {
         $('.chatPanel')
             .stop(false, true)
             .slideDown(function () {
-                resizeChatPanes()
+                resizeChatPanes();
             });
 
         return this;
