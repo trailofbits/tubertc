@@ -7,11 +7,6 @@
  *   js/error.js
  */
 
-// FIXME: what functions are contained in here?
-// TODO: Functionality that needs to be exported
-//   * sendPeerMessage
-//   * map of peerId -> viewport divs?
-// TODO: should we have a map that maps peerId to div element? (PROBABLY)
 var VTCClient = function (myId, roomName, onErrorFn) {
     var _id = myId;
     var _room = roomName;
@@ -113,10 +108,15 @@ var VTCClient = function (myId, roomName, onErrorFn) {
                 });
             }
         });
-        return true
+        return true;
     };
     
-    // Returns the local video/audio stream
+    /* Returns:
+     *   MediaStream
+     *     MediaStream object for the local media sources.
+     * 
+     * Obtains and returns the requested (via enableAudio/enableVideo) media sources.
+     */
     this.getLocalStream = function () {
         return easyrtc.getLocalStream();
     };
@@ -124,15 +124,27 @@ var VTCClient = function (myId, roomName, onErrorFn) {
     // FIXME: document me better
     // Sets the video DOM element's source with the specified stream.
     // videoSel is a jQuery element!
+    /* Parameters:
+     *   videoSel : jQuery
+     *     This is a jQuery selector for a video element. This *must* be a jQuery selector because
+     *     we call .get(0) on it in this function.
+     *
+     *   stream : MediaStream
+     *     This contains the MediaStream object in which videoSel will be bound to.
+     *
+     * This functions binds stream to the provided videoSel. 
+     *
+     * HINT:
+     *   Upon any DOM element manipulation of the video element, the video stream will pause. This
+     *   can be remedied by calling .load() on the raw video DOM element.
+     */
     this.setVideoObjectSrc = function (videoSel, stream) {
         easyrtc.setVideoObjectSrc(videoSel.get(0), stream);
     };
 
-    // TODO: map peerID -> viewport div?
     return this;
 };
 
-// FIXME: what functions are contained in here?
 var VTCCore = {
     // This function is an user-defined error handler.
     // Type: function(Object({title: String, content: String}))
