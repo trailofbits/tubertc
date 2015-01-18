@@ -88,6 +88,7 @@ var Dashboard = function(){
                 // When the video is removed from being displayed, it needs load() to be
                 // called on it before the video continues.
                 viewport.videoSrc.get(0).load();
+                viewport.bindClick();
 
                 whichGrid+=1;
             }
@@ -199,7 +200,7 @@ var Dashboard = function(){
     
     this.createGridForNewUser = function(peerName){
 
-        var newViewport = new Viewport(peerName);
+        var newViewport = new Viewport(peerName, this);
         this.viewportArray.push(newViewport);
         this.placeViewports();
         return newViewport;
@@ -214,17 +215,35 @@ var Dashboard = function(){
 
 };
 
-var Viewport = function(peerName){
+var Viewport = function(peerName, dashboard){
     // TODO: in the future, make use of peerName by utilizing it as a label. However,
     //       being undefined should be a valid state. If undefined do, not add a label.
     this.elem = $('<div></div>', {class:'trtc_viewport'});
     this.view = $('<div></div>', {class:'trtc_view'});
 
     // By default, mute everything. Unmute only when we are sure it isn't a "self" stream
-    this.videoSrc = $('<video></video>').prop('muted', true);
+    this.videoSrc = $('<video></video>', {title:peerName}).prop('muted', true);
     
     this.view.append(this.videoSrc);
     this.elem.append(this.view);
+    
+    // TODO FIXME: this sort of feels and looks kludgey, can we fix this?
+    this.bindClick = function () {
+        var _this = this;
+        this.elem.click(function () {
+            if (dashboard.hangoutsMode) {
+                var i = dashboard.viewportArray.indexOf(_this);
+                
+                // Ignore the first element because that is the main display and it implies we are
+                // already the main display.
+                if (i > 0) {
+                    var item = dashboard.viewportArray.splice(i, 1)[0];
+                    dashboard.viewportArray.unshift(item);
+                    dashboard.placeViewports();
+                }
+            }
+        });
+    };
 
     return this;
 };
