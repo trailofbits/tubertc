@@ -1,6 +1,8 @@
 var PARENT_CONTAINER_ID = 'vtcRoom';
 var trtc_dash = null;
 
+// TODO: for hangoutsMode, make the all non-primary video clickable
+// TODO: add labels for each
 var Dashboard = function(){
   this.container = null;
   this.elem = null;
@@ -197,10 +199,9 @@ var Dashboard = function(){
     }
   },
   
-  // TODO: add peerName as a argument to this function
-  this.createGridForNewUser = function(){
+  this.createGridForNewUser = function(peerName){
 
-    var newViewport = new Viewport();
+    var newViewport = new Viewport(peerName);
     this.viewportArray.push(newViewport);
     this.placeViewports();
     return newViewport;
@@ -215,8 +216,9 @@ var Dashboard = function(){
 
 }
 
-// TODO: add labels for each viewport (make constructor take peerName
-var Viewport = function(){
+var Viewport = function(peerName){
+  // TODO: in the future, make use of peerName by utilizing it as a label. However,
+  //       being undefined should be a valid state. If undefined do, not add a label.
   this.elem = $('<div></div>', {class:'trtc_viewport'});
   this.view = $('<div></div>', {class:'trtc_view'});
 
