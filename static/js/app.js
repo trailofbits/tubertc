@@ -94,8 +94,7 @@ var vtcMain = function (params) {
         })
         .onPeerMessage(function (client, peerId, msgType, content) {
             if (msgType === 'chat' && typeof content.msg === 'string') {
-                var peerName = client.idToName(peerId);
-                chatRoom.addMessage(peerName, content.msg);
+                chatRoom.addMessage(peerId, content.msg);
             } else {
                 // FIXME: right now we don't have other messages to take care of
                 ErrorMetric.log('peerMessage => got a peer message that is unexpected');
@@ -107,9 +106,9 @@ var vtcMain = function (params) {
         })
         .onStreamAccept(function (client, peerId, stream) {
             var peerName = client.idToName(peerId);
-            chatRoom.userEntered(peerName, peerId);
+            chatRoom.userEntered(peerId, peerName);
             
-            // TODO: init viewport
+            // Create a new viewport and unmute the VideoElement
             var port = trtc_dash.createGridForNewUser(peerName);
             port.videoSrc.prop('muted', false);
             client.setVideoObjectSrc(port.videoSrc, stream);
@@ -117,20 +116,19 @@ var vtcMain = function (params) {
             idToViewPort[peerId] = port;
         })
         .onStreamClose(function (client, peerId) {
-            chatRoom.userLeft(null, peerId);
+            chatRoom.userLeft(peerId);
             
-            // TODO: teardown viewport
             var port = idToViewPort[peerId];
             if (port !== undefined) {
                 trtc_dash.removeUserWithGrid(port);
                 delete idToViewPort[peerId];
             } else {
-                // TODO: error!
+                ErrorMetric.log('vtcMain => failed to find viewport for ' + peerId);
             }
         })
         .connect(params.userName, params.rtcName, function (client) {
             chatRoom
-                .initialize(params.userName, function (message) {
+                .initialize(client.getId(), params.userName, function (message) {
                     return client.sendPeerMessage({
                         room : params.rtcName
                     }, 'chat', {
@@ -157,12 +155,11 @@ var vtcMain = function (params) {
                 trtc_dash.showHangoutsMode();
             });
 
-            // TODO: map localStream to viewport UI
+            // Create a viewport for ourself and make it mirrored
             var port = trtc_dash.createGridForNewUser();
             port.videoSrc.addClass('video_mirror');
             client.setVideoObjectSrc(port.videoSrc, client.getLocalStream());
 
-            // TODO: store port in some map
             idToViewPort[client.getId()] = port;
     });
 };

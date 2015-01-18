@@ -42,8 +42,43 @@ var Chat = function (roomName) {
                 scrollTop : _chatHistoryPane.prop('scrollHeight')
             }, 'slow');
     };
+
+    // Stores mappings of peerId : String -> hsvColor : String pairs
+    this.peerColorMap = {};
+
+    // Stores a list of hsvColor strings
+    this.colorsUsed = [];
     
-    this._generateUniqueColor = function (userName) {
+    this.roomName = roomName;
+    this.peerId = null;
+    this.userName = null;
+    
+    this.showNotifications = false;
+
+    this.notificationTmpl = Handlebars.compile(
+        '<span class="chatNotification">' +
+        '<span class="chatRoomName controlRoomName">[{{room}}]</span>: {{msg}}' +
+        '</span><br>'
+    );
+
+    this.userEnteredTmpl = Handlebars.compile(
+        '<span class="chatNotification">' + 
+        '<span class="chatUsername tooltip" style="color:{{color}}" title="{{id}}">{{user}}</span> has entered <span class="chatRoomName">{{room}}</span>.' +
+        '</span><br>'
+    );
+    
+    this.userLeftTmpl = Handlebars.compile(
+        '<span class="chatNotification">' +
+        '<span class="chatUsername tooltip" style="color:{{color}}" title="{{id}}">{{user}}</span> has left <span class="chatRoomName">{{room}}</span>.' +
+        '</span><br>'
+    );
+    
+    this.messageTmpl = Handlebars.compile(
+        '<span class="chatUsername tooltip" style="color:{{color}}" title="{{id}}">{{user}}</span>: ' +
+        '<span class="chatMessage">{{msg}}</span><br>'
+    );
+
+    this._generateUniqueColor = function (peerId) {
         var tries = 5;
         var hsvColor = getRandomColor();
         
@@ -54,13 +89,13 @@ var Chat = function (roomName) {
         }
         
         if (tries === 0) {
-            ErrorMetric.log('Could not generate random color for user ' + userName);
+            ErrorMetric.log('Could not generate random color for user ' + peerId);
 
             // Return black in the case of an error
             return 'hsl(0, 0%, 0%, 1)';
         }
         
-        this.userColorMap[userName] = hsvColor;
+        this.peerColorMap[peerId] = hsvColor;
         this.colorsUsed.push(hsvColor);
 
         return hsvColor;
@@ -88,29 +123,30 @@ var Chat = function (roomName) {
     };
 
     /* Parameters:
-     *   userName : String
-     *     The name of the user that entered the chatroom
-     *
      *   peerId : String
      *     The RTC peer ID of the user that entered the chatroom
+     *
+     *   userName : String
+     *     The name of the user that entered the chatroom
      */
-    this.userEntered = function (userName, peerId) {
-        var chatObj = this;
-        if (this.userName !== null) {
-            var hsvColor = this._generateUniqueColor(userName);
+    this.userEntered = function (peerId, userName) {
+        var _this = this;
+
+        // TODO: should we give self a special color?
+        if (this.peerId !== null) {
+            var hsvColor = this._generateUniqueColor(peerId);
             var content = this.userEnteredTmpl({
                 color : hsvColor,
                 user  : userName,
-                room  : chatObj.roomName
+                id    : peerId,
+                room  : _this.roomName
             });
             
-            if (peerId !== undefined) {
-                _peerIdMap[peerId] = userName;
-            }
+            _peerIdMap[peerId] = userName;
 
             // Do not show self events
-            if (this.userName !== userName) {
-                this._notify('Room Status', userName + ' has entered the room');
+            if (this.peerId !== peerId) {
+                this._notify('Room Status', userName + ' (' + peerId + ') has entered the room');
             }
 
             this._appendLine(content);
@@ -122,53 +158,34 @@ var Chat = function (roomName) {
     };
     
     /* Parameters:
-     *   userName : String
-     *     The name of the user that left the chatroom. This can be null.
      *   peerId : String
      *     The peerId of the user that left the chatroom
      *
-     *   If userName is provided, it tries to find the user using the userName and 
-     *   removes them from the chat. If userName is null, peerId must be defined.
-     *   It uses peerId to lookup the userName and uses the found userName. 
-     *
-     *   This minorly complex model is used because of how the VTC module's onStreamClose
-     *   event handler works. Since the peer user has already disconnected, idToName will
-     *   not correctly map to the peer userName. Instead, it just returns the peerId. 
-     *   However, userEntered *does* map to a userName so in order to counter this issue,
-     *   we need to store both the userName and peerId. Later on, when userLeft is called
-     *   on a stream close event, we can correctly map the peerId to userName and mark
-     *   that the user has left the chat.
-     *
+     * Removes peerId from the chat. We don't use usernames because they can collide. Peer IDs are much
+     * more unique and map to user names.
      */
-    this.userLeft = function (userName, peerId) {
-        var chatObj = this;
-        if (this.userName !== null) {
-            if (userName === null && peerId !== undefined) {
-                userName = _peerIdMap[peerId];
-                if (userName === undefined) {
-                    ErrorMetric.log('Chat.userLeft => invalid peer ' + peerId);
+    this.userLeft = function (peerId) {
+        var _this = this;
+        if (this.peerId !== null) {
+            var userName = _peerIdMap[peerId];
 
-                    // Break chaining
-                    return null;
-                }
-            }
-
-            var hsvColor = this.userColorMap[userName];
+            var hsvColor = this.peerColorMap[peerId];
             if (hsvColor !== undefined) {
                 var content = this.userLeftTmpl({
                     color : hsvColor,
                     user  : userName,
-                    room  : chatObj.roomName     
+                    id    : peerId,
+                    room  : _this.roomName     
                 });
                 
                 // Do not show self events
-                if (this.userName !== userName) {
-                    this._notify('Room Status', userName + ' has left the room');
+                if (this.peerId !== peerId) {
+                    this._notify('Room Status', userName + ' (' + peerId + ') has left the room');
                 }
 
                 this._appendLine(content);
 
-                delete this.userColorMap[userName];
+                delete this.peerColorMap[peerId];
 
                 var idx = this.colorsUsed.indexOf(hsvColor);
                 if (idx > -1) {
@@ -189,9 +206,9 @@ var Chat = function (roomName) {
      *     The notification message to be added to the Chat interface
      */
     this.addNotification = function (message) {
-        var chatObj = this;
+        var _this = this;
         var content = this.notificationTmpl({
-            room : chatObj.roomName,
+            room : _this.roomName,
             msg  : message
         });
         this._appendLine(content);
@@ -200,25 +217,27 @@ var Chat = function (roomName) {
     };
 
     /* Parameters:
-     *   userName : String
-     *     The name of the user that sent a message.
+     *   peerId : String
+     *     The peer ID of the user that sent a message.
      *
      *   message : String
-     *     The contents of the message sent by userName.
+     *     The contents of the message sent by peerId.
      */
-    this.addMessage = function (userName, message) {
-        var chatObj = this;
-        if (this.userName !== null) {
-            var hsvColor = this.userColorMap[userName];
-            if (hsvColor !== undefined) {
+    this.addMessage = function (peerId, message) {
+        var _this = this;
+        if (this.peerId !== null) {
+            var userName = _peerIdMap[peerId];
+            var hsvColor = this.peerColorMap[peerId];
+            if (hsvColor !== undefined && userName !== undefined) {
                 var content = this.messageTmpl({
                     color : hsvColor,
                     user  : userName,
+                    id    : peerId,
                     msg   : message
                 });
                 this._appendLine(content);
             } else {
-                ErrorMetric.log('Chat.addMessage => "' + userName + '" is not a valid key');
+                ErrorMetric.log('Chat.addMessage => "' + peerId + '" is not a valid key');
             }
         } else {
             ErrorMetric.log('Chat.addMessage => addMessage invoked without Chat.userName');
@@ -228,6 +247,9 @@ var Chat = function (roomName) {
     };
     
     /* Parameter:
+     *   peerId : String
+     *     The peer ID of the current user.
+     *
      *   userName : String
      *     The name of the current user.
      *   
@@ -238,12 +260,16 @@ var Chat = function (roomName) {
      * This function sets up the user controls, binds the user name, and registers a call back
      * for the Chat UI. This connects the components such that messages can get sent out.
      */
-    this.initialize = function (userName, sendMessageFn) {
-        var chatObj = this;
+    this.initialize = function (peerId, userName, sendMessageFn) {
+        var _this = this;
 
+        this.peerId = peerId;
         this.userName = userName;
-        this.userEntered(userName);
-        
+
+        // FIXME: it would be cool to have some text here...
+        this.addNotification('Welcome! Feel free to use this to communicate.');
+        this.userEntered(peerId, userName);
+
         var defaultText = 'Type message here...';
         _chatTextEntry
             .prop('disabled', false)
@@ -252,7 +278,7 @@ var Chat = function (roomName) {
                 if (msg.length === 0) {
                     _chatTextEntry
                         .css('font-style', 'italic')
-                        .css('color', chatObj.kIdleTextColor)
+                        .css('color', _this.kIdleTextColor)
                         .val(defaultText);
                 }
             })
@@ -261,7 +287,7 @@ var Chat = function (roomName) {
                 if (msg === defaultText || msg.length === 0) {
                     _chatTextEntry
                         .css('font-style', 'normal')
-                        .css('color', chatObj.kActiveTextColor)
+                        .css('color', _this.kActiveTextColor)
                         .val('');
                 }
             })
@@ -270,10 +296,10 @@ var Chat = function (roomName) {
                 if (e.which === 13) {
                     var msg = _chatTextEntry.val();
                     if (sendMessageFn(msg)) {
-                        chatObj.addMessage(chatObj.userName, msg);
+                        _this.addMessage(_this.peerId, msg);
                     } else {
                         ErrorMetric.log('chatTextEntry.click() => failed to send message');
-                        chatObj.addNotification('Failed to send last message');
+                        _this.addNotification('Failed to send last message');
                     }
 
                     _chatTextEntry
@@ -283,7 +309,7 @@ var Chat = function (roomName) {
 
         Notification.requestPermission(function (permission) {
             if (permission === 'granted') {
-                chatObj.showNotifications = true;
+                _this.showNotifications = true;
             } else {
                 ErrorMetric.log('Chat.initialize -> Notifications are denied');
             }
@@ -302,40 +328,6 @@ var Chat = function (roomName) {
 
         return this;
     };
-
-    // Stores mappings of userName : String -> hsvColor : String pairs
-    this.userColorMap = {};
-
-    // Stores a list of hsvColor strings
-    this.colorsUsed = [];
-    
-    this.roomName = roomName;
-    this.userName = null;
-    
-    this.showNotifications = false;
-
-    this.notificationTmpl = Handlebars.compile(
-        '<span class="chatNotification">' +
-        '<span class="chatRoomName">[{{room}}]</span>: {{msg}}' +
-        '</span><br>'
-    );
-
-    this.userEnteredTmpl = Handlebars.compile(
-        '<span class="chatNotification">' + 
-        '<span class="chatUsername" style="color:{{color}}">{{user}}</span> has entered <span class="chatRoomName">{{room}}</span>.' +
-        '</span><br>'
-    );
-    
-    this.userLeftTmpl = Handlebars.compile(
-        '<span class="chatNotification">' +
-        '<span class="chatUsername" style="color:{{color}}">{{user}}</span> has left <span class="chatRoomName">{{room}}</span>.' +
-        '</span><br>'
-    );
-    
-    this.messageTmpl = Handlebars.compile(
-        '<span class="chatUsername" style="color:{{color}}">{{user}}</span>: ' +
-        '<span class="chatMessage">{{msg}}</span><br>'
-    );
 
     return this;
 };
