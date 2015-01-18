@@ -227,7 +227,7 @@ var Viewport = function(peerName){
     this.elem.append(this.view);
 
     return this;
-}
+};
 
 $(document).ready(function(){
     trtc_dash = new Dashboard();
