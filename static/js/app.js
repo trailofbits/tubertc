@@ -110,7 +110,7 @@ var vtcMain = function (params) {
             chatRoom.userEntered(peerName, peerId);
             
             // TODO: init viewport
-            var port = trtc_dash.createGridForNewUser();
+            var port = trtc_dash.createGridForNewUser(peerName);
             port.videoSrc.prop('muted', false);
             client.setVideoObjectSrc(port.videoSrc, stream);
 
