@@ -78,9 +78,25 @@ var vtcMain = function (params) {
             $('#vtcRoom').fadeIn();   
         });
     
+    // Disables buttons as per states from buttons in params
+    if (!params.cameraIsEnabled) {
+        NavBar.cameraBtn.disableButton();
+    }
+
+    if (!params.micIsEnabled) {
+        NavBar.micBtn.disableButton();
+    }
+    
+    // Setup default VTC user interface state
+    if (params.dashIsEnabled) {
+        trtc_dash.showDashMode();
+    } else {
+        trtc_dash.showHangoutsMode();
+    }
+
     // Instantiate the Chat object
     var chatRoom = new Chat(params.roomName);
-    
+       
     // Maps peerIds to Viewport objects
     var idToViewPort = {};
 

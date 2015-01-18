@@ -7,15 +7,28 @@
 // Defines a normal button
 var Button = function (id) {
     var idSel = $(id);
+    var _kDefaultColor = '#cccccc';
+    var _kDisabledColor = '#404040';
+    var _buttonIsEnabled = true;
 
     this.id = id;
     this.clickFn = null;
 
     var _this = this;
     var _paintColor = function () {
-        idSel.css('fill', '#cccccc');
+        idSel.css('fill', _kDefaultColor);
     };
     
+    this.disableButton = function () {
+        _buttonIsEnabled = false;
+        idSel.css('fill', _kDisabledColor);
+    };
+
+    this.enableButton = function () {
+        _buttonIsEnabled = true;
+        idSel.css('fill', _kDefaultColor);
+    };
+
     /* Parameters:
      *   clickFn : function()
      *     Callback function that is called upon clicking the button
@@ -25,16 +38,22 @@ var Button = function (id) {
     };
 
     idSel.hover(function () {
-        idSel.css('opacity', '0.5');
+        if (_buttonIsEnabled) {
+            idSel.css('opacity', '0.5');
+        }
     }, function () {
-        idSel.css('opacity', '1');
+        if (_buttonIsEnabled) {
+            idSel.css('opacity', '1');
+        }
     });
     
     idSel.click(function () {
-        if (_this.clickFn !== null) {
-            _this.clickFn();
-        } else {
-            ErrorMetric.log(id + '.click => Button.clickFn not defined');
+        if (_buttonIsEnabled) {
+            if (_this.clickFn !== null) {
+                _this.clickFn();
+            } else {
+                ErrorMetric.log(id + '.click => Button.clickFn not defined');
+            }
         }
 
         idSel.blur();
@@ -48,6 +67,9 @@ var Button = function (id) {
 // Defines a button that acts like a checkbox
 var StatefulButton = function (id, enabled) {
     var idSel = $(id);
+    var _kEnableColor = '#009966';
+    var _kDisableColor = '#cc0033';
+    var _buttonIsEnabled = true;
 
     this.id = id;
     this.enabledFn = null;
@@ -61,22 +83,34 @@ var StatefulButton = function (id, enabled) {
     var _this = this;
     var _paintColor = function () {
         if (_this.enabled) {
-            idSel.css('fill', '#009966');
+            idSel.css('fill', _kEnableColor);
         } else {
-            idSel.css('fill', '#cc0033');
+            idSel.css('fill', _kDisableColor);
         }
+    };
+    
+    this.disableButton = function () {
+        _buttonIsEnabled = false;
+        idSel.attr('title', 'Button is disabled');
+    };
+
+    this.enableButton = function () {
+        _buttonIsEnabled = true;
+        idSel.removeAttr('title');
     };
 
     /* Toggles the state of the button and repaints the button's icon color
      */
     this.toggle = function () {
-        if (this.enabled) {
-            this.enabled = false;
-        } else {
-            this.enabled = true;
-        }
+        if (_buttonIsEnabled) {
+            if (this.enabled) {
+                this.enabled = false;
+            } else {
+                this.enabled = true;
+            }
 
-        _paintColor();
+            _paintColor();
+        }
     };
     
     /* Parameters:
@@ -98,27 +132,33 @@ var StatefulButton = function (id, enabled) {
     };
 
     idSel.hover(function () {
-        idSel.css('opacity', '0.5');
+        if (_buttonIsEnabled) {
+            idSel.css('opacity', '0.5');
+        }
     }, function () {
-        idSel.css('opacity', '1');
+        if (_buttonIsEnabled) {
+            idSel.css('opacity', '1');
+        }
     });
     
     idSel.click(function () {
         _this.toggle();
         
-        if (_this.isEnabled()) {
-            if (_this.enabledFn !== null) {
-                _this.enabledFn();
+        if (_buttonIsEnabled) {
+            if (_this.isEnabled()) {
+                if (_this.enabledFn !== null) {
+                    _this.enabledFn();
+                } else {
+                    // FIXME: is this spamming my telemetry log?
+                    ErrorMetric.log(id + '.click => StatefulButton.enabledFn not defined');
+                }
             } else {
-                // FIXME: is this spamming my telemetry log?
-                ErrorMetric.log(id + '.click => StatefulButton.enabledFn not defined');
-            }
-        } else {
-            if (_this.disabledFn !== null) {
-                _this.disabledFn();
-            } else {
-                // FIXME: is this spamming my telemetry log?
-                ErrorMetric.log(id + '.click => StatefulButton.disabledFn not defined');
+                if (_this.disabledFn !== null) {
+                    _this.disabledFn();
+                } else {
+                    // FIXME: is this spamming my telemetry log?
+                    ErrorMetric.log(id + '.click => StatefulButton.disabledFn not defined');
+                }
             }
         }
 
