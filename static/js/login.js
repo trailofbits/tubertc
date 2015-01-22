@@ -349,11 +349,12 @@ var Login = {
         _setInitialBtnState(scDashMode, config.dashBtn);
         
         // Obtain the list of video sources, if none exist, disable the camera button
-        // XXX: review and test this change
         easyrtc.getVideoSourceList(function (list) {
             if (list.length === 0) {
                 _setInitialBtnState(false, config.cameraBtn);
                 config.cameraBtn.disableButton();
+
+                // FIXME: maybe add a different sort of notification, like a tooltip?
             }
         });
 
