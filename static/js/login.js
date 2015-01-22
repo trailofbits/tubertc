@@ -348,10 +348,14 @@ var Login = {
         _setInitialBtnState(scMicEnabled, config.micBtn);
         _setInitialBtnState(scDashMode, config.dashBtn);
         
-        if (scMicEnabled !== null && scMicEnabled !== config.micBtn.isEnabled()) {
-            config.micBtn.toggle();
-        }
-        
+        // Obtain the list of video sources, if none exist, disable the camera button
+        // XXX: review and test this change
+        easyrtc.getVideoSourceList(function (list) {
+            if (list.length === 0) {
+                _setInitialBtnState(false, config.cameraBtn);
+                config.cameraBtn.disableButton();
+            }
+        });
 
         _userNameEntry.keypress(function (e) {
             // Detect when ENTER button is pressed
