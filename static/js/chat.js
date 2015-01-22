@@ -305,7 +305,10 @@ var Chat = function (roomName) {
                     _chatTextEntry
                         .val('');
                 }
-            });
+            })
+            .css('font-style', 'italic')
+            .css('color', _this.kIdleTextColor)
+            .val(defaultText);
 
         Notification.requestPermission(function (permission) {
             if (permission === 'granted') {
