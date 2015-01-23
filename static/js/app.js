@@ -110,7 +110,28 @@ var vtcMain = function (params) {
         })
         .onPeerMessage(function (client, peerId, msgType, content) {
             if (msgType === 'chat' && typeof content.msg === 'string') {
+                /* 'chat' peerMessage
+                 *   Example format:
+                 *     {
+                 *       msg : <String>
+                 *     } 
+                 */
                 chatRoom.addMessage(peerId, content.msg);
+            } else if (msgType === 'media-presence' && 
+                       typeof content.type === 'string' &&
+                       typeof content.enabled === 'boolean') {
+                /* 'media-presence' peerMessage
+                 *   Example format:
+                 *     {
+                 *       type    : <String>,
+                 *       enabled : <boolean>
+                 *     }
+                 *
+                 *   Possible types:
+                 *     'camera' : indicates a change in the camera status from a peer
+                 *     'mic'    : indicates a change in the mic status from a peer
+                 */
+                console.log('[' + peerId + '] ' + content.type + ' => ' + content.enabled);
             } else {
                 // FIXME: right now we don't have other messages to take care of
                 ErrorMetric.log('peerMessage => got a peer message that is unexpected');
@@ -153,16 +174,50 @@ var vtcMain = function (params) {
                 })
                 .show();
 
+            // FIXME: have a single function that replaces video with an image
+            //        of a generic person similar to Hangouts
             NavBar.cameraBtn.handle(function () {
                 client.enableCamera(true);
+                client.sendPeerMessage({
+                    room : params.rtcName
+                }, 'media-presence', {
+                    type    : 'camera',
+                    enabled : true
+                });
+
+                // TODO:
             }, function () {
                 client.enableCamera(false);
+                client.sendPeerMessage({
+                    room : params.rtcName
+                }, 'media-presence', {
+                    type    : 'camera',
+                    enabled : false
+                });
+
+                // TODO:
             });
             
             NavBar.micBtn.handle(function () {
                 client.enableMicrophone(true);
+                client.sendPeerMessage({
+                    room : params.rtcName
+                }, 'media-presence', {
+                    type    : 'mic',
+                    enabled : true
+                });
+
+                // TODO:
             }, function () {
                 client.enableMicrophone(false);
+                client.sendPeerMessage({
+                    room : params.rtcName
+                }, 'media-presence', {
+                    type    : 'mic',
+                    enabled : false
+                });
+
+                // TODO:
             });
 
             NavBar.dashBtn.handle(function () {

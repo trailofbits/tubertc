@@ -158,6 +158,7 @@ var StorageCookie = {
 
 // jQuery selectors
 var _joinBtn = $('#joinBtn');
+var _loginMsg = $('#loginMsg');
 var _loginAlert = $('#loginAlert');
 var _userNameEntry = $('#userNameEntry');
 var _roomNameEntry = $('#roomNameEntry');
@@ -355,6 +356,9 @@ var Login = {
                 config.cameraBtn.disableButton();
 
                 // FIXME: maybe add a different sort of notification, like a tooltip?
+                _loginMsg
+                    .html('Disabling camera because not a camera could be found.')
+                    .slideDown();
             }
         });
 
