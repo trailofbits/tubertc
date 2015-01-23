@@ -32,7 +32,7 @@ var Chat = function (roomName) {
     this.kActiveTextColor = _chatTextEntry.css('color');
     
     // Default time-to-live for notifications (in seconds)
-    this.kDefaultNotificationTimeout = 6.5;
+    this.kDefaultNotificationTimeout = 3;
     
     this._appendLine = function (content) {
         _chatHistoryPane
