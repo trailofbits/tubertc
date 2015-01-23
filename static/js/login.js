@@ -300,6 +300,12 @@ var Login = {
                     'We recommend using <a href="http://www.google.com/chrome/">Google Chrome</a>.'
                 )
                 .slideDown();
+            
+            // Disable buttons since the app is disabled anyways.
+            config.cameraBtn.disableButton();
+            config.micBtn.disableButton();
+            config.dashBtn.disableButton();
+
             ErrorMetric.log('Login.initialize => ' + navigator.userAgent + ' is not supported');
 
             // Break chaining to indicate error
