@@ -37,6 +37,13 @@
     position: relative;
 }
 
+.trtc_usericon {
+    display: none;
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+}
+
 .video_mirror {
     -webkit-transform: scaleX(-1);
     -moz-transform: scaleX(-1);
@@ -44,3 +51,5 @@
     -o-transform: scaleX(-1);
     transform: scaleX(-1);
 }
+
+
