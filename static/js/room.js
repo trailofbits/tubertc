@@ -38,7 +38,10 @@ var vtcMain = function (params) {
         trtc_dash.showHangoutsMode();
     }
     
-    var isConnected = false;
+    // FIXME: For some reason, media-presence peer messages arrive before onStreamAccepted. This causes media-presence
+    //        to be handled correctly since no peerId exists in idToViewPort. To deal with this, we need a queue to
+    //        store all the messages for execution later.
+    var mediaPresenceMap = {};
 
     // Instantiate the Chat object
     var chatRoom = new Chat(params.roomName);
@@ -48,13 +51,28 @@ var vtcMain = function (params) {
 
     // Helper for sending media presence messages
     var sendMediaPresence = function (client, mediaType, mediaEnabled) {
-        console.log('[info] ' + client.getId() + ' to ' + params.rtcName + ' => ' + mediaType + ' : ' + mediaEnabled);
         client.sendPeerMessage({
             room : params.rtcName
         }, 'media-presence', {
             type : mediaType,
             enabled : mediaEnabled
         });
+    };
+    
+    // Helper for handling media presence messages. 
+    var handleMediaPresence = function (client, peerId, content) {
+        var viewport = idToViewPort[peerId];
+        if (viewport !== undefined) {
+            if (content.type === 'camera') {
+                viewport.showCamera(content.enabled);
+            } else if (content.type === 'mic') {
+                viewport.showMic(content.enabled);
+            } else {
+                ErrorMetric.log('VTCCore.onPeerMessage => "' + content.type + '" is invalid');
+            }
+        } else {
+            ErrorMetric.log('VTCCore.onPeerMessage => "' + peerId + '" is not a valid key');
+        }
     };
 
     VTCCore
@@ -88,19 +106,16 @@ var vtcMain = function (params) {
                  *     'camera' : indicates a change in the camera status from a peer
                  *     'mic'    : indicates a change in the mic status from a peer
                  */
-                console.log('[' + peerId + '] ' + content.type + ' => ' + content.enabled);
-            
-                var viewport = idToViewPort[peerId];
-                if (viewport !== undefined) {
-                    if (content.type === 'camera') {
-                        viewport.showCamera(content.enabled);
-                    } else if (content.type === 'mic') {
-                        viewport.showMic(content.enabled);
-                    } else {
-                        ErrorMetric.log('VTCCore.onPeerMessage => "' + content.type + '" is invalid');
-                    }
+                
+
+                if (idToViewPort[peerId] !== undefined) {
+                    handleMediaPresence(client, peerId, content);
                 } else {
-                    ErrorMetric.log('VTCCore.onPeerMessage => "' + peerId + '" is not a valid key');
+                    if (mediaPresenceMap[peerId] === undefined) {
+                        mediaPresenceMap[peerId] = [];
+                    }
+
+                    mediaPresenceMap[peerId].push(content);
                 }
             } else {
                 // FIXME: right now we don't have other messages to take care of
@@ -122,6 +137,16 @@ var vtcMain = function (params) {
 
             idToViewPort[peerId] = port;
             
+            // Handle deferred requests
+            var peerIdMediaPresenceQueue = mediaPresenceMap[peerId];
+            if (peerIdMediaPresenceQueue !== undefined) {
+                while (peerIdMediaPresenceQueue.length > 0) {
+                    var content = peerIdMediaPresenceQueue.shift();
+                    handleMediaPresence(client, peerId, content);
+                }
+                delete mediaPresenceMap[peerId];
+            }
+
             // XXX: send status from navbar buttons
             if (!NavBar.cameraBtn.isEnabled()) {
                 sendMediaPresence(client, 'camera', false);
@@ -161,7 +186,6 @@ var vtcMain = function (params) {
             client.setVideoObjectSrc(viewport.videoSrc, client.getLocalStream());
 
             idToViewPort[myPeerId] = viewport;
-            isConnected = true;
 
             // Only send initial state if they differ from the assumed state (which is enabled)
             if (!params.cameraIsEnabled) {
