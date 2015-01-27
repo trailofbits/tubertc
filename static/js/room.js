@@ -10,7 +10,7 @@
 
 // Entry point for when the VTC chat is ready to start (after user clicks Join Room button)
 var vtcMain = function (params) {
-    // TODO: verify that this is a safe operation!
+    // TODO(input): verify that passing params.roomName to .text() is not susceptible to XSS/etc
     $('#roomNameField')
         .text(params.roomName)
         .fadeIn(function () {
@@ -198,33 +198,29 @@ var vtcMain = function (params) {
                 viewport.showMic(false);
             }
             
-            // FIXME: have a single function that replaces video with an image
-            //        of a generic person similar to Hangouts
+            // Binds actions to the Enable/Disable Camera button
             NavBar.cameraBtn.handle(function () {
                 client.enableCamera(true);
                 sendMediaPresence(client, 'camera', true);
         
-                // TODO:
                 viewport.showCamera(true);    
             }, function () {
                 client.enableCamera(false);
                 sendMediaPresence(client, 'camera', false);
 
-                // TODO:
                 viewport.showCamera(false);
             });
             
+            // Binds actions to the Enable/Disable Microphone button
             NavBar.micBtn.handle(function () {
                 client.enableMicrophone(true);
                 sendMediaPresence(client, 'mic', true);
 
-                // TODO:
                 viewport.showMic(true);
             }, function () {
                 client.enableMicrophone(false);
                 sendMediaPresence(client, 'mic', false);
 
-                // TODO:
                 viewport.showMic(false);
             });
 

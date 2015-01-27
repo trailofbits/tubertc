@@ -20,6 +20,7 @@ var getRandomColor = function () {
     return 'hsl(' + h + ', 100%, 25%)';
 };
 
+// TODO(input): make sure that roomName
 var Chat = function (roomName) {
     // An Object storing mappings of peerId : String => userName : String
     var _peerIdMap = {};
@@ -135,6 +136,8 @@ var Chat = function (roomName) {
         // TODO: should we give self a special color?
         if (this.peerId !== null) {
             var hsvColor = this._generateUniqueColor(peerId);
+
+            // TODO(input): both userName and roomName come from user-supplied values, are they safe?
             var content = this.userEnteredTmpl({
                 color : hsvColor,
                 user  : userName,
@@ -171,6 +174,7 @@ var Chat = function (roomName) {
 
             var hsvColor = this.peerColorMap[peerId];
             if (hsvColor !== undefined) {
+                // TODO(input): roomName and userName are from tainted user input
                 var content = this.userLeftTmpl({
                     color : hsvColor,
                     user  : userName,
@@ -229,6 +233,7 @@ var Chat = function (roomName) {
             var userName = _peerIdMap[peerId];
             var hsvColor = this.peerColorMap[peerId];
             if (hsvColor !== undefined && userName !== undefined) {
+                // TODO(input): userName and message come from user input
                 var content = this.messageTmpl({
                     color : hsvColor,
                     user  : userName,
