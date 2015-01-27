@@ -44,6 +44,17 @@
     object-fit: contain;
 }
 
+.trtc_muted {
+    display: none;
+    position: absolute;
+    top: 25%;
+    left: 25%;
+    height: 50%;
+    width: 50%;
+    object-fit: contain;
+    opacity: 0.7;
+}
+
 .video_mirror {
     -webkit-transform: scaleX(-1);
     -moz-transform: scaleX(-1);
