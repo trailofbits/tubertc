@@ -19,6 +19,7 @@ Peer-to-peer video chat that works. It's tuber-time!
 ## Requirements
 * [EasyRTC](https://www.npmjs.org/package/easyrtc)
 * [Express](https://www.npmjs.org/package/express)
+* [Handlebars](http://handlebarsjs.com/)
 * [nconf](https://www.npmjs.org/package/nconf)
 * [socket.io](https://www.npmjs.org/package/socket.io)
 * [NodeJS](http://nodejs.org/)

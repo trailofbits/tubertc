@@ -55,7 +55,7 @@ var Chat = function (roomName) {
     this.userName = null;
     
     this.showNotifications = false;
-
+    
     this.notificationTmpl = Handlebars.compile(
         '<span class="chatNotification">' +
         '<span class="chatRoomName controlRoomName">[{{room}}]</span>: {{msg}}' +
