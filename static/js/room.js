@@ -67,6 +67,9 @@ var Room = {
     
     // Denotes the whether setupPage has been run yet
     pageIsSetup : false,
+
+    // Allow auto scroll on new messages
+    allowScroll: true,
     
     // Events that need to be handled upon page setup (mainly for making sure icons are in correct state)
     setupPageEventQueue : [],
@@ -83,16 +86,26 @@ var Room = {
     
     // Entry point
     init : function (userName, displayName, roomName) {
+        var self = this;
+
         $('.roomPage').fadeIn();
         
-        this.name = roomName;
-        this.userName = userName;
+        self.name = roomName;
+        self.userName = userName;
 
         // Replace all the image SVGs (namely the icon for microphone and camera) with inline SVGs so we can change their color.
         // Only when the operation is complete do we setup the page.
-        var roomObj = this;
         svgInject(function () {   
-            roomObj.setupPage(displayName);
+            self.setupPage(displayName);
+        });
+
+        $("#chatHistory").on("scroll", function(e) {
+          var elem = $(e.currentTarget);
+          if (elem[0].scrollHeight - elem.scrollTop() == elem.outerHeight()) {
+            self.allowScroll = true;
+          } else {
+            self.allowScroll = false;
+          }
         });
     },
     
@@ -525,12 +538,20 @@ var Room = {
 
     // This is usually called by VTC or the local client to add to chatHistory
     addChatMessage : function (content) {
-        var userName = this.htmlEncode(content.user);
-        var msgText = this.htmlEncode(content.message);
+        var self = this;
+        var userName = self.htmlEncode(content.user);
+        var msgText = self.htmlEncode(content.message);
 
-        // FIXME XXX: make this more fancy?
-        $('#chatHistory').append($('<b>' + userName + '</b>: ' + msgText + '<br>'))
-            .animate({"scrollTop" : $(document).height()}, 'slow');
+        var $chat = $('#chatHistory');
+        var html = '<b>' + userName + '</b>: ' + msgText + '<br>';
+
+        if (self.allowScroll) {
+            $chat.append(html)
+            .stop()
+            .animate({"scrollTop" : $chat[0].scrollHeight}, 'fast');
+        } else {
+            $chat.append(html);
+        }
     },
 
     // Sets up the chat pane for room-wide conversation
