@@ -6,6 +6,10 @@
  *   js/error.js
  */
 
+// TODO: Treat the DebugConsole as a command line program. Add help and ideally
+//       print error message and verbose help messages if things are not what
+//       is expected (like calling function with wrong arguments, etc.)
+
 var DebugConsole = {
     // Handles calling callbacks upon transaction completion.  
     _txid : 0,
