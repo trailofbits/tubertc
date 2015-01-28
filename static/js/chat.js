@@ -26,6 +26,9 @@ var Chat = function (roomName) {
     var _peerIdMap = {};
     
     var _audio = new SoundClip($('#chatAlertSound')[0]);
+    
+    // Stores the last peerId to send a message (for Adium-like IM interface)
+    var _lastPeerIdMessage = null;
 
     // Default color palette for chatTextEntry. 'Idle' means that the text entry element does
     // not contain any text worth saving.
@@ -57,27 +60,52 @@ var Chat = function (roomName) {
     this.showNotifications = false;
     
     this.notificationTmpl = Handlebars.compile(
-        '<span class="chatNotification">' +
+        '<div class="chatNotification">' +
         '<span class="chatRoomName controlRoomName">[{{room}}]</span>: {{msg}}' +
-        '</span><br>'
+        '</div>'
     );
 
     this.userEnteredTmpl = Handlebars.compile(
-        '<span class="chatNotification">' + 
+        '<div class="chatNotification">' + 
         '<span class="chatUsername tooltip" style="color:{{color}}" title="{{id}}">{{user}}</span> has entered <span class="chatRoomName">{{room}}</span>.' +
-        '</span><br>'
+        '</div>'
     );
     
     this.userLeftTmpl = Handlebars.compile(
-        '<span class="chatNotification">' +
+        '<div class="chatNotification">' +
         '<span class="chatUsername tooltip" style="color:{{color}}" title="{{id}}">{{user}}</span> has left <span class="chatRoomName">{{room}}</span>.' +
-        '</span><br>'
+        '</div>'
     );
     
     this.messageTmpl = Handlebars.compile(
-        '<span class="chatUsername tooltip" style="color:{{color}}" title="{{id}}">{{user}}</span>: ' +
-        '<span class="chatMessage">{{msg}}</span><br>'
+        '<div class="chatMessageHeader">' + 
+        '<span class="chatUsername tooltip" style="color:{{color}}" title="{{id}}">{{user}}</span>' +
+        '<span class="chatTimestamp">{{time}}</span>' + 
+        '</div> ' +
+        '<div class="chatMessage">{{msg}}</div>'
     );
+    
+    this.msgContinueTmpl = Handlebars.compile(
+        '<div class="chatMessage">{{msg}}</div>'
+    );
+    
+    // Returns a time stamp of the hours, minutes, and seconds
+    var getTimeStamp = function () {
+        var date = new Date();
+        var hours = '' + date.getHours();
+        if (hours.length === 1) {
+            hours = '0' + hours;
+        }
+        var min = '' + date.getMinutes();
+        if (min.length === 1) {
+            min = '0' + min;
+        }
+        var secs = '' + date.getSeconds();
+        if (secs.length === 1) {
+            secs = '0' + secs;
+        }
+        return hours + ':' + min + ':' + secs;
+    };
 
     this._generateUniqueColor = function (peerId) {
         var tries = 5;
@@ -233,14 +261,24 @@ var Chat = function (roomName) {
             var userName = _peerIdMap[peerId];
             var hsvColor = this.peerColorMap[peerId];
             if (hsvColor !== undefined && userName !== undefined) {
+                var content = null;
+
                 // TODO(input): userName and message come from user input
-                var content = this.messageTmpl({
-                    color : hsvColor,
-                    user  : userName,
-                    id    : peerId,
-                    msg   : message
-                });
+                if (_lastPeerIdMessage !== peerId) {
+                    content = this.messageTmpl({
+                        color : hsvColor,
+                        user  : userName,
+                        id    : peerId,
+                        msg   : message,
+                        time  : getTimeStamp()
+                    });
+                } else {
+                    content = this.msgContinueTmpl({
+                        msg : message
+                    });
+                }
                 this._appendLine(content);
+                _lastPeerIdMessage = peerId;
             } else {
                 ErrorMetric.log('Chat.addMessage => "' + peerId + '" is not a valid key');
             }
