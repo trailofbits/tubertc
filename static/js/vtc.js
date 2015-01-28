@@ -28,6 +28,26 @@ var VTCClient = function (myId, roomName, onErrorFn) {
     this.idToName = function (id) {
         return easyrtc.idToName(id);
     };
+    
+    /* Parameters:
+     *   id : String
+     *     The peer ID of the other user/
+     *
+     * Returns the status of the p2p connection between the current user and the specified user.
+     */
+    this.getConnectStatus = function (id) {
+        return easyrtc.getConnectStatus(id);
+    };
+    
+    /* Parameters:
+     *   kbitsPerSecond : integer
+     *     Rate of video bandwidth is kilobits per second
+     *   
+     *   Sets the video bandwidth.
+     */
+    this.setVideoBandwidth = function (kbitsPerSecond) {
+       easyrtc.setVideoBandwidth(kbitsPerSecond);
+    };
 
     /* Parameters:
      *   state : boolean
@@ -121,9 +141,6 @@ var VTCClient = function (myId, roomName, onErrorFn) {
         return easyrtc.getLocalStream();
     };
 
-    // FIXME: document me better
-    // Sets the video DOM element's source with the specified stream.
-    // videoSel is a jQuery element!
     /* Parameters:
      *   videoSel : jQuery
      *     This is a jQuery selector for a video element. This *must* be a jQuery selector because

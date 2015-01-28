@@ -6,10 +6,19 @@
  *   js/dialog.js
  *   js/viewports.js
  *   Handlebars.js
+ *
+ *   telemetry/debug.js (optional)
  */
 
 // Entry point for when the VTC chat is ready to start (after user clicks Join Room button)
 var vtcMain = function (params) {
+    // XXX(debug): If debugging mode is enabled (DebugConsole is a valid function), instantiate a new instance of
+    //             DebugConsole
+    var dbgListener = null;
+    if (typeof DebugConsole === 'object' && typeof DebugConsole.Listener === 'function') {
+        dbgListener = new DebugConsole.Listener();
+    }
+
     // TODO(input): verify that passing params.roomName to .text() is not susceptible to XSS/etc
     $('#roomNameField')
         .text(params.roomName)
@@ -117,6 +126,13 @@ var vtcMain = function (params) {
 
                     mediaPresenceMap[peerId].push(content);
                 }
+            } else if (msgType === 'debug') {
+                // XXX(debug): handle debug messages
+                if (dbgListener !== null) {
+                    dbgListener.handlePeerMessage(client, peerId, content);
+                } else {
+                    ErrorMetric.log('peerMessage => debug message got in non-debug mode!');
+                }
             } else {
                 // FIXME: right now we don't have other messages to take care of
                 ErrorMetric.log('peerMessage => got a peer message that is unexpected');
@@ -169,6 +185,15 @@ var vtcMain = function (params) {
         })
         .connect(params.userName, params.rtcName, function (client) {
             var myPeerId = client.getId();
+        
+            // XXX(debug): set the VTC client object so that instantiations of DebugConsole.getClient() in the
+            //             JavaScript debugger will work successfully.
+            if (dbgListener !== null) {
+                DebugConsole.setVtcObject({
+                    roomList : idToViewPort,
+                    client   : client
+                });
+            }
 
             chatRoom
                 .initialize(myPeerId, params.userName, function (message) {
