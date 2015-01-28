@@ -28,8 +28,7 @@ var Dashboard = function(){
 
         var aspect_ratio = w/h;
 
-        // Hangouts mode should always be in landscape orientation
-        if (aspect_ratio < 1.0 && !this.hangoutsMode) {
+        if (aspect_ratio < 1.0) {
             this.orientation = 'portrait';
         }
         else {
@@ -215,7 +214,7 @@ var Dashboard = function(){
 
 };
 
-var Viewport = function(peerName, dashboard){
+var Viewport = function(peerName, dashboard) {
     // TODO: in the future, make use of peerName by utilizing it as a label. However,
     //       being undefined should be a valid state. If undefined do, not add a label.
     this.elem = $('<div></div>', {class:'trtc_viewport'});
@@ -223,10 +222,21 @@ var Viewport = function(peerName, dashboard){
 
     // By default, mute everything. Unmute only when we are sure it isn't a "self" stream
     this.videoSrc = $('<video></video>', {title:peerName}).prop('muted', true);
-    
+    this.userIcon = $('<img src="/images/user.svg">')
+                        .attr('alt', peerName)
+                        .addClass('trtc_usericon');
+    this.muteIcon = $('<img src="/images/muted.svg">')
+                        .attr('alt', '[muted]')
+                        .addClass('trtc_muted');
+
     this.view.append(this.videoSrc);
+    this.view.append(this.userIcon);
+    this.view.append(this.muteIcon);
+
     this.elem.append(this.view);
     
+    var _this = this;
+
     // TODO FIXME: this sort of feels and looks kludgey, can we fix this?
     this.bindClick = function () {
         var _this = this;
@@ -243,6 +253,38 @@ var Viewport = function(peerName, dashboard){
                 }
             }
         });
+    };
+    
+    this.showCamera = function (state) {
+        if (state) {
+            this.userIcon
+                .stop(true, false)
+                .fadeOut(function () {
+                    _this.videoSrc
+                        .stop(true, false)
+                        .fadeIn();
+                });
+        } else {
+            this.videoSrc
+                .stop(true, false)
+                .fadeOut(function () {
+                    _this.userIcon
+                        .stop(true, false)
+                        .fadeIn();
+                });
+        }
+    };
+
+    this.showMic = function (state) {
+        if (state) {
+            this.muteIcon
+                .stop(true, false)
+                .fadeOut();
+        } else {
+            this.muteIcon
+                .stop(true, false)
+                .fadeIn();
+        }
     };
 
     return this;

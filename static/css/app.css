@@ -66,6 +66,8 @@ body {
     border: 0px;
     background: #202020;
     outline: none;
+    cursor: hand;
+    cursor: pointer;
 
     /* This value depends on ".navBar img"'s height attribute and also propagates to
      * ".navBar"'s height attribute. If modified, be sure to update ".navBar"'s 

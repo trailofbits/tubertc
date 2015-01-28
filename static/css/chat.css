@@ -8,6 +8,10 @@
     word-wrap: break-word;
 }
 
+.chatHistoryPane div {
+    padding-left: 5px;
+}
+
 .chatControlPane {
     /* This value is roughly calculated from "#chatTextEntry". By virtue of min.css framework, INPUT text fields
      * have an intrinsic height of 16px with 8px padding all around. This gives us roughly 32px. However, empirical
@@ -28,21 +32,37 @@
 }
 
 .chatUsername {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
 }
 
 .chatNotification {
     font-size: 13px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    background-color: #f0f0f0;
+}
+
+.chatMessageHeader {
+    padding-top: 5px;
+    margin-top: 5px;
+    border-top: 1px #0c0c0c dotted;
 }
 
 .chatMessage {
     font-size: 13px;
+    margin-top: 5px;
 }
 
 .chatRoomName {
     font-size: 13px;
     font-weight: bold;
+}
+
+.chatTimestamp {
+    color: #a0a0a0;
+    font-size: 10px;
+    margin-left: 10px;
 }
 
 .controlRoomName {
@@ -57,20 +77,22 @@
 }
 
 .tooltip:hover:after{
+    font-family: "Lucida Console", Monaco, monospace;
+    font-size: 10px;
     background: #333;
     background: rgba(0,0,0,.8);
     border-radius: 5px;
     bottom: 26px;
     color: #fff;
     content: attr(title);
-    left: 20%;
-    padding: 5px 15px;
+    left: 5%;
+    padding: 5px 5px;
     position: absolute;
     z-index: 98;
 
     /* This size is know to work via trial and error.
      */
-    width: 180px;
+    width: 125px;
 }
 
 .tooltip:hover:before{

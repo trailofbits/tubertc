@@ -21,12 +21,16 @@ var Button = function (id) {
     
     this.disableButton = function () {
         _buttonIsEnabled = false;
-        idSel.css('fill', _kDisabledColor);
+        idSel
+            .css('opacity', '0.3')
+            .css('fill', _kDisabledColor);
     };
 
     this.enableButton = function () {
         _buttonIsEnabled = true;
-        idSel.css('fill', _kDefaultColor);
+        idSel
+            .css('opacity', '1')
+            .css('fill', _kDefaultColor);
     };
 
     /* Parameters:
@@ -91,12 +95,16 @@ var StatefulButton = function (id, enabled) {
     
     this.disableButton = function () {
         _buttonIsEnabled = false;
-        idSel.attr('title', 'Button is disabled');
+        idSel
+            .css('opacity', '0.3')
+            .attr('title', 'Button is disabled');
     };
 
     this.enableButton = function () {
         _buttonIsEnabled = true;
-        idSel.removeAttr('title');
+        idSel
+            .css('opacity', '1')
+            .removeAttr('title');
     };
 
     /* Toggles the state of the button and repaints the button's icon color
