@@ -1,6 +1,7 @@
 Tuber-time Communications
 =====
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/heroku/node-js-sample) [![Code Climate](https://codeclimate.com/github/trailofbits/tubertc/badges/gpa.svg)](https://codeclimate.com/github/trailofbits/tubertc)
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/heroku/node-js-sample)
+[![Code Climate](https://codeclimate.com/repos/54ca6c63e30ba03b43001d83/badges/5f2928918fe9d60860c7/gpa.svg)](https://codeclimate.com/repos/54ca6c63e30ba03b43001d83/feed)
 
 Peer-to-peer video chat that works. It's tuber-time!
 
