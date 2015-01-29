@@ -94,11 +94,7 @@ var Dashboard = function(){
         }
 
         if (_this.hangoutsMode && _this.viewportArray.length > 0) {
-            var hangoutsViewport = _this.viewportArray[0];
-            hangoutsViewport.elem.css({width:'100%', 'padding-bottom':'120px'});
-
-            _this.rowArray[0].css({height:'100%', left:0});
-            _this.rowArray[1].css({height:'120px', 'bottom':'120px'});
+            _this.correctLayoutForHangoutsMode(_this);
         }
 
         //bind events at the end, after any final resizing
@@ -109,6 +105,22 @@ var Dashboard = function(){
             viewport.setupLocalMuteIcon();
         }
     };
+
+    this.correctLayoutForHangoutsMode = function(_this){
+        var hangoutsViewport = _this.viewportArray[0];
+        if (_this.orientation == 'landscape') {
+            hangoutsViewport.elem.css({width:'100%','padding-right':0});
+
+            _this.rowArray[0].css({height:'80%'});
+            _this.rowArray[1].css({height:'20%'});
+        }
+        else {
+            hangoutsViewport.elem.css({height:'100%','padding-bottom':0});
+
+            _this.rowArray[0].css({width:'70%'});
+            _this.rowArray[1].css({width:'30%'});
+        }
+    }
 
     this.gridForViewportNumber = function(viewports) {
         var layout = {};
