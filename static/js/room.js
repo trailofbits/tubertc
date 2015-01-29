@@ -227,6 +227,7 @@ var vtcMain = function (params) {
             // Create a viewport for ourself and make it mirrored
             var viewport = trtc_dash.createGridForNewUser();
             viewport.videoSrc.addClass('video_mirror');
+            viewport.isSelf = true;
             client.setVideoObjectSrc(viewport.videoSrc, client.getLocalStream());
 
             idToViewPort[myPeerId] = viewport;

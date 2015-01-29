@@ -234,6 +234,9 @@ var Dashboard = function(){
 };
 
 var Viewport = function(peerName, dashboard) {
+    // This indicates that the viewport is that of itself
+    this.isSelf = false;
+
     // TODO: in the future, make use of peerName by utilizing it as a label. However,
     //       being undefined should be a valid state. If undefined do, not add a label.
     this.elem = $('<div></div>', {class:'trtc_viewport'});
@@ -278,14 +281,16 @@ var Viewport = function(peerName, dashboard) {
     };
 
     this.bindHover = function () {
-        this.view.hover(function(){
-                _this.localMuteIcon.css({opacity:1});
-            }, function(){
-                if (!_this.isLocallyMuted){
-                    _this.localMuteIcon.css({opacity:0});    
+        if (!this.isSelf) {
+            this.view.hover(function(){
+                    _this.localMuteIcon.css({opacity:1});
+                }, function(){
+                    if (!_this.isLocallyMuted){
+                        _this.localMuteIcon.css({opacity:0});    
+                    }
                 }
-            }
-        );
+            );
+        }
     };
     
     this.showCamera = function (state) {
@@ -321,31 +326,33 @@ var Viewport = function(peerName, dashboard) {
     };
 
     this.setupLocalMuteIcon = function() {
-        var dimensions = _this.videoDimensions(); 
-        
-        if (dimensions['limitingValue'] == 'width'){
-            var vidHeight = dimensions['dimensions'][1];
-            var topOffset = (_this.view.height()-vidHeight)/2;
-            _this.localMuteIcon.css({'margin-top':topOffset, 'margin-right':0});    
-        }
-        else {
-            var vidWidth = dimensions['dimensions'][0];
-            var rightOffset = (_this.view.width()-vidWidth)/2;
-            _this.localMuteIcon.css({'margin-right':rightOffset, 'margin-top':0});
-        }
-
-        _this.localMuteIcon.click(function(){
-            var video = _this.elem.find('video')[0]
-            if (_this.isLocallyMuted) {
-                video.muted = false;
-                _this.localMuteIcon.removeClass('trtc_local_mute_muted')
+        if (!this.isSelf) {
+            var dimensions = _this.videoDimensions(); 
+            
+            if (dimensions['limitingValue'] == 'width'){
+                var vidHeight = dimensions['dimensions'][1];
+                var topOffset = (_this.view.height()-vidHeight)/2;
+                _this.localMuteIcon.css({'margin-top':topOffset, 'margin-right':0});    
             }
             else {
-                video.muted = true;
-                _this.localMuteIcon.addClass('trtc_local_mute_muted')
+                var vidWidth = dimensions['dimensions'][0];
+                var rightOffset = (_this.view.width()-vidWidth)/2;
+                _this.localMuteIcon.css({'margin-right':rightOffset, 'margin-top':0});
             }
-                _this.isLocallyMuted = !_this.isLocallyMuted
-        })
+
+            _this.localMuteIcon.click(function(){
+                var video = _this.elem.find('video')[0]
+                if (_this.isLocallyMuted) {
+                    video.muted = false;
+                    _this.localMuteIcon.removeClass('trtc_local_mute_muted')
+                }
+                else {
+                    video.muted = true;
+                    _this.localMuteIcon.addClass('trtc_local_mute_muted')
+                }
+                    _this.isLocallyMuted = !_this.isLocallyMuted
+            });
+        }
     }
 
     this.videoDimensions = function() {
