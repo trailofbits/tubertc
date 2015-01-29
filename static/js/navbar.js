@@ -107,6 +107,10 @@ var StatefulButton = function (id, enabled) {
             .removeAttr('title');
     };
 
+    this.clickButton = function () {
+        idSel.click();
+    };
+
     /* Toggles the state of the button and repaints the button's icon color
      */
     this.toggle = function () {

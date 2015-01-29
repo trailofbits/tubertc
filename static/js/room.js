@@ -115,8 +115,6 @@ var vtcMain = function (params) {
                  *     'camera' : indicates a change in the camera status from a peer
                  *     'mic'    : indicates a change in the mic status from a peer
                  */
-                
-
                 if (idToViewPort[peerId] !== undefined) {
                     handleMediaPresence(client, peerId, content);
                 } else {
@@ -132,6 +130,22 @@ var vtcMain = function (params) {
                     dbgListener.handlePeerMessage(client, peerId, content);
                 } else {
                     ErrorMetric.log('peerMessage => debug message got in non-debug mode!');
+                }
+            } else if (msgType === 'mic-control' && typeof content.enabled === 'boolean') {
+                /* 'mic-control' peerMessage
+                 *   Example format:
+                 *     {
+                 *       enabled : boolean
+                 *     }
+                 */
+                if (peerId !== client.getId()) {
+                    // Toggle the micBtn if requested state isn't the actual state
+                    if (content.enabled !== NavBar.micBtn.isEnabled()) {
+                        // clickButton is called because this causes the mute overlay to show up
+                        NavBar.micBtn.clickButton();
+                    }
+                } else {
+                    ErrorMetric.log('peerMessage => got a mute request from myself...ignoring');
                 }
             } else {
                 // FIXME: right now we don't have other messages to take care of
