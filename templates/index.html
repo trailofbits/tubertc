@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <title> {{title}} </title>
+        <link rel="stylesheet" type="text/css" href="/css/min.css">
+        <link rel="stylesheet" type="text/css" href="/css/app.css">
+        <link rel="stylesheet" type="text/css" href="/css/chat.css">
+        <link rel="stylesheet" type="text/css" href="/css/dialog.css">
+        <link rel="stylesheet" type="text/css" href="/css/login.css">
+        <link rel="stylesheet" type="text/css" href="/css/viewports.css">
+    </head>
+    <body>
+        <div class="mainPanel appPage">
+            <div class="logo">
+                <img src="/images/logo.svg" alt="[tubertc]">
+            </div>
+            <div class="navCenterer">
+                <div class="navBar">
+                    <button id="cameraBtn"><img class="svg" src="/images/camera.svg" alt="[camera]"></button>
+                    <button id="micBtn"><img class="svg" src="/images/mic.svg" alt="[mic]"></button>
+                    <button id="dashBtn"><img class="svg" src="/images/dash.svg" alt="[dashboard]"></button>
+                    <button id="attrBtn"><img class="svg" src="/images/credits.svg" alt="[attr]"></button>
+                </div>
+            </div>
+            <div class="roomName" id="roomNameField">
+                
+            </div>
+
+            <div id="loginContent">
+                <div class="msg" id="loginMsg">
+
+                </div>
+                <div class="msg warning" id="loginAlert">
+                    
+                </div>
+                <div id="userGroup">
+                    <label for="userNameEntry" class="mediumFnt">Name</label>
+                    <input type="text" class="smooth mediumFnt" id="userNameEntry">
+                </div>
+                <div id="roomGroup">
+                    <label for="roomNameEntry" class="mediumFnt">Room</label>
+                    <input type="text" class="smooth mediumFnt" id="roomNameEntry">
+                </div>
+                <div id="btnGroup">
+                    <button class="btn btn-b smooth mediumFnt" id="joinBtn">Join Room</button>
+                </div>
+            </div>
+
+            <div id="vtcRoom">
+
+            </div>
+        </div>
+
+        <div class="sidePanel appPage">
+            <div class="sidePanelContent">
+                <div class="chatHistoryPane chatPanel">
+                
+                </div>
+                <div class="chatControlPane chatPanel">
+                    <input type="text" id="chatTextEntry" disabled>
+                </div>
+            </div>
+        </div>
+        
+        <div id="modalDialog">
+            <div id="modalDialogTitle"></div>
+            <div id="modalDialogContent">
+
+            </div>
+            <div id="modalDialogControls">
+                <button id="modalDialogClose" class="btn btn-sm btn-c smooth">Close</button>
+            </div>
+        </div>
+        
+        <audio id="chatAlertSound">
+            <source src="/audio/blop.mp3"></source>
+        </audio>
+
+        <script type="text/javascript" src="/js/jquery-2.1.3.min.js"></script>
+        <script type="text/javascript" src="/js/error.js"></script>
+        <script type="text/javascript" src="/js/chance.min.js"></script>
+        <script type="text/javascript" src="/js/handlebars-v2.0.0.js"></script>
+        <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="/easyrtc/easyrtc.js"></script>
+        <script type="text/javascript" src="/js/dialog.js"></script>
+        <script type="text/javascript" src="/js/sound.js"></script>
+        <script type="text/javascript" src="/js/chat.js"></script>
+        <script type="text/javascript" src="/js/navbar.js"></script>
+        <script type="text/javascript" src="/js/login.js"></script>
+        <script type="text/javascript" src="/js/viewports_helpers.js"></script>
+        <script type="text/javascript" src="/js/viewports.js"></script>
+        <script type="text/javascript" src="/js/vtc.js"></script>
+        {{{debugBody}}}
+        <script type="text/javascript" src="/js/room.js"></script>
+        <script type="text/javascript" src="/js/app.js"></script>
+    </body>
+</html>

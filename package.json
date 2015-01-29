@@ -1,6 +1,6 @@
 {
     "name"         : "tubertc",
-    "version"      : "1.0.0",
+    "version"      : "2.0.0",
     "description"  : "Tuber-time Communications",
     "author"       : "yying",
     "license"      : "BSD2",
@@ -18,10 +18,11 @@
     ],
 
     "dependencies" : {
-        "easyrtc"   : "*",
-        "express"   : "*",
-        "nconf"     : "*",
-        "socket.io" : "0.9.x"
+        "easyrtc"    : "*",
+        "express"    : "*",
+        "nconf"      : "*",
+        "socket.io"  : "0.9.x",
+        "handlebars" : "2.0.x"
     },
 
     "engines"       : {

@@ -1,211 +1,424 @@
-/* Implements the core easyrtc VTC stuff */
+/* Abstracts easyrtc functionality to enable easy reimplementing of this using custom WebRTC framework.
+ * 
+ * NOTE: This should be the only module that calls out to easyrtc API.
+ *
+ * Requires:
+ *   easyrtc
+ *   js/error.js
+ */
 
-var VTC = {
-    // Items
-    roomObj : null,
-    userName : null,
+var VTCClient = function (myId, roomName, onErrorFn) {
+    var _id = myId;
+    var _room = roomName;
     
-    // This dictionary contains a mapping of peerIds to their display names (user names)
-    peerMap : {},
+    this.getId = function () {
+        return _id;
+    };
+
+    this.getRoomName = function () {
+        return _room;
+    };
     
-    // Maps peerIds to their easyrtc MediaStreams
-    peerStreamMap : {},
+    /* Parameters:
+     *   id : String
+     *     The peer ID to be translated
+     *
+     * Translates peer IDs to user names
+     */
+    this.idToName = function (id) {
+        return easyrtc.idToName(id);
+    };
     
-    // Contains peerIds that do not yet have display names
-    deferredJoin : {},
+    /* Parameters:
+     *   id : String
+     *     The peer ID of the other user/
+     *
+     * Returns the status of the p2p connection between the current user and the specified user.
+     */
+    this.getConnectStatus = function (id) {
+        return easyrtc.getConnectStatus(id);
+    };
     
-    // VTC entry point
-    init : function (userName, roomName, roomObj, enableVideo) {
-        this.roomObj = roomObj;
-        this.userName = userName;
-        
-        // Disable the video stream for users who do not wish to automatically enable video stream
-        //
-        // FIXME: I think ideally, this is element should be removed for a unified interface similar to 
-        //        Google Hangouts. The navbar should ideally stay where it is at and an user can click
-        //        the camera/microphone toggle button prior to "sign in" to disable video/audio for the
-        //        chat session. For now, this checkbox is "good enough".
-        if (!enableVideo) {
-            easyrtc.enableVideo(false);
-            roomObj.toggleCameraButton();
+    /* Parameters:
+     *   kbitsPerSecond : integer
+     *     Rate of video bandwidth is kilobits per second
+     *   
+     *   Sets the video bandwidth.
+     */
+    this.setVideoBandwidth = function (kbitsPerSecond) {
+       easyrtc.setVideoBandwidth(kbitsPerSecond);
+    };
+
+    /* Parameters:
+     *   state : boolean
+     *     The new state of the camera.
+     *
+     * Enables or disables the camera based off the value of state.
+     */
+    this.enableCamera = function (state) {
+        easyrtc.enableCamera(state);
+    };
+    
+    /* Parameters:
+     *   state : boolean
+     *     The new state of the microphone.
+     *
+     * Enables or disables the microphone based off of the value of state.
+     */
+    this.enableMicrophone = function (state) {
+        easyrtc.enableMicrophone(state);
+    };
+    
+    /* Parameters:
+     *   dest      : Object
+     *     A Object that should contain at just one of the following fields:
+     *       rtcId : String
+     *       room  : String
+     *
+     *   msgType   : String
+     *     Type of message (specific to the application)
+     *
+     *   msgData   : Object
+     *     Message contents (must be JSON-able)
+     *
+     *   successFn : function(msgType, msgData)
+     *     Callback function with server response results
+     *
+     * This sends a message to another peer.
+     */
+    this.sendPeerMessage = function (dest, msgType, msgData, successFn) {
+        var target = {};
+        if (typeof dest !== 'object' || 
+            (typeof dest.rtcId !== 'string' && typeof dest.room !== 'string')) {
+            ErrorMetric.log('VTCClient.sendPeerMessage => dest object is invalid');
+            ErrorMetric.log('                          => ' + JSON.stringify(dest));
+
+            return false;
         }
-
-        // This is mostly for easyrtc.easyApp() and probably not needed (I think)
-        easyrtc.dontAddCloseButtons(true);
         
-        // Joins the easyrtc "room". Since we are not connected yet, no callbacks are invoked upon success
-        // or failure
-        easyrtc.joinRoom(roomName, null, null, null);
+        if (typeof dest.rtcId === 'string' && typeof dest.room === 'string') {
+            ErrorMetric.log('VTCClient.sendPeerMessage => both rtcId and room fields provided');
 
-        this.setupCallbacks();
+            return false;
+        } else if (typeof dest.rtcId === 'string') {
+            target.targetEasyrtcid = dest.rtcId;
+        } else if (typeof dest.room === 'string') {
+            target.targetRoom = dest.room;
+        } else {
+            ErrorMetric.log('VTCClient.sendPeerMessage => unexpected state');
+            ErrorMetric.log('                          => ' + JSON.stringify(dest));
+
+            return false;
+        }
         
-        easyrtc.initMediaSource(function () {
-            // Our own videostream will be a member of the peerList as well. It will be mapped with the name
-            // "self" for ease-of-use.
-            roomObj.addPeer('self', userName, function (peerVideoObj) {
-                easyrtc.setVideoObjectSrc(peerVideoObj.get(0), easyrtc.getLocalStream());
-            });
-            
-            // For now, set the main video display to our own video stream
-            roomObj.setMainPeer('self', function (id, peerVideoObj) {
-                easyrtc.setVideoObjectSrc(peerVideoObj.get(0), easyrtc.getLocalStream());   
-            });
-            
-            easyrtc.connect("VTC", function (myId) {
-                // FIXME: is there anything we should do here?
-                console.log('Got my peerId (' + myId + ')');
-                roomObj.updateMainVideo();
-            }, function (errorCode, errText) {
-                roomObj.showError('Error ' + errCode, errText);
-            });
-        }, function (errCode, errText) {
-            roomObj.showError('Error ' + errCode, errText);
+        easyrtc.sendPeerMessage(target, msgType, msgData, function (msgType, msgData) {
+            if (successFn !== undefined) {
+                successFn(msgType, msgData);
+            }
+        }, function (errorCode, errorText) {
+            ErrorMetric.log('easyrtc.sendPeerMessage => failed to send peer message');
+            ErrorMetric.log('                        => ' + errorCode + ': ' + errorText);
+
+            if (onErrorFn !== undefined) {
+                onErrorFn({
+                    title   : 'Failed to Send Message',
+                    content : 'An error occurred while sending an internal message.<br><br>' +
+                              '<b>Error Code</b>: ' + errorCode + '<br>' +
+                              '<b>Error Text</b>: ' + errorText
+                });
+            }
         });
+        return true;
+    };
+    
+    /* Returns:
+     *   MediaStream
+     *     MediaStream object for the local media sources.
+     * 
+     * Obtains and returns the requested (via enableAudio/enableVideo) media sources.
+     */
+    this.getLocalStream = function () {
+        return easyrtc.getLocalStream();
+    };
+
+    /* Parameters:
+     *   videoSel : jQuery
+     *     This is a jQuery selector for a video element. This *must* be a jQuery selector because
+     *     we call .get(0) on it in this function.
+     *
+     *   stream : MediaStream
+     *     This contains the MediaStream object in which videoSel will be bound to.
+     *
+     * This functions binds stream to the provided videoSel. 
+     *
+     * HINT:
+     *   Upon any DOM element manipulation of the video element, the video stream will pause. This
+     *   can be remedied by calling .load() on the raw video DOM element.
+     */
+    this.setVideoObjectSrc = function (videoSel, stream) {
+        easyrtc.setVideoObjectSrc(videoSel.get(0), stream);
+    };
+
+    return this;
+};
+
+var VTCCore = {
+    // This function is an user-defined error handler.
+    // Type: function(Object({title: String, content: String}))
+    _errorFn : null,
+
+    // Contains the configuration of the media devices
+    // Object structure:
+    //   {
+    //     cameraIsEnabled : <boolean>,
+    //     micIsEnabled    : <boolean>
+    //   }
+    config : null,
+    
+    // An instantiation of VTCClient
+    client : null,
+
+    // A function that checks browser support for WebRTC API. This can be called without
+    // calling VTCCore.initialize
+    isBrowserSupported : function () {
+        return easyrtc.supportsGetUserMedia() && easyrtc.supportsPeerConnections();
     },
     
-    // Sets up a majority of the callback handlers for the room object and easyrtc stuff.
-    setupCallbacks : function () {
-        var vtcObj = this;
+    // Validates a configuration Object. If this function is given an argument, it will
+    // check to ensure config is a valid configuration Object. Otherwise, it will check
+    // to see if VTCCore.config is a valid configuration Object.
+    _validateConfig : function (config) {
+        if (config === undefined) {
+            config = this.config;
+        }
+
+        if (config === null) {
+            return false;
+        }
+
+        if (typeof config.cameraIsEnabled === 'boolean' &&
+            typeof config.micIsEnabled === 'boolean') {
+            return true;
+        } else {
+            return false;
+        } 
+    },
+
+    /* Parameters: 
+     *   config : Object({
+     *              cameraIsEnabled : <boolean>,
+     *              micIsEnabled    : <boolean>
+     *            })
+     *     Contains three fields denoting the initial state of the media devices.
+     */
+    initialize : function (config) {
+        var _this = this;
+        if (!this._validateConfig(config)) {
+            ErrorMetric.log('VTCCore.initialize => config is invalid');
+            ErrorMetric.log('                   => ' + JSON.stringify(config));
+
+            // Break chaining
+            return null;
+        }
         
-        // We need to setup a callback handler for when the Room object needs to switch video sources for the 
-        // main video screen. A callback is needed because the Room object should have no concept of the VTC
-        // mechanisms used.
-        this.roomObj.setSwitchVideoHandler(function (id, peerVideoObj) {
-            if (vtcObj.peerStreamMap[id] !== undefined) {
-                easyrtc.setVideoObjectSrc(peerVideoObj.get(0), vtcObj.peerStreamMap[id]);
-            } else {
-                // In almost all of the cases, if the id is not in peerStreamMap, it most likely is "self" and
-                // getLocalStream() will be the correct target
-                easyrtc.setVideoObjectSrc(peerVideoObj.get(0), easyrtc.getLocalStream());
+        this.config = config;
+
+        easyrtc.setOnError(function (errorObject) {
+            ErrorMetric.log('easyrtc.onError => An error has occurred with easyrtc');
+            ErrorMetric.log('                => code: ' + errorObject.errorCode);
+            ErrorMetric.log('                => text: ' + errorObject.errorText);
+            
+            if (_this._errorFn !== undefined) {
+                _this._errorFn({
+                    title   : 'An Error Has Occurred',
+                    content : 'There has been a problem with the VTC session, please reload the page.' + 
+                              '<br><br>' +
+                              '<b>Error Code</b>: ' + errorObject.errorCode + '<br>' +
+                              '<b>Summary</b>: ' + errorObject.errorText
+                });
             }
         });
         
-        // Setup the functions that are invoked when the disable microphone/camera UI elements are clicked
-        this.roomObj.setMuteButtonHandler(function (turnOn) {
-            easyrtc.enableMicrophone(turnOn);
-        });
-        this.roomObj.setToggleCameraHandler(function (turnOn) { 
-            easyrtc.enableCamera(turnOn);
-        });
-        this.roomObj.setSendChatMessageHandler(function (room, content) {
-            easyrtc.sendDataWS({
-                "targetRoom" : room
-            }, 'chat', content);
+        return this;
+    },
+    
+    /* Parameters:
+     *   peerMessageFn : function (client : VTCClient, 
+     *                             peerId : String, 
+     *                             msgType : String, 
+     *                             content : Object)
+     *     This is a callback function that is called when a peer message arrives.
+     *
+     * This function sets a custom handler for messages sent by other peers. 
+     */
+    onPeerMessage : function (peerMessageFn) {
+        var _this = this;
+        easyrtc.setPeerListener(function (peerId, msgType, content) {
+            peerMessageFn(_this.client, peerId, msgType, content);
         });
 
-        // Set the handler for listening to control messages (and possibly chat)
-        easyrtc.setPeerListener(function (peerId, msgType, content) {
-            vtcObj.handlePeerMessages(peerId, msgType, content);   
-        });
-        
-        // Alerts us to when remote streams call us
+        return this;
+    },
+    
+    /* Parameters:
+     *   streamAcceptFn : function (client : VTCClient,
+     *                              peerId : String, 
+     *                              stream : MediaStream)
+     *     This is a callback function that is called when a new stream is "accepted"
+     *
+     *   This function sets a custom handler to receive streams from other peers.
+     */
+    onStreamAccept : function (streamAcceptFn) {
+        var _this = this;
         easyrtc.setStreamAcceptor(function (peerId, stream) {
-            vtcObj.handleAcceptStream(peerId, stream);
+            streamAcceptFn(_this.client, peerId, stream);
         });
         
-        // As per the easyrtc multiparty.js example, this is only registered for one-time-use. After the first
-        // invocation, this listener will be unregistered.
+        return this;
+    },
+
+    /* Parameters:
+     *   streamClose : function(client : VTCClient,
+     *                          peerId : String)
+     *     This is a callback function that is called when a stream is closed.
+     *
+     *   Handles stream close events.
+     */
+    onStreamClose : function (streamCloseFn) {
+        var _this = this;
+        easyrtc.setOnStreamClosed(function (peerId) {
+            streamCloseFn(_this.client, peerId);
+        });
+
+        return this;
+    },
+    
+    /* Parameters:
+     *   errorFn : function(Object({
+     *               title   : String,
+     *               content : String<HTML>
+     *             })
+     *     Callback that is called when an error condition arises
+     */
+    onError : function (errorFn) {
+        this._errorFn = errorFn;
+        return this;
+    },
+
+    // Parameters:
+    //   userName : String
+    //     The name of the connecting user.
+    //   
+    //   roomName : String
+    //     The name of the room to be joined.
+    //
+    //   successFn : function(VTCClient)
+    //     The callback function to be called upon successfully joining the room.
+    // 
+    // Before calling this function, it is recommended to have already called onPeerMessage, onStreamAccept, and
+    // onStreamClose with appropriate callback functions. It is possible that setting the callbacks after invoking
+    // easyrtc.connect might cause events to be lost.
+    connect : function (userName, roomName, successFn) {
+        if (!this._validateConfig()) {
+            ErrorMetric.log('VTCCore.connect => config changed somehow...');
+            ErrorMetric.log('                => ' + JSON.stringify(this.config));
+
+            // Break chaining
+            return null;
+        }
+        
+        easyrtc.enableVideo(this.config.cameraIsEnabled);
+        easyrtc.enableAudio(this.config.micIsEnabled);
+        
+        // No callbacks are invoked at this point because we are not connected yet.
+        easyrtc.joinRoom(roomName, null, null, null);
+        if (!easyrtc.setUsername(userName)) {
+            ErrorMetric.log('VTCCore.connect => could not set username to ' + userName);
+
+            // Break chaining
+            return null;
+        }
+        
         easyrtc.setRoomOccupantListener(function (roomName, peerList) {
-            vtcObj.initCallToPeers(peerList);
+            var peersToCall = Object.keys(peerList);
+            var callPeers = function (i) {
+                var peerId = peersToCall[i];
+                easyrtc.call(peerId, function () {
+                    if (i > 0) {
+                        callPeers(i - 1);
+                    }
+                }, function (errorCode, errorText) {
+                    ErrorMetric.log('easyrtc.call => failed to call ' + peerId);
+                    ErrorMetric.log('             => ' + errorCode + ': ' + errorText);
+
+                    if (i > 0) {
+                        callPeers(i - 1);
+                    }
+                });
+            };
+
+            if (peersToCall.length > 0) {
+                callPeers(peersToCall.length - 1);
+            }
+
             easyrtc.setRoomOccupantListener(null);
         });
         
-        // Alerts us as to when remote streams hang up
-        easyrtc.setOnStreamClosed(function (peerId) {
-            vtcObj.handleCloseStream(peerId);
-        });
-    },
-    
-    // This is the callback that is invoked on the presence of a new remote video stream
-    handleAcceptStream : function (peerId, stream) {
-        var displayName = this.peerMap[peerId];
-        if (displayName === undefined) {
-            console.log('could not find name for peerId ' + peerId + ', using peerId for now...');
-            this.deferredJoin[peerId] = true;
-            
-            // Only show the first 12 characters of peerId
-            displayName = peerId.substring(0, 12);
-        }
-        
-        // Adds a peer in the Rooms UI
-        this.roomObj.addPeer(peerId, displayName, function (peerVideoObj) {
-            easyrtc.setVideoObjectSrc(peerVideoObj.get(0), stream);
-        });
-        
-        // FIXME: what happens if there is already a peerStreamMap mapping of peerId?
-        this.peerStreamMap[peerId] = stream;
-    },
-    
-    // Handles a remote peer hanging up on the call (this is not called when an Android device puts Chrome
-    // on the background and suspends the device).
-    handleCloseStream : function (peerId) {
-        if (this.peerMap[peerId] !== undefined && this.peerStreamMap[peerId] !== undefined) {
-            this.roomObj.removePeer(peerId);
-            delete this.peerMap[peerId];
-            delete this.peerStreamMap[peerId];
-        } else {
-            // FIXME: what should happen if peerId isn't in peerMap or peerStreamMap?
-        }
-    },
-    
-    // Handles messages from peers. For our purposes, msgType can only for "info" for now. It might be necessary 
-    // to add other messages in the future (some examples include "chat" for chat messages, etc.).
-    handlePeerMessages : function (peerId, msgType, content) {
-        if (msgType === "info") {
-            // Ignore the message is peerId is already mapped to a display name
-            if (this.peerMap[peerId] === undefined) {
-                // Ignore the message if there is no "name" field
-                if (content.name !== undefined) {
-                    this.peerMap[peerId] = content.name;
+        var _this = this;
+        easyrtc.initMediaSource(function () {
+            easyrtc.connect('tubertc', function (myId) {
+                _this.client = new VTCClient(myId, roomName, _this._errorFn);
 
-                    // Checks to see if the peerId is one that we need to immediately update the UI
-                    if (this.deferredJoin[peerId] !== undefined) {
-                        this.roomObj.updatePeerName(peerId, content);
-                        delete this.deferredJoin[peerId];
-                    }
-                    
-                    // If the message requires us to respond, send a peer message back and specify that no response
-                    // is necessary (to prevent a NOP message in response)
-                    if (content.respond !== undefined && content.respond) {
-                        easyrtc.sendPeerMessage(peerId, 'info', {
-                            "name": this.userName,
-                            "respond": false
-                        });
-                    }
-                }
-            }
-        } else if (msgType === "chat") {
-            // Handles chat room messages
-            this.roomObj.addChatMessage(content);
-        }
-    },
-    
-    // This gets invoked upon connecting and entering the room. This should be only called once for our application.
-    // The function gets passed a dictionary with peerIds of the other occupants as the keys. We take this each key
-    // in the dictionary and both send them a message containing our display name and call them to obtain a video stream.
-    initCallToPeers : function (peerList) {
-        var vtcObj = this;
-        var peersToCall = Object.keys(peerList);
-        var callPeers = function (i) {
-            var peerId = peersToCall[i];
-            easyrtc.sendPeerMessage(peerId, 'info', {
-                "name": vtcObj.userName,
-                "respond": true
-            });
-            easyrtc.call(peerId, function () {
-                if (i > 0) {
-                    callPeers(i - 1);
+                if (successFn !== undefined) {
+                    successFn(_this.client);
                 }
             }, function (errorCode, errorText) {
-                vtcObj.roomObj.showError('Error ' + errorCode, errorText);
-                if (i > 0) {
-                    callPeers(i - 1);
+                ErrorMetric.log('easyrtc.connect => failed to connect');
+                ErrorMetric.log('                => ' + errorCode + ': ' + errorText);
+                
+                // FIXME: proofread and make this text better
+                if (_this._errorFn !== undefined) {
+                    _this._errorFn({
+                        title   : 'An Error Has Occurred',
+                        content : 'We are unable to join the video teleconferencing session.<br><br>' +
+                                  '<b>Error Code</b>: ' + errorCode + '<br>' +
+                                  '<b>Error Text</b>: ' + errorText
+                    });
                 }
             });
-        };
-        
-        if (peersToCall.length > 0) {
-            callPeers(peersToCall.length - 1);
+        }, function (errorCode, errorText) {
+            ErrorMetric.log('easyrtc.initMediaSource => unable to initialize media source');
+            ErrorMetric.log('                        => ' + errorCode + ': '+ errorText);
+            
+            // FIXME: proofread and make this text better
+            if (_this._errorFn !== undefined) {
+                _this._errorFn({
+                    title   : 'Unable to Initialize Media Sources',
+                    content : 'We are unable to gain access to your media sources. ' +
+                              'Did you forget to grant us permission to use the camera/microphone?<br><br>' +
+                              '<b>Error Code</b>: ' + errorCode + '<br>' +
+                              '<b>Error Text</b>: ' + errorText
+                });
+            }
+        });
+
+        return this;
+    },
+    
+    // Returns the VTCClient instance
+    getClient : function () {
+        return this.client;
+    },
+
+    finalize : function () {
+        var client = this.client;
+        if (client !== null) {
+            easyrtc.hangupAll();
+            easyrtc.leaveRoom(client.getRoomName());
+            easyrtc.disconnect();
+            this.client = null;
         }
+
+        // No return value because we do not expect this to be chained.
     }
 };

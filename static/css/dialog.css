@@ -1,0 +1,44 @@
+#modalDialog {
+    position: fixed;
+    display: none;
+    background-color: #ffffff;
+    padding: 15px 15px 15px 15px;
+    top: 20%;
+    left: 50%;
+
+    /* If this value is modify, also modify margin-left as per the comments above margin-left.
+     */
+    width: 400px;
+    height: auto;
+
+    /* In order to correctly center this object, margin-left should be -width*0.5. In this case,
+     * height is 400px so -width*0.5 is -200px.
+     */
+    margin-left: -200px;
+    
+    z-index: 10;
+
+    /* The 9999px might need to be changed in the future if ultra-ultra-ultra
+     * high definition screens come out with even more ridiculous resolutions.
+     */
+    outline: 9999px solid rgba(0, 0, 0, 0.5);
+}
+
+#modalDialogTitle {
+    font-size: 26px;
+    border-bottom: 1px solid #000000;
+}
+
+#modalDialogContent {
+    padding-top: 10px;
+}
+
+#modalDialogContent ul {
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+#modalDialogControls {
+    padding-top: 25px;
+    text-align: right;
+}

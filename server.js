@@ -3,6 +3,7 @@ var io = require('socket.io');
 var nconf = require('nconf');
 var express = require('express');
 var easyrtc = require('easyrtc');
+var Handlebars = require('handlebars');
 
 var webServer = null;
 
@@ -18,11 +19,10 @@ nconf.argv()
 
 // Web application setup (for setting up routes)
 var tubertcApp = express();
-var router = express.Router();
 
-// TODO: setup application routes here
-tubertcApp.use('/', router);
-tubertcApp.use(express.static(__dirname + "/static/"));
+// Load index.html template
+var indexSource = fs.readFileSync(__dirname + '/templates/index.html', 'utf8');
+var indexTmpl = Handlebars.compile(indexSource);
 
 // Setup web servers according to configuration file
 
@@ -32,6 +32,34 @@ var debugMode = nconf.get('debug');
 if (debugMode === undefined) {
     debugMode = true;
 }
+
+// Setup routes for static resources
+tubertcApp.use('/js', express.static(__dirname + '/static/js'));
+tubertcApp.use('/css', express.static(__dirname + '/static/css'));
+tubertcApp.use('/audio', express.static(__dirname + '/static/audio'));
+tubertcApp.use('/images', express.static(__dirname + '/static/images'));
+
+// Add a route for telemetry scripts
+if (debugMode) {
+    tubertcApp.use('/telemetry', express.static(__dirname + '/static/telemetry'));
+}
+
+// Setup main index page (this changes depending on whether or not debugging is enabled in settings.json).
+tubertcApp.get('/', function (req, res) {
+    var pageTitle = 'tubertc';
+    var extraScripts = '';
+    
+    // If debug mode is enabled, load our debugging script (and add [debug] in the title)
+    if (debugMode) {
+        pageTitle += ' [debug]';
+        extraScripts = '<script type="text/javascript"  src="/telemetry/debug.js"></script>';
+    }
+
+    res.send(indexTmpl({
+        title     : pageTitle,
+        debugBody : extraScripts
+    }));
+});
 
 // By default the listening server port is 8080 unless set by nconf or Heroku
 var serverPort = process.env.PORT || nconf.get('port') || 8080;
@@ -82,12 +110,22 @@ if (iceServers !== undefined) {
 }
 else {
     easyrtc.setOption('appIceServers', [
-    	{url: "stun:stun.l.google.com:19302"},
-    	{url: "stun:stun.sipgate.net"},
-    	{url: "stun:217.10.68.152"},
-    	{url: "stun:stun.sipgate.net:10000"},
-    	{url: "stun:217.10.68.152:10000"}
-    ])
+    	{
+            url : "stun:stun.l.google.com:19302"
+        },
+    	{
+            url : "stun:stun.sipgate.net"
+        },
+    	{
+            url : "stun:217.10.68.152"
+        },
+    	{
+            url : "stun:stun.sipgate.net:10000"
+        },
+    	{
+            url : "stun:217.10.68.152:10000"
+        }
+    ]);
 }
 
 var rtcServer = easyrtc.listen(tubertcApp, socketServer);

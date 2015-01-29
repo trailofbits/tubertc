@@ -1,0 +1,119 @@
+body {
+    background-color: #383838;
+    overflow: hidden;
+    position: fixed;
+    margin: 0;
+}
+
+.mainPanel {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+
+    /* vtcRoom's height and width depends on the values below as well
+     */
+    height: 100vh;
+    width: 80vw;
+}
+
+.logo {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+}
+
+.logo img {
+    height: 5vmin;
+}
+
+.navCenterer {
+    display: block;
+    position: absolute;
+    left: 50%;
+}
+
+.navBar {
+    position: relative;
+    display: none;
+    padding: 5px 5px 5px 5px;
+    top: 5px;
+    left: -50%;
+
+    /* This value is derived from the height of ".navBar button" which is dependent on
+     * ".navBar img". In this example, ".navBar button"'s height is 35px. This means
+     * the height value below should also be 35px.
+     *
+     * FIXME: is there a way to make this relationship explicit in CSS as oppose to be done manually
+     *        or via JavaScript?
+     */
+    height: 35px;
+
+    border-radius: 5px;
+    background-color: #202020;
+}
+
+.navBar img, svg {
+    width: 25px;
+
+    /* WARNING: If this value is modified, be sure to update the height attribute for 
+     *          ".navBar button" and also ".navBar"
+     */
+    height: 30px;
+}
+
+.navBar button {
+    float: left;
+    border: 0px;
+    background: #202020;
+    outline: none;
+    cursor: hand;
+    cursor: pointer;
+
+    /* This value depends on ".navBar img"'s height attribute and also propagates to
+     * ".navBar"'s height attribute. If modified, be sure to update ".navBar"'s 
+     * height attribute as well.
+     */
+    height: 35px;
+}
+
+.roomName {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #e0e0e0;
+}
+
+.sidePanel {
+    position: fixed;
+    right: 0px;
+    top: 0px;
+    height: 100vh;
+    width: 20vw;
+}
+
+.sidePanelContent {
+    padding: 5px 5px 5px 5px;
+    height: 100vh;
+    background: #e0e0e0;
+}
+
+.appPage {
+
+}
+
+#roomNameField {
+    display: none;
+}
+
+#vtcRoom {
+    position: relative;
+    display: none;
+
+    /* The bottom two properties should be mirrored from that of mainPanel's width and height
+     */
+    width: 80vw;
+    height: 100vh;
+
+    z-index: -1;
+}
+
