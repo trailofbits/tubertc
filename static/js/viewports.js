@@ -49,33 +49,33 @@ var Dashboard = function(){
         else {
             layout = _this.gridForViewportNumber(this.viewportArray.length);
         }
-        var maxInRow = max_of_array(layout['grid']);
+        var maxInRow = max_of_array(layout.grid);
     
         _this.elem.empty();
         _this.rowArray = [];
 
         var whichGrid = 0;
 
-        for (var i=0; i< layout['rows']; i++) {
+        for (var i=0; i< layout.rows; i++) {
             var row;
-            var rowOffset = (100/maxInRow)*(maxInRow-layout['grid'][i])/2+'%';
+            var rowOffset = (100/maxInRow)*(maxInRow-layout.grid[i])/2+'%';
             
-            if (this.orientation == 'landscape') {
+            if (this.orientation === 'landscape') {
                 row = $('<div></div>', {class:'trtc_row'});
-                row.css({height:100/layout['rows']+'%', left:rowOffset});
+                row.css({height:100/layout.rows+'%', left:rowOffset});
             }
             else {
                 row = $('<div></div>', {class:'trtc_column'});
-                row.css({width:100/layout['rows']+'%', top:rowOffset});
+                row.css({width:100/layout.rows+'%', top:rowOffset});
             }
 
             _this.rowArray.push(row);
             _this.elem.append(row);
 
-            for (var j=0; j<layout['grid'][i]; j++) {
+            for (var j=0; j<layout.grid[i]; j++) {
                 var viewport = _this.viewportArray[whichGrid];
 
-                if (this.orientation == 'landscape') {
+                if (this.orientation === 'landscape') {
                     viewport.elem.css({width:100/maxInRow+'%', height:'100%'});
                 }
                 else {
@@ -98,7 +98,7 @@ var Dashboard = function(){
         }
 
         //bind events at the end, after any final resizing
-        for (var i=0; i<_this.viewportArray.length; i++){
+        for (i=0; i<_this.viewportArray.length; i++){
             var viewport = _this.viewportArray[i];
             viewport.bindClick();
             viewport.bindHover();
@@ -108,7 +108,7 @@ var Dashboard = function(){
 
     this.correctLayoutForHangoutsMode = function(_this){
         var hangoutsViewport = _this.viewportArray[0];
-        if (_this.orientation == 'landscape') {
+        if (_this.orientation === 'landscape') {
             hangoutsViewport.elem.css({width:'100%','padding-right':0});
 
             _this.rowArray[0].css({height:'80%'});
@@ -120,7 +120,7 @@ var Dashboard = function(){
             _this.rowArray[0].css({width:'70%'});
             _this.rowArray[1].css({width:'30%'});
         }
-    }
+    };
 
     this.gridForViewportNumber = function(viewports) {
         var layout = {};
@@ -333,28 +333,28 @@ var Viewport = function(peerName, dashboard) {
         if (!this.isSelf) {
             var dimensions = _this.videoDimensions(); 
             
-            if (dimensions['limitingValue'] == 'width'){
-                var vidHeight = dimensions['dimensions'][1];
+            if (dimensions.limitingValue === 'width'){
+                var vidHeight = dimensions.dimensions[1];
                 var topOffset = (_this.view.height()-vidHeight)/2;
                 _this.localMuteIcon.css({'margin-top':topOffset, 'margin-right':0});    
             }
             else {
-                var vidWidth = dimensions['dimensions'][0];
+                var vidWidth = dimensions.dimensions[0];
                 var rightOffset = (_this.view.width()-vidWidth)/2;
                 _this.localMuteIcon.css({'margin-right':rightOffset, 'margin-top':0});
             }
 
             _this.localMuteIcon.click(function(){
-                var video = _this.elem.find('video')[0]
+                var video = _this.videoSrc[0];
                 if (_this.isLocallyMuted) {
                     video.muted = false;
-                    _this.localMuteIcon.removeClass('trtc_local_mute_muted')
+                    _this.localMuteIcon.removeClass('trtc_local_mute_muted');
                 }
                 else {
                     video.muted = true;
-                    _this.localMuteIcon.addClass('trtc_local_mute_muted')
+                    _this.localMuteIcon.addClass('trtc_local_mute_muted');
                 }
-                    _this.isLocallyMuted = !_this.isLocallyMuted
+                _this.isLocallyMuted = !_this.isLocallyMuted;
             });
         }
     }
@@ -371,14 +371,14 @@ var Viewport = function(peerName, dashboard) {
             limitingValue = 'height';
         }
 
-        if (limitingValue == 'width') {
-            videoDimensions = [this.view.width(), this.view.width()/(contentAspectRatio)]
+        if (limitingValue === 'width') {
+            videoDimensions = [this.view.width(), this.view.width()/(contentAspectRatio)];
         }
         else {
-            videoDimensions = [contentAspectRatio*this.view.height(), this.view.height()]
+            videoDimensions = [contentAspectRatio*this.view.height(), this.view.height()];
         }
         return {'dimensions':videoDimensions, 'limitingValue':limitingValue};
-    }
+    };
 
     return this;
 };
