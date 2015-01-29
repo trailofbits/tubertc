@@ -217,8 +217,12 @@ var Dashboard = function(){
     };
     
     this.createGridForNewUser = function(peerName){
-
         var newViewport = new Viewport(peerName, this);
+
+        // If peerName is undefined, this means the viewport is for the user themselves.
+        if (peerName === undefined) {
+            newViewport.isSelf = true;
+        }
         this.viewportArray.push(newViewport);
         this.placeViewports();
         return newViewport;
