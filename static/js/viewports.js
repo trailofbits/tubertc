@@ -87,7 +87,6 @@ var Dashboard = function(){
                 // When the video is removed from being displayed, it needs load() to be
                 // called on it before the video continues.
                 viewport.videoSrc.get(0).load();
-                viewport.bindClick();
 
                 whichGrid+=1;
             }
@@ -100,6 +99,13 @@ var Dashboard = function(){
 
             _this.rowArray[0].css({height:'100%', left:0});
             _this.rowArray[1].css({height:'120px', 'bottom':'120px'});
+        }
+
+        for (var i=0; i<_this.viewportArray.length; i++){
+            var viewport = _this.viewportArray[i];
+            viewport.bindClick();
+            viewport.bindHover();
+            viewport.placeMuteIcon();
         }
     };
 
@@ -228,15 +234,19 @@ var Viewport = function(peerName, dashboard) {
     this.muteIcon = $('<img src="/images/muted.svg">')
                         .attr('alt', '[muted]')
                         .addClass('trtc_muted');
+    
+    this.localMuteIcon = $('<div></div>', {class:'trtc_local_mute'});
+    this.isLocallyMuted = false;
 
     this.view.append(this.videoSrc);
     this.view.append(this.userIcon);
     this.view.append(this.muteIcon);
+    this.view.append(this.localMuteIcon);
 
     this.elem.append(this.view);
-    
-    var _this = this;
 
+    var _this = this;
+    
     // TODO FIXME: this sort of feels and looks kludgey, can we fix this?
     this.bindClick = function () {
         var _this = this;
@@ -253,6 +263,15 @@ var Viewport = function(peerName, dashboard) {
                 }
             }
         });
+    };
+
+    this.bindHover = function () {
+        _this.view.hover(function(){
+                _this.localMuteIcon.css({opacity:1});
+            }, function(){
+                _this.localMuteIcon.css({opacity:0});
+            }
+        );
     };
     
     this.showCamera = function (state) {
@@ -286,6 +305,45 @@ var Viewport = function(peerName, dashboard) {
                 .fadeIn();
         }
     };
+
+    this.placeMuteIcon = function() {
+        var dimensions = _this.videoDimensions(); 
+        
+        if (dimensions['limitingValue'] == 'width'){
+            var vidHeight = dimensions['dimensions'][1];
+            var topOffset = (_this.view.height()-vidHeight)/2;
+            _this.localMuteIcon.css({'margin-top':topOffset, 'margin-right':0});    
+        }
+        else {
+            var vidWidth = dimensions['dimensions'][0];
+            var rightOffset = (_this.view.width()-vidWidth)/2;
+            _this.localMuteIcon.css({'margin-right':rightOffset, 'margin-top':0});
+        }
+        
+    }
+
+    this.videoDimensions = function() {
+
+        var contentAspectRatio = 4/3;
+        var containerAspectRatio = parseInt(_this.view.css('width'))/_this.view.height();
+
+        console.log(containerAspectRatio)
+        var videoDimensions;
+
+        var limitingValue = 'width';
+        if (containerAspectRatio > contentAspectRatio) {
+            limitingValue = 'height';
+        }
+
+        if (limitingValue == 'width') {
+            videoDimensions = [this.view.width(), this.view.width()/(contentAspectRatio)]
+        }
+        else {
+            videoDimensions = [contentAspectRatio*this.view.height(), this.view.height()]
+        }
+        console.log(videoDimensions)
+        return {'dimensions':videoDimensions, 'limitingValue':limitingValue};
+    }
 
     return this;
 };

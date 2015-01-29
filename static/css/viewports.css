@@ -37,6 +37,16 @@
     position: relative;
 }
 
+.trtc_local_mute {
+    position: absolute;
+    height:29px;
+    width:29px;
+    top:0;
+    right:0;
+    background-image: url('../images/speaker.svg');
+    opacity:0;
+}
+
 .trtc_usericon {
     display: none;
     height: 100%;
