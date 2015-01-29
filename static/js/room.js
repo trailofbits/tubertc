@@ -132,6 +132,11 @@ var vtcMain = function (params) {
                     ErrorMetric.log('peerMessage => debug message got in non-debug mode!');
                 }
             } else if (msgType === 'mic-control' && typeof content.enabled === 'boolean') {
+                // FIXME XXX XXX: Might be an issue with this feature. The ability to remotely
+                //                mute/unmute people might not be so cool (namely the unmute part).
+                //                For now, leave it in, but think about disabling the unmute feature
+                //                or having a config flag to deal with it.
+
                 /* 'mic-control' peerMessage
                  *   Example format:
                  *     {
