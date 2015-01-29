@@ -120,6 +120,8 @@ npm start
 sleep 2
 if !(open "http://localhost:8080"); then
     if !(xdg-open "http://localhost:8080"); then
-        log "TubeRTC running at http://localhost:8080"
+        if !(start "http://localhost:8080"); then
+            log "TubeRTC running at http://localhost:8080"
+        fi
     fi
 fi
