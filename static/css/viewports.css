@@ -47,6 +47,11 @@
     opacity:0;
 }
 
+.trtc_local_mute_muted {
+    opacity:0.7;
+    background-image: url('../images/muted_speaker.svg');
+}
+
 .trtc_usericon {
     display: none;
     height: 100%;

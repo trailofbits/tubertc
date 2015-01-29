@@ -101,11 +101,12 @@ var Dashboard = function(){
             _this.rowArray[1].css({height:'120px', 'bottom':'120px'});
         }
 
+        //bind events at the end, after any final resizing
         for (var i=0; i<_this.viewportArray.length; i++){
             var viewport = _this.viewportArray[i];
             viewport.bindClick();
             viewport.bindHover();
-            viewport.placeMuteIcon();
+            viewport.setupLocalMuteIcon();
         }
     };
 
@@ -269,7 +270,9 @@ var Viewport = function(peerName, dashboard) {
         _this.view.hover(function(){
                 _this.localMuteIcon.css({opacity:1});
             }, function(){
-                _this.localMuteIcon.css({opacity:0});
+                if (!_this.isLocallyMuted){
+                    _this.localMuteIcon.css({opacity:0});    
+                }
             }
         );
     };
@@ -306,7 +309,7 @@ var Viewport = function(peerName, dashboard) {
         }
     };
 
-    this.placeMuteIcon = function() {
+    this.setupLocalMuteIcon = function() {
         var dimensions = _this.videoDimensions(); 
         
         if (dimensions['limitingValue'] == 'width'){
@@ -319,7 +322,19 @@ var Viewport = function(peerName, dashboard) {
             var rightOffset = (_this.view.width()-vidWidth)/2;
             _this.localMuteIcon.css({'margin-right':rightOffset, 'margin-top':0});
         }
-        
+
+        _this.localMuteIcon.click(function(){
+            var video = _this.elem.find('video')[0]
+            if (_this.isLocallyMuted) {
+                video.muted = false;
+                _this.localMuteIcon.removeClass('trtc_local_mute_muted')
+            }
+            else {
+                video.muted = true;
+                _this.localMuteIcon.addClass('trtc_local_mute_muted')
+            }
+                _this.isLocallyMuted = !_this.isLocallyMuted
+        })
     }
 
     this.videoDimensions = function() {
