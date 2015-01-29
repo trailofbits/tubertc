@@ -262,8 +262,7 @@ var Viewport = function(peerName, dashboard) {
     
     // TODO FIXME: this sort of feels and looks kludgey, can we fix this?
     this.bindClick = function () {
-        var _this = this;
-        this.elem.click(function () {
+        this.videoSrc.click(function () {
             if (dashboard.hangoutsMode) {
                 var i = dashboard.viewportArray.indexOf(_this);
                 
@@ -279,7 +278,7 @@ var Viewport = function(peerName, dashboard) {
     };
 
     this.bindHover = function () {
-        _this.view.hover(function(){
+        this.view.hover(function(){
                 _this.localMuteIcon.css({opacity:1});
             }, function(){
                 if (!_this.isLocallyMuted){
@@ -354,7 +353,6 @@ var Viewport = function(peerName, dashboard) {
         var contentAspectRatio = 4/3;
         var containerAspectRatio = parseInt(_this.view.css('width'))/_this.view.height();
 
-        console.log(containerAspectRatio)
         var videoDimensions;
 
         var limitingValue = 'width';
@@ -368,7 +366,6 @@ var Viewport = function(peerName, dashboard) {
         else {
             videoDimensions = [contentAspectRatio*this.view.height(), this.view.height()]
         }
-        console.log(videoDimensions)
         return {'dimensions':videoDimensions, 'limitingValue':limitingValue};
     }
 
