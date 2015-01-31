@@ -111,14 +111,14 @@ var Dashboard = function(){
         if (_this.orientation === 'landscape') {
             hangoutsViewport.elem.css({width:'100%','padding-right':0});
 
-            _this.rowArray[0].css({height:'80%'});
-            _this.rowArray[1].css({height:'20%'});
+            _this.rowArray[0].css({height:'85%'});
+            _this.rowArray[1].css({height:'15%'});
         }
         else {
             hangoutsViewport.elem.css({height:'100%','padding-bottom':0});
 
-            _this.rowArray[0].css({width:'70%'});
-            _this.rowArray[1].css({width:'30%'});
+            _this.rowArray[0].css({width:'80%'});
+            _this.rowArray[1].css({width:'20%'});
         }
     };
 
@@ -357,7 +357,7 @@ var Viewport = function(peerName, dashboard) {
                 _this.isLocallyMuted = !_this.isLocallyMuted;
             });
         }
-    }
+    };
 
     this.videoDimensions = function() {
 

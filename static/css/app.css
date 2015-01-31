@@ -50,6 +50,7 @@ body {
 
     border-radius: 5px;
     background-color: #202020;
+    opacity: 0.8;
 }
 
 .navBar img, svg {
