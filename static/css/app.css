@@ -82,6 +82,7 @@ body {
     top: 5px;
     right: 5px;
     color: #e0e0e0;
+    text-shadow: 1px 1px #000000;
 }
 
 .sidePanel {
