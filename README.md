@@ -6,7 +6,7 @@ Tuber-time Communications
 Peer-to-peer video chat that works. It's tuber-time!
 
 ## Features
-* Video chat with up to 6 people (limited only by user interface)
+* Video chat with up to 15 people (limited only by user interface)
 * Buttons to selectively mute audio and turn off video
 * Client and server written in a single language: JavaScript
 * Supported without client software by browsers with [WebRTC](http://caniuse.com/rtcpeerconnection)
