@@ -232,32 +232,6 @@ var Login = {
         
         return true;
     },
-    
-    /* Parameters:
-     *   config : Object
-     *     {
-     *       cameraBtn : <StatefulButton>,
-     *       micBtn    : <StatefulButton>,
-     *       dashBtn   : <StatefulButton>
-     *     }
-     *
-     * Returns:
-     *   status : boolean
-     *     True if the media settings checks out. Otherwise, false.
-     *
-     * This function just makes sure that at least a microphone or camera is enabled. If both are disabled,
-     * we will get an exception. To avoid this error, we nip it at the bud here.
-     */
-    _checkMediaSettings : function (config) {
-        if (!config.cameraBtn.isEnabled() && !config.micBtn.isEnabled()) {
-            _loginAlert
-                .html('Cannot disable both camera <b>and</b> microphone. Please choose at least one.')
-                .stop(true, false)
-                .slideDown();
-            return false;
-        }
-        return true;
-    },
 
     /* Parameters:
      *   config : Object
@@ -345,7 +319,7 @@ var Login = {
         var scMicEnabled = StorageCookie.getValue('micIsEnabled');
         var scDashMode = StorageCookie.getValue('dashModeEnabled');
         var _setInitialBtnState = function (initValue, btn) {
-            if (initValue !== null && initValue !== btn.isEnabled()) {
+            if (initValue !== null && initValue !== btn.isSelected()) {
                 btn.toggle();
             }
         };
@@ -389,7 +363,7 @@ var Login = {
         });
 
         _joinBtn.click(function () {
-            if (_this._validate() && _this._checkMediaSettings(config)) {
+            if (_this._validate()) {
                 _loginAlert
                     .stop(true, false)
                     .slideUp();
@@ -398,9 +372,11 @@ var Login = {
                     userName        : _userNameEntry.val(),
                     roomName        : _roomNameEntry.val(),
                     rtcName         : toRtcRoomName(_roomNameEntry.val()),
-                    cameraIsEnabled : config.cameraBtn.isEnabled(),
-                    micIsEnabled    : config.micBtn.isEnabled(),
-                    dashIsEnabled   : config.dashBtn.isEnabled()
+                    cameraIsEnabled : config.cameraBtn.isSelected(),
+                    hasCamera       : config.cameraBtn.isEnabled(),
+                    micIsEnabled    : config.micBtn.isSelected(),
+                    hasMic          : config.micBtn.isEnabled(),
+                    dashIsEnabled   : config.dashBtn.isSelected()
                 };
 
                 var trtcConfig = {
@@ -436,7 +412,9 @@ var Login = {
      *                    roomName        : <String>,
      *                    rtcName         : <String>,
      *                    cameraIsEnabled : <boolean>,
+     *                    hasCamera       : <boolean>,
      *                    micIsEnabled    : <boolean>,
+     *                    hasMic          : <boolean>,
      *                    dashModeEnabled : <boolean>
      *                  }) 
      *     This function is called when the "Join Room" button is clicked and all the input is validated.

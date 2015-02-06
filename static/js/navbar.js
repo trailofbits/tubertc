@@ -69,27 +69,27 @@ var Button = function (id) {
 };
 
 // Defines a button that acts like a checkbox
-var StatefulButton = function (id, enabled) {
+var StatefulButton = function (id, selected) {
     var idSel = $(id);
-    var _kEnableColor = '#009966';
-    var _kDisableColor = '#cc0033';
+    var _kSelectedColor = '#009966';
+    var _kUnselectedColor = '#cc0033';
     var _buttonIsEnabled = true;
 
     this.id = id;
-    this.enabledFn = null;
-    this.disabledFn = null;
+    this.selectedFn = null;
+    this.unselectedFn = null;
 
-    this.enabled = enabled;
-    if (enabled === undefined) {
-        this.enabled = false;
+    this.selected = selected;
+    if (selected === undefined) {
+        this.selected = false;
     }
     
     var _this = this;
     var _paintColor = function () {
-        if (_this.enabled) {
-            idSel.css('fill', _kEnableColor);
+        if (_this.selected) {
+            idSel.css('fill', _kSelectedColor);
         } else {
-            idSel.css('fill', _kDisableColor);
+            idSel.css('fill', _kUnselectedColor);
         }
     };
     
@@ -98,6 +98,10 @@ var StatefulButton = function (id, enabled) {
         idSel
             .css('opacity', '0.3')
             .attr('title', 'Button is disabled');
+    };
+    
+    this.isEnabled = function () {
+        return _buttonIsEnabled;
     };
 
     this.enableButton = function () {
@@ -115,10 +119,10 @@ var StatefulButton = function (id, enabled) {
      */
     this.toggle = function () {
         if (_buttonIsEnabled) {
-            if (this.enabled) {
-                this.enabled = false;
+            if (this.selected) {
+                this.selected = false;
             } else {
-                this.enabled = true;
+                this.selected = true;
             }
 
             _paintColor();
@@ -126,21 +130,21 @@ var StatefulButton = function (id, enabled) {
     };
     
     /* Parameters:
-     *   enabledFn  : function()
-     *     Callback that is invoked when the button is clicked and the new state is ENABLED.
+     *   selectedFn  : function()
+     *     Callback that is invoked when the button is clicked and the new state is SELECTED.
      *
-     *   disabledFn : function()
-     *     Callback that is invoked when the button is clicked and the new state is DISABLED.
+     *   unselectedFn : function()
+     *     Callback that is invoked when the button is clicked and the new state is UNSELECTED.
      */
-    this.handle = function (enabledFn, disabledFn) {
-        this.enabledFn = enabledFn;
-        this.disabledFn = disabledFn;
+    this.handle = function (selectedFn, unselectedFn) {
+        this.selectedFn = selectedFn;
+        this.unselectedFn = unselectedFn;
     };
 
     /* Returns the current state of the button
      */
-    this.isEnabled = function () {
-        return this.enabled; 
+    this.isSelected = function () {
+        return this.selected; 
     };
 
     idSel.hover(function () {
@@ -157,19 +161,19 @@ var StatefulButton = function (id, enabled) {
         _this.toggle();
         
         if (_buttonIsEnabled) {
-            if (_this.isEnabled()) {
-                if (_this.enabledFn !== null) {
-                    _this.enabledFn();
+            if (_this.isSelected()) {
+                if (_this.selectedFn !== null) {
+                    _this.selectedFn();
                 } else {
                     // FIXME: is this spamming my telemetry log?
-                    ErrorMetric.log(id + '.click => StatefulButton.enabledFn not defined');
+                    ErrorMetric.log(id + '.click => StatefulButton.selectedFn not defined');
                 }
             } else {
-                if (_this.disabledFn !== null) {
-                    _this.disabledFn();
+                if (_this.unselectedFn !== null) {
+                    _this.unselectedFn();
                 } else {
                     // FIXME: is this spamming my telemetry log?
-                    ErrorMetric.log(id + '.click => StatefulButton.disabledFn not defined');
+                    ErrorMetric.log(id + '.click => StatefulButton.unselectedFn not defined');
                 }
             }
         }

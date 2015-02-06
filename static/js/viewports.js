@@ -269,7 +269,7 @@ var Viewport = function(peerName, dashboard) {
     
     // TODO FIXME: this sort of feels and looks kludgey, can we fix this?
     this.bindClick = function () {
-        this.videoSrc.click(function () {
+        var clickHandler = function () {
             if (dashboard.hangoutsMode) {
                 var i = dashboard.viewportArray.indexOf(_this);
                 
@@ -281,6 +281,14 @@ var Viewport = function(peerName, dashboard) {
                     dashboard.placeViewports();
                 }
             }
+        };
+
+        this.videoSrc.click(function () {
+            clickHandler();
+        });
+
+        this.userIcon.click(function () {
+            clickHandler();
         });
     };
 

@@ -31,12 +31,13 @@ var vtcMain = function (params) {
             $('#vtcRoom').fadeIn();   
         });
     
-    // Disables buttons as per states from buttons in params
-    if (!params.cameraIsEnabled) {
+    // Disables camera if the camera button is disabled (because no camera was found)
+    if (!params.hasCamera) {
         NavBar.cameraBtn.disableButton();
     }
-
-    if (!params.micIsEnabled) {
+    
+    // Disables mic if the mic button is disabled (because no mic was found)
+    if (!params.hasMic) {
         NavBar.micBtn.disableButton();
     }
     
@@ -86,8 +87,8 @@ var vtcMain = function (params) {
 
     VTCCore
         .initialize({
-            cameraIsEnabled : params.cameraIsEnabled,
-            micIsEnabled    : params.micIsEnabled
+            cameraIsEnabled : params.hasCamera,
+            micIsEnabled    : params.hasMic,
         })
         .onError(function (config) {
             Dialog.show(config);
@@ -145,7 +146,7 @@ var vtcMain = function (params) {
                  */
                 if (peerId !== client.getId()) {
                     // Toggle the micBtn if requested state isn't the actual state
-                    if (content.enabled !== NavBar.micBtn.isEnabled()) {
+                    if (content.enabled !== NavBar.micBtn.isSelected()) {
                         // clickButton is called because this causes the mute overlay to show up
                         NavBar.micBtn.clickButton();
                     }
@@ -183,11 +184,11 @@ var vtcMain = function (params) {
             }
 
             // XXX: send status from navbar buttons
-            if (!NavBar.cameraBtn.isEnabled()) {
+            if (!NavBar.cameraBtn.isSelected()) {
                 sendMediaPresence(client, 'camera', false);
             }
             
-            if (!NavBar.micBtn.isEnabled()) {
+            if (!NavBar.micBtn.isSelected()) {
                 sendMediaPresence(client, 'mic', false);
             }
         })
@@ -204,7 +205,7 @@ var vtcMain = function (params) {
         })
         .connect(params.userName, params.rtcName, function (client) {
             var myPeerId = client.getId();
-        
+
             // XXX(debug): set the VTC client object so that instantiations of DebugConsole.getClient() in the
             //             JavaScript debugger will work successfully.
             if (dbgListener !== null) {
@@ -224,24 +225,31 @@ var vtcMain = function (params) {
                 })
                 .show();
 
-            // Create a viewport for ourself and make it mirrored
+            // Create a viewport for ourself and make it mirrored, hide it initially to ensure
+            // a smooth transition if camera is initially disabled
             var viewport = trtc_dash.createGridForNewUser();
-            viewport.videoSrc.addClass('video_mirror');
+            viewport.videoSrc
+                .css('display', 'none')
+                .addClass('video_mirror');
             client.setVideoObjectSrc(viewport.videoSrc, client.getLocalStream());
 
             idToViewPort[myPeerId] = viewport;
-
+            
             // Only send initial state if they differ from the assumed state (which is enabled)
             if (!params.cameraIsEnabled) {
+                client.enableCamera(false);
                 sendMediaPresence(client, 'camera', false);
                 viewport.showCamera(false);
+            } else {
+                viewport.showCamera(true);
             }
 
             if (!params.micIsEnabled) {
+                client.enableMicrophone(false);
                 sendMediaPresence(client, 'mic', false);
                 viewport.showMic(false);
             }
-            
+
             // Binds actions to the Enable/Disable Camera button
             NavBar.cameraBtn.handle(function () {
                 client.enableCamera(true);
