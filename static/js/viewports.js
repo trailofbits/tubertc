@@ -111,14 +111,26 @@ var Dashboard = function(){
         if (_this.orientation === 'landscape') {
             hangoutsViewport.elem.css({width:'100%','padding-right':0});
 
-            _this.rowArray[0].css({height:'85%'});
-            _this.rowArray[1].css({height:'15%'});
+            _this.rowArray[0].css({
+                height:'85%',
+                position:'initial'
+            });
+            _this.rowArray[1].css({
+                height:'15%',
+                position:'initial'
+            });
         }
         else {
             hangoutsViewport.elem.css({height:'100%','padding-bottom':0});
 
-            _this.rowArray[0].css({width:'80%'});
-            _this.rowArray[1].css({width:'20%'});
+            _this.rowArray[0].css({
+                width:'80%',
+                position:'initial'
+            });
+            _this.rowArray[1].css({
+                width:'20%',
+                position:'initial'
+            });
         }
     };
 
