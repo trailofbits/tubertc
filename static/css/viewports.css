@@ -37,6 +37,15 @@
     position: relative;
 }
 
+.trtc_label {
+    position: absolute;
+    opacity: 0.8;
+    color: #ffffff;
+    background: #000000;
+    padding: 2px 2px 2px 2px;
+    margin: 2px 2px 2px 2px;
+}
+
 .trtc_local_mute {
     position: absolute;
     height:29px;

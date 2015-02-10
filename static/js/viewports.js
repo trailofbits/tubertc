@@ -55,6 +55,7 @@ var Dashboard = function(){
         _this.rowArray = [];
 
         var whichGrid = 0;
+        var viewport = null;
 
         for (var i=0; i< layout.rows; i++) {
             var row;
@@ -73,7 +74,7 @@ var Dashboard = function(){
             _this.elem.append(row);
 
             for (var j=0; j<layout.grid[i]; j++) {
-                var viewport = _this.viewportArray[whichGrid];
+                viewport = _this.viewportArray[whichGrid];
 
                 if (this.orientation === 'landscape') {
                     viewport.elem.css({width:100/maxInRow+'%', height:'100%'});
@@ -99,10 +100,10 @@ var Dashboard = function(){
 
         //bind events at the end, after any final resizing
         for (i=0; i<_this.viewportArray.length; i++){
-            var viewport = _this.viewportArray[i];
+            viewport = _this.viewportArray[i];
             viewport.bindClick();
             viewport.bindHover();
-            viewport.setupLocalMuteIcon();
+            viewport.setupLocalMuteIconAndLabel();
         }
     };
 
@@ -267,12 +268,23 @@ var Viewport = function(peerName, dashboard) {
                         .attr('alt', '[muted]')
                         .addClass('trtc_muted');
     
+    this.nameLabel = null;
+    if (peerName !== undefined) {
+        this.nameLabel = $('<div></div>', {class:'trtc_label'})
+                            .text(peerName);
+    }
+
     this.localMuteIcon = $('<div></div>', {class:'trtc_local_mute'});
     this.isLocallyMuted = false;
 
     this.view.append(this.videoSrc);
     this.view.append(this.userIcon);
     this.view.append(this.muteIcon);
+
+    if (this.nameLabel !== null) {
+        this.view.append(this.nameLabel);
+    }
+
     this.view.append(this.localMuteIcon);
 
     this.elem.append(this.view);
@@ -294,14 +306,27 @@ var Viewport = function(peerName, dashboard) {
                 }
             }
         };
-
+        
+        // Anything clickable we make clickable for the pruposes of switching main
+        // video source.
+        //
+        // FIXME: there has to be a better mechanism for this?
         this.videoSrc.click(function () {
             clickHandler();
         });
-
+        this.muteIcon.click(function () {
+            // FIXME(ui): on double click, this causes a selection event to occur
+            clickHandler();
+        });
         this.userIcon.click(function () {
             clickHandler();
         });
+
+        if (this.nameLabel !== null) {
+            this.nameLabel.click(function () {
+                clickHandler();
+            });
+        }
     };
 
     this.bindHover = function () {
@@ -349,21 +374,27 @@ var Viewport = function(peerName, dashboard) {
         }
     };
 
-    this.setupLocalMuteIcon = function() {
+    this.setupLocalMuteIconAndLabel = function() {
         if (!this.isSelf) {
             var dimensions = _this.videoDimensions(); 
             
             if (dimensions.limitingValue === 'width'){
                 var vidHeight = dimensions.dimensions[1];
                 var topOffset = (_this.view.height()-vidHeight)/2;
-                _this.localMuteIcon.css({'margin-top':topOffset, 'margin-right':0});    
+                _this.localMuteIcon.css({'margin-top':topOffset, 'margin-right':2});
+                if (_this.nameLabel !== null) {
+                    _this.nameLabel.css({'top':topOffset, 'left':2});    
+                }
             }
             else {
                 var vidWidth = dimensions.dimensions[0];
                 var rightOffset = (_this.view.width()-vidWidth)/2;
                 _this.localMuteIcon.css({'margin-right':rightOffset, 'margin-top':0});
+                if (_this.nameLabel !== null) {
+                    _this.nameLabel.css({'left':rightOffset, 'top':0});
+                }
             }
-
+            
             _this.localMuteIcon.click(function(){
                 var video = _this.videoSrc[0];
                 if (_this.isLocallyMuted) {
