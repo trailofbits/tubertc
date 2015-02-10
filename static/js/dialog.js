@@ -10,14 +10,30 @@
 // jQuery selectors
 var _appPage = $('.appPage');
 var _modalDialog = $('#modalDialog');
+var _modalDialogClose = $('#modalDialogClose');
+var _modalDialogRefresh = $('#modalDialogRefresh');
 
 var Dialog = {
     // Stores a list of queued messages to display to the user
     _queued : [],
     
-    _setDialogContent : function (title, content) {
-        $('#modalDialogTitle').text(title);
-        $('#modalDialogContent').html(content);
+    _setDialogContent : function (config) {
+        $('#modalDialogTitle').text(config.title);
+        $('#modalDialogContent').html(config.content);
+        
+        if (config.forceRefresh !== undefined && config.forceRefresh) {
+            _modalDialogClose.css('display', 'none');
+
+            _modalDialogRefresh.css('display', 'initial');
+            _modalDialogRefresh.click(function () {
+                location.reload(true);
+            });
+        }
+
+        _appPage.css('pointer-events', 'none');
+
+        Dialog._centerVertically();
+        _modalDialog.fadeIn();
     },
     
     _centerVertically : function () {
@@ -33,6 +49,10 @@ var Dialog = {
      *
      *              content : HTML
      *                The main content of the modal dialog
+     *
+     *              forceRefresh : boolean
+     *                This is for "fatal" error messages and adds a refresh button instead
+     *                of a close dialog button.
      */
     show: function (config) {
         if (config.title === undefined) {
@@ -49,25 +69,17 @@ var Dialog = {
         if (displayStatus === 'block') {
             Dialog._queued.push(config);
         } else {
-            this._setDialogContent(config.title, config.content);
-
-            _appPage.css('pointer-events', 'none');
-            
-            Dialog._centerVertically();
-            _modalDialog.fadeIn();
+            this._setDialogContent(config);
         }
     }
 };
 
-$('#modalDialogClose').click(function () {
+_modalDialogClose.click(function () {
     if (Dialog._queued.length > 0) {
         // Fade out and in to denote a new message arrived
         _modalDialog.fadeOut(function () {
             var config = Dialog._queued.shift();
-            Dialog._setDialogContent(config.title, config.content);
-            
-            Dialog._centerVertically();
-            _modalDialog.fadeIn();
+            Dialog._setDialogContent(config);
         });
     } else {
         _modalDialog.fadeOut();

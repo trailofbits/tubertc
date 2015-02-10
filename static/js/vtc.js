@@ -7,6 +7,10 @@
  *   js/error.js
  */
 
+// This is a constant that should not be changed unless the GUI has been made
+// to support more viewports. This number should include the user itself.
+var kMaxCallersPerRoom = 15;
+
 var VTCClient = function (myId, roomName, onErrorFn) {
     var _id = myId;
     var _room = roomName;
@@ -339,6 +343,7 @@ var VTCCore = {
             return null;
         }
         
+        var _this = this;
         easyrtc.setRoomOccupantListener(function (roomName, peerList) {
             var peersToCall = Object.keys(peerList);
             var callPeers = function (i) {
@@ -356,15 +361,30 @@ var VTCCore = {
                     }
                 });
             };
-
-            if (peersToCall.length > 0) {
-                callPeers(peersToCall.length - 1);
+            
+            var peersCount = peersToCall.length; 
+            if (peersCount > 0) {
+                if (peersCount < kMaxCallersPerRoom) {
+                    callPeers(peersToCall.length - 1);
+                } else {
+                    // NOTE(security): This check and many others do not prevent users from force joining
+                    //                 a room by running JavaScript. It might be a good idea in the future
+                    //                 to enforce these limits of the server side.
+                    if (_this._errorFn !== undefined) {
+                        _this._errorFn({
+                            title        : 'Room "' + roomName + '" is full.',
+                            content      : 'The videoconferencing room <b>' + roomName + '</b> has reached capacity.<br><br>' +
+                                           'The maximum amount of people in a room is ' + kMaxCallersPerRoom + ', please ' +
+                                           'selected another room by reloading the page.',
+                            forceRefresh : true
+                        });
+                    }
+                }
             }
 
             easyrtc.setRoomOccupantListener(null);
         });
         
-        var _this = this;
         easyrtc.initMediaSource(function () {
             easyrtc.connect('tubertc', function (myId) {
                 _this.client = new VTCClient(myId, roomName, _this._errorFn);
