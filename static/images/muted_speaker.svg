@@ -11,8 +11,8 @@
    height="22pt"
    viewBox="0 0 75 75">
   <g id="g1">
-    <polygon id="polygon1" points="39.389,13.769 22.235,28.606 6,28.606 6,47.699 21.989,47.699 39.389,62.75 39.389,13.769" style="stroke:#fff;stroke-width:5;stroke-linejoin:round;fill:transparent;" />
-    <path id="path3003" d="M 50.651772,50.269646 71.395223,25.971024" style="fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round"/>
-    <path id="path3003-1" d="M 71.395223,50.269646 50.651772,25.971024" style="fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round"/>
+    <polygon id="polygon1" points="39.389,13.769 22.235,28.606 6,28.606 6,47.699 21.989,47.699 39.389,62.75 39.389,13.769" style="stroke:rgb(204,0,51);stroke-width:5;stroke-linejoin:round;fill:transparent;" />
+    <path id="path3003" d="M 50.651772,50.269646 71.395223,25.971024" style="fill:none;stroke:rgb(204,0,51);stroke-width:5;stroke-linecap:round"/>
+    <path id="path3003-1" d="M 71.395223,50.269646 50.651772,25.971024" style="fill:none;stroke:rgb(204,0,51);stroke-width:5;stroke-linecap:round"/>
   </g>
 </svg>
