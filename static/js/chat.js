@@ -8,10 +8,16 @@
 
 // jQuery selectors
 var _chatTextEntry = $('#chatTextEntry');
+var _chatControlPane = $('.chatControlPane');
 var _chatHistoryPane = $('.chatHistoryPane');
 
 var resizeChatPanes = function () {
-    var historyPaneHeight = $('.sidePanelContent').height() - $('.chatControlPane').height() - 10;
+    // outerHeight() includes padding but not margin, margin-top is 2px (see chat.css)
+    var chatTextEntryHeight = _chatTextEntry.outerHeight() + 2;
+    var chatControlPaneHeight = chatTextEntryHeight;
+    _chatControlPane.css('height', chatControlPaneHeight + 'px');
+
+    var historyPaneHeight = $('.sidePanelContent').height() - _chatControlPane.height() - 10;
     _chatHistoryPane.css('height', historyPaneHeight + 'px');
 };
 
@@ -305,39 +311,44 @@ var Chat = function (roomName) {
      */
     this.initialize = function (peerId, userName, sendMessageFn) {
         var _this = this;
-
+    
         this.peerId = peerId;
         this.userName = userName;
 
         // FIXME: it would be cool to have some text here...
         this.addNotification('Welcome! Feel free to use this to communicate.');
         this.userEntered(peerId, userName);
+        
+        // Used for detection of new lines in the chat text entry
+        var _lastTextEntryHeight = _chatTextEntry.height();
 
         var defaultText = 'Type message here...';
         _chatTextEntry
             .prop('disabled', false)
             .blur(function () {
-                var msg = $.trim(_chatTextEntry.val());
+                var msg = $.trim(_chatTextEntry.text());
                 if (msg.length === 0) {
                     _chatTextEntry
                         .css('font-style', 'italic')
                         .css('color', _this.kIdleTextColor)
-                        .val(defaultText);
+                        .text(defaultText);
                 }
             })
             .focus(function () {
-                var msg = $.trim(_chatTextEntry.val());
+                var msg = $.trim(_chatTextEntry.text());
                 if (msg === defaultText || msg.length === 0) {
                     _chatTextEntry
                         .css('font-style', 'normal')
                         .css('color', _this.kActiveTextColor)
-                        .val('');
+                        .text('');
                 }
             })
             .keyup(function (e) {
+                var resizePanes = false;
+
                 // Handles the ENTER key so we can send a chat message
                 if (e.which === 13) {
-                    var msg = _chatTextEntry.val();
+                    var msg = _chatTextEntry.text();
                     if (sendMessageFn(msg)) {
                         _this.addMessage(_this.peerId, msg);
                     } else {
@@ -346,12 +357,24 @@ var Chat = function (roomName) {
                     }
 
                     _chatTextEntry
-                        .val('');
+                        .text('');
+                    resizePanes = true;   
+                } else {
+                    // All other keystrokes, we check to see if it causes 
+                    if (_lastTextEntryHeight !== _chatTextEntry.height()) {
+                        resizePanes = true;
+                    }
+                }
+
+                if (resizePanes) {
+                    _lastTextEntryHeight = _chatTextEntry.height();
+                    resizeChatPanes();
                 }
             })
             .css('font-style', 'italic')
             .css('color', _this.kIdleTextColor)
-            .val(defaultText);
+            .attr('contenteditable', 'true')
+            .text(defaultText);
 
         Notification.requestPermission(function (permission) {
             if (permission === 'granted') {

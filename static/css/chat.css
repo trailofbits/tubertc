@@ -105,3 +105,12 @@
     position: absolute;
     z-index: 99;
 }
+
+#chatTextEntry {
+    padding: 8px;
+    margin-top: 2px;
+    outline: 0;
+    font: 14px sans-serif;
+    border-radius: 0;
+    background: #ffffff;
+}
