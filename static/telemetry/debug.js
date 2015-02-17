@@ -117,12 +117,69 @@ var DebugConsole = {
             return DebugConsole._getRoomUserList();
         };
         
+        // Remotely mutes a peerId on the call
+        this.remoteMute = function (peerId) {
+            if (peerId === undefined) {
+                console.log('Usage: \n');
+                console.log('  Client.remoteMute(\n');
+                console.log('    peerId : string\n');
+                console.log('  )\n\n');
+                console.log('    Given a peerId, this function sends a \'mic-control\' peer message from \n');
+                console.log('    the current user to the user specified by the peerId to shut off the target\n');
+                console.log('    user\'s microphone.');
+
+                return false;
+            }
+            
+            var client = DebugConsole._vtcObj.client;
+            client.sendPeerMessage({
+                rtcId : peerId
+            }, 'mic-control', {
+                enabled : false
+            });
+        };
+
         // Returns the P2P connection status between the current user and the peerId
         this.getP2PConnectStatusTo = function (peerId) {
+            if (peerId === undefined) {
+                console.log('Usage: \n');
+                console.log('  Client.getP2PConnectStatusTo(\n');
+                console.log('    peerId : string\n');
+                console.log('  ) : string\n\n');
+                console.log('    Given a peerId, this function checks the peer connection status between\n');
+                console.log('    the current user and the remote user as specified by their peerId. The\n');
+                console.log('    returned value of this should be a string indicating the status of the\n');
+                console.log('    of the connection: "is connected", "connection in progress to us.", \n');
+                console.log('    "not connected".\n');
+
+                return false;
+            }
+
             return DebugConsole._vtcObj.client.getConnectStatus(peerId);
         };
         
         this.getP2PDiagnosticForPeerId = function (peerId, completionFn) {
+            if (peerId === undefined || completionFn === undefined) {
+                console.log('Usage: \n');
+                console.log('  Client.getP2PDiagnosticForPeerId(\n');
+                console.log('    peerId : string,\n');
+                console.log('    completionFn : function (\n');
+                console.log('                     Object({\n');
+                console.log('                       myPeerId : string,\n');
+                console.log('                       data : Object({\n');
+                console.log('                                peerId : string => connectStatus : string\n');
+                console.log('                              })\n');
+                console.log('                     })\n');
+                console.log('                   )\n');
+                console.log('  )\n\n');
+                console.log('    Sends a request to the specified peerId asking for a structure containing\n');
+                console.log('    the P2P connection status of the peerId in relation to other callers. The\n');
+                console.log('    resultant structure is a list of the statuses between the peerId and its\n');
+                console.log('    peers.\n');
+
+                return false;
+            }
+
             var client = DebugConsole._vtcObj.client;
             var txid = DebugConsole._getTxid();
             client.sendPeerMessage({
@@ -135,6 +192,21 @@ var DebugConsole = {
         };
         
         this.getP2PDiagnostics = function (completionFn) {
+            if (completionFn === undefined) {
+                console.log('Usage: \n');
+                console.log('  Client.getP2PDiagnostics(\n');
+                console.log('    completionFn : function(Object({\n');
+                console.log('                              peerId : string => structure from the completion function\n');
+                console.log('                                                 argument in Client.getP2PDiagnosticForPeerId\n');
+                console.log('                            })\n');
+                console.log('                    )\n');
+                console.log('  )\n\n');
+                console.log('    Issues Client.getP2PDiagnosticForPeerId call to everyone in the room and aggregates the\n');
+                console.log('    information as an argument to the completion function.\n');
+
+                return false;
+            }
+
             var myId = DebugConsole._vtcObj.client.getId();
             var roomList = DebugConsole._getRoomUserList().filter(function (elem) {
                 return elem !== myId;

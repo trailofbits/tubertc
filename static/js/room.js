@@ -147,8 +147,11 @@ var vtcMain = function (params) {
                  *     }
                  */
                 if (peerId !== client.getId()) {
-                    // Toggle the micBtn if requested state isn't the actual state
-                    if (content.enabled !== NavBar.micBtn.isSelected()) {
+                    // Toggle the micBtn only if the requested microphone state is false (microphone disabled)
+                    // and the current state is enabled. 
+                    //
+                    // XXX: probably not a good idea to have remote unmute capabilities
+                    if (!content.enabled && content.enabled !== NavBar.micBtn.isSelected()) {
                         // clickButton is called because this causes the mute overlay to show up
                         NavBar.micBtn.clickButton();
                     }
