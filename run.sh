@@ -11,9 +11,10 @@ error () {
 }
 
 help () {
-    printf "Usage: $0 [-h|--help] [-f|--force]\n"
+    printf "Usage: $0 [-h|--help] [-f|--force] [--run]\n"
     printf "  -h,--help   Shows this screen\n"
     printf "  -f,--force  Forces the download of a node.js instance\n"
+    printf "  --run       Opens a browser after start of node.js server\n"
     exit 1
 }
 
@@ -90,18 +91,37 @@ install_nodejs () {
     return 1
 }
 
-if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-    help
-fi
+FORCE_NODEJS_DOWNLOAD=0
+SPAWN_BROWSER=0
+
+# Shell script argument parsing from https://gist.github.com/jehiah/855086
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | awk -F= '{print $1}'`
+    VALUE=`echo $1 | awk -F= '{print $2}'`
+
+    case $PARAM in
+        -h | --help)
+            help
+            exit
+            ;;
+        -f | --force)
+            FORCE_NODEJS_DOWNLOAD=1
+            ;;
+        --run)
+            SPAWN_BROWSER=1
+            ;;
+        *)
+            printf "Error: Unknown parameter \"$PARAM\"\n"
+            help
+            exit 1
+            ;;
+    esac
+    shift
+done
 
 log "Preparing to run TubeRTC..."
 
-if [ "$1" = "--force" ] || [ "$1" = "-f" ]; then
-    install_nodejs 1
-else
-    install_nodejs
-fi
-
+install_nodejs $FORCE_NODEJS_DOWNLOAD
 if [ "$?" = "1" ]; then
     log "Adding $NODEJS_ROOT/bin to PATH"
     PATH="$PATH:$NODEJS_ROOT/bin"
@@ -115,13 +135,22 @@ if [ ! "$?" = "0" ]; then
 fi
 
 log "Running TubeRTC"
-npm start
 
-sleep 2
-if !(open "http://localhost:8080"); then
-    if !(xdg-open "http://localhost:8080"); then
-        if !(start "http://localhost:8080"); then
-            log "TubeRTC running at http://localhost:8080"
+# Enable monitor mode so we can spawn another process if needed
+set -m
+npm start &
+
+if [ "$SPAWN_BROWSER" = "1" ]; then
+    sleep 2
+    log "Spawning browser..."
+    if !(open "http://localhost:8080"); then
+        if !(xdg-open "http://localhost:8080"); then
+            if !(start "http://localhost:8080"); then
+                log "TubeRTC running at http://localhost:8080"
+            fi
         fi
     fi
 fi
+
+fg
+

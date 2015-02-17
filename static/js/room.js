@@ -2,9 +2,11 @@
  *
  * Requires:
  *   js/chat.js
+ *   js/error.js
  *   js/navbar.js
  *   js/dialog.js
  *   js/viewports.js
+ *   js/audiometer.js
  *   Handlebars.js
  *
  *   telemetry/debug.js (optional)
@@ -153,6 +155,8 @@ var vtcMain = function (params) {
                 } else {
                     ErrorMetric.log('peerMessage => got a mute request from myself...ignoring');
                 }
+            } else if (msgType === 'audio-meter') {
+                AudioMeter.handlePeerMessage(peerId, content);
             } else {
                 // FIXME: right now we don't have other messages to take care of
                 ErrorMetric.log('peerMessage => got a peer message that is unexpected');
@@ -170,6 +174,10 @@ var vtcMain = function (params) {
             var port = trtc_dash.createGridForNewUser(peerName);
             port.videoSrc.prop('muted', false);
             client.setVideoObjectSrc(port.videoSrc, stream);
+
+            if (typeof AudioMeter === 'object') {
+                AudioMeter.create(peerId, stream, port.audioMeterFill);
+            }
 
             idToViewPort[peerId] = port;
             
@@ -198,12 +206,18 @@ var vtcMain = function (params) {
             var port = idToViewPort[peerId];
             if (port !== undefined) {
                 trtc_dash.removeUserWithGrid(port);
+                
+                if (typeof AudioMeter === 'object') {
+                    AudioMeter.destroy(peerId);
+                }
+
                 delete idToViewPort[peerId];
             } else {
                 ErrorMetric.log('vtcMain => failed to find viewport for ' + peerId);
             }
         })
         .connect(params.userName, params.rtcName, function (client) {
+            var stream = client.getLocalStream();
             var myPeerId = client.getId();
 
             // XXX(debug): set the VTC client object so that instantiations of DebugConsole.getClient() in the
@@ -213,6 +227,11 @@ var vtcMain = function (params) {
                     roomList : idToViewPort,
                     client   : client
                 });
+            }
+            
+            // Initialize AudioMeter namespace, this is needed because we need sendPeerMessage functionality
+            if (typeof AudioMeter === 'object') {
+                AudioMeter.init(client);
             }
 
             chatRoom
@@ -231,7 +250,11 @@ var vtcMain = function (params) {
             viewport.videoSrc
                 .css('display', 'none')
                 .addClass('video_mirror');
-            client.setVideoObjectSrc(viewport.videoSrc, client.getLocalStream());
+            client.setVideoObjectSrc(viewport.videoSrc, stream);
+            
+            if (typeof AudioMeter === 'object') {
+                AudioMeter.create(myPeerId, stream, viewport.audioMeterFill, true);
+            }
 
             idToViewPort[myPeerId] = viewport;
             

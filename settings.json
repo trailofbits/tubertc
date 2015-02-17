@@ -1,6 +1,7 @@
 {
     "port": 8080,
     "debug": true,
+    "enableAudioMeter": true,
     "appIceServers": [
         {
             "url": "stun:stun.l.google.com:19302"

@@ -103,7 +103,7 @@ var Dashboard = function(){
             viewport = _this.viewportArray[i];
             viewport.bindClick();
             viewport.bindHover();
-            viewport.setupLocalMuteIconAndLabel();
+            viewport.setupIcons();
         }
     };
 
@@ -273,9 +273,13 @@ var Viewport = function(peerName, dashboard) {
         this.nameLabel = $('<div></div>', {class:'trtc_label'})
                             .text(peerName);
     }
-
+    
     this.localMuteIcon = $('<div></div>', {class:'trtc_local_mute'});
     this.isLocallyMuted = false;
+
+    this.audioMeter = $('<div></div>', {class:'trtc_audiometer'});
+    this.audioMeterFill = $('<div></div>', {class:'trtc_audiometerfill'});
+    this.audioMeter.append(this.audioMeterFill);
 
     this.view.append(this.videoSrc);
     this.view.append(this.userIcon);
@@ -284,8 +288,9 @@ var Viewport = function(peerName, dashboard) {
     if (this.nameLabel !== null) {
         this.view.append(this.nameLabel);
     }
-
+    
     this.view.append(this.localMuteIcon);
+    this.view.append(this.audioMeter);
 
     this.elem.append(this.view);
 
@@ -319,6 +324,9 @@ var Viewport = function(peerName, dashboard) {
             clickHandler();
         });
         this.userIcon.click(function () {
+            clickHandler();
+        });
+        this.audioMeter.click(function () {
             clickHandler();
         });
 
@@ -374,27 +382,35 @@ var Viewport = function(peerName, dashboard) {
         }
     };
 
-    this.setupLocalMuteIconAndLabel = function() {
-        if (!this.isSelf) {
-            var dimensions = _this.videoDimensions(); 
-            
-            if (dimensions.limitingValue === 'width'){
-                var vidHeight = dimensions.dimensions[1];
-                var topOffset = (_this.view.height()-vidHeight)/2;
+    this.setupIcons = function() {
+        var dimensions = _this.videoDimensions(); 
+        
+        if (dimensions.limitingValue === 'width'){
+            var vidHeight = dimensions.dimensions[1];
+            var topOffset = (_this.view.height()-vidHeight)/2;
+            if (!this.isSelf) {
                 _this.localMuteIcon.css({'margin-top':topOffset, 'margin-right':2});
-                if (_this.nameLabel !== null) {
-                    _this.nameLabel.css({'top':topOffset, 'left':2});    
-                }
             }
-            else {
-                var vidWidth = dimensions.dimensions[0];
-                var rightOffset = (_this.view.width()-vidWidth)/2;
+        
+            if (_this.nameLabel !== null) {
+                _this.nameLabel.css({'top':topOffset, 'left':2});    
+            }
+            _this.audioMeter.css({'bottom':topOffset, 'left':0, 'width':dimensions.dimensions[0]});
+        }
+        else {
+            var vidWidth = dimensions.dimensions[0];
+            var rightOffset = (_this.view.width()-vidWidth)/2;
+            if (!this.isSelf) {
                 _this.localMuteIcon.css({'margin-right':rightOffset, 'margin-top':0});
-                if (_this.nameLabel !== null) {
-                    _this.nameLabel.css({'left':rightOffset, 'top':0});
-                }
             }
-            
+        
+            if (_this.nameLabel !== null) {
+                _this.nameLabel.css({'left':rightOffset, 'top':0});
+            }
+            _this.audioMeter.css({'left':rightOffset, 'bottom':0, 'width':vidWidth});
+        }
+        
+        if (!this.isSelf) {
             _this.localMuteIcon.click(function(){
                 var video = _this.videoSrc[0];
                 if (_this.isLocallyMuted) {

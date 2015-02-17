@@ -33,6 +33,16 @@ if (debugMode === undefined) {
     debugMode = true;
 }
 
+// By default, if debugMode is enabled, AudioMeter is enabled.
+var enableAudioMeter = nconf.get('enableAudioMeter');
+if (enableAudioMeter === undefined) {
+    if (debugMode) {
+        enableAudioMeter = true;
+    } else {
+        enableAudioMeter = false;
+    }
+}
+
 // Setup routes for static resources
 tubertcApp.use('/js', express.static(__dirname + '/static/js'));
 tubertcApp.use('/css', express.static(__dirname + '/static/css'));
@@ -53,6 +63,11 @@ tubertcApp.get('/', function (req, res) {
     if (debugMode) {
         pageTitle += ' [debug]';
         extraScripts = '<script type="text/javascript"  src="/telemetry/debug.js"></script>';
+    }
+    
+    if (enableAudioMeter) {
+        pageTitle += '+am';
+        extraScripts += '<script type="text/javascript" src="/js/audiometer.js"></script>';
     }
 
     res.send(indexTmpl({

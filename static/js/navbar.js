@@ -74,7 +74,7 @@ var StatefulButton = function (id, selected) {
     var _kSelectedColor = '#009966';
     var _kUnselectedColor = '#cc0033';
     var _buttonIsEnabled = true;
-
+    
     this.id = id;
     this.selectedFn = null;
     this.unselectedFn = null;
@@ -93,6 +93,42 @@ var StatefulButton = function (id, selected) {
         }
     };
     
+    var _toggleCallbacks = {};
+    var _currentToggleId = 0;
+    
+    var _invokeToggleListenerCallbacks = function (newState) {
+        for (var i in _toggleCallbacks) {
+            _toggleCallbacks[i](newState);
+        }
+    };
+
+    /*
+     * Parameters:
+     *   handler : function (newState)
+     *     Callback function that gets called on a toggle with the new state as the argument
+     *
+     * Return:
+     *   number
+     *     The ID of the just registered event listener callback (to be used with removeToggleEventListener)
+     */
+    this.addToggleEventListener = function (handler) {
+        _toggleCallbacks[_currentToggleId] = handler;
+        return _currentToggleId++;
+    };
+    
+    /* 
+     * Parameters:
+     *   id : number
+     *     ID of the toggle event listener to delete
+     */
+    this.removeToggleEventListener = function (id) {
+        if (_toggleCallbacks[id] !== undefined) {
+            delete _toggleCallbacks[id];
+        } else {
+            ErrorMetric.log('StatefulButton.removeToggleEventListener => bad id "' + id + '"');
+        }
+    };
+
     this.disableButton = function () {
         _buttonIsEnabled = false;
         idSel
@@ -124,7 +160,8 @@ var StatefulButton = function (id, selected) {
             } else {
                 this.selected = true;
             }
-
+            
+            _invokeToggleListenerCallbacks(this.selected);
             _paintColor();
         }
     };

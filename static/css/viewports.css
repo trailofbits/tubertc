@@ -87,4 +87,13 @@
     transform: scaleX(-1);
 }
 
+.trtc_audiometer {
+    position: absolute;
+    height: 2px;
+}
 
+.trtc_audiometerfill {
+    background: #00ff00;
+    width: 0%;
+    height: 100%;
+}
