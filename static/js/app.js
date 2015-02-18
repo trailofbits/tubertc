@@ -59,6 +59,7 @@ var attrDialogTmpl = Handlebars.compile(
     '<li>Using the <a href="http://mincss.com/">Min</a> CSS framework</li>' +
     '<li>Using <a href="http://handlebarsjs.com/">handlebars</a> for templating</li>' +
     '<li>Using <a href="http://chancejs.com/">Chance</a> for generating random room names</li>' +
+    '<li>Using adapted <a href="https://github.com/substack/node-shell-quote">node.js shell-quote</a> for client-side JavaScript</li>' +
     '<li>Using <a href="http://easyrtc.com/">easyRTC</a> for the WebRTC backend</li>' +
     '</ul>'
 );

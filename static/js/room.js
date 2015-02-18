@@ -96,14 +96,8 @@ var vtcMain = function (params) {
             Dialog.show(config);
         })
         .onPeerMessage(function (client, peerId, msgType, content) {
-            if (msgType === 'chat' && typeof content.msg === 'string') {
-                /* 'chat' peerMessage
-                 *   Example format:
-                 *     {
-                 *       msg : <String>
-                 *     } 
-                 */
-                chatRoom.addMessage(peerId, content.msg);
+            if (msgType === 'chat') {
+                chatRoom.handlePeerMessage(peerId, content);
             } else if (msgType === 'media-presence' && 
                        typeof content.type === 'string' &&
                        typeof content.enabled === 'boolean') {

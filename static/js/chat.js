@@ -2,6 +2,7 @@
  *
  * Requires:
  *   Handlebars.js
+ *   js/chat-cmds.js
  *   js/sound.js
  *   js/error.js
  */
@@ -253,6 +254,28 @@ var Chat = function (roomName) {
 
         return this;
     };
+    
+    // This is called by the peer message handler in room.js. The content is a raw message Object.
+    // Originally, room.js called addMessage but since we are adding new features, this provdies
+    // more versatility.
+    this.handlePeerMessage = function (peerId, content) {
+        if (typeof content.msg === 'string') {
+            // New Chat Message message
+            //   {
+            //     msg : string
+            //   }
+            this.addMessage(peerId, content.msg);
+        // TODO(potato): implement potato message handler here
+        } else {
+            ErrorMetric.log('Chat.handlePeerMessage => invalid chat peer message from ' + peerId);
+        }
+    };
+
+    // This function deals with handling chat commands (if valid). If a valid chat command is encountered,
+    // this function returns true.
+    var _handleChatCommand = function (message) {
+        return ChatCommands.handleCommand(message);
+    };
 
     /* Parameters:
      *   peerId : String
@@ -268,23 +291,25 @@ var Chat = function (roomName) {
             var hsvColor = this.peerColorMap[peerId];
             if (hsvColor !== undefined && userName !== undefined) {
                 var content = null;
-
-                // TODO(input): userName and message come from user input
-                if (_lastPeerIdMessage !== peerId) {
-                    content = this.messageTmpl({
-                        color : hsvColor,
-                        user  : userName,
-                        id    : peerId,
-                        msg   : message,
-                        time  : getTimeStamp()
-                    });
-                } else {
-                    content = this.msgContinueTmpl({
-                        msg : message
-                    });
+                
+                if (!_handleChatCommand(message)) {
+                    // TODO(input): userName and message come from user input
+                    if (_lastPeerIdMessage !== peerId) {
+                        content = this.messageTmpl({
+                            color : hsvColor,
+                            user  : userName,
+                            id    : peerId,
+                            msg   : message,
+                            time  : getTimeStamp()
+                        });
+                    } else {
+                        content = this.msgContinueTmpl({
+                            msg : message
+                        });
+                    }
+                    this._appendLine(content);
+                    _lastPeerIdMessage = peerId;
                 }
-                this._appendLine(content);
-                _lastPeerIdMessage = peerId;
             } else {
                 ErrorMetric.log('Chat.addMessage => "' + peerId + '" is not a valid key');
             }
@@ -321,6 +346,8 @@ var Chat = function (roomName) {
         
         // Used for detection of new lines in the chat text entry
         var _lastTextEntryHeight = _chatTextEntry.height();
+        
+        ChatCommands.initialize(this);
 
         var defaultText = 'Type message here...';
         _chatTextEntry
@@ -383,7 +410,7 @@ var Chat = function (roomName) {
                 ErrorMetric.log('Chat.initialize -> Notifications are denied');
             }
         });
-
+        
         return this;
     };
     
