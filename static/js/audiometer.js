@@ -20,6 +20,9 @@ var kSampleSize = 16384;
 // How often we take a sample.
 var kSampleAverageInterval = 16;
 
+// Threshold for when to broadcast noise levels
+var kBroadcastRMSThreshold = 0.08;
+
 var AudioMeter = {
     // Stores a mapping of peerId with objects needed to update and teardown associated items
     _map : {},
@@ -32,7 +35,15 @@ var AudioMeter = {
             .stop()
             .animate({
                 width : (rms * 100) + '%'
-            }, 250);
+            }, 250, 
+            function () {
+                // Make the meter "bounce" back to 0
+                fillMeter
+                    .stop()
+                    .animate({
+                        width : '0%'
+                    }, 250);    
+            });
     },
 
     /* Parameters:
@@ -99,15 +110,6 @@ var AudioMeter = {
         };
 
         if (isLocalStream !== undefined && isLocalStream) {
-            eventListenerId = NavBar.micBtn.addToggleEventListener(function (state) {
-                if (!state) {
-                    // If the microphone is muted, immediately send a audio-meter message
-                    // that resets the RMS. Otherwise, the audio meter will inaccurately 
-                    // show the last known meter value.
-                    _broadcastRms(0);
-                }
-            });
-
             audioContext = new AudioContext();
             mediaStreamSource = audioContext.createMediaStreamSource(stream);
             processor = audioContext.createScriptProcessor(kSampleSize, 1, 1);
@@ -132,7 +134,7 @@ var AudioMeter = {
                     _this._animateFillMeter(meterFillElem, rms);
                     
                     // Only send our rms data if we are not muted.
-                    if (NavBar.micBtn.isSelected()) {
+                    if (NavBar.micBtn.isSelected() && rms > kBroadcastRMSThreshold) {
                         _broadcastRms(rms);
                     }
                 }
