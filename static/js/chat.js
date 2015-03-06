@@ -37,6 +37,9 @@ var Chat = function (roomName) {
     // Stores the last peerId to send a message (for Adium-like IM interface)
     var _lastPeerIdMessage = null;
     
+    // Stores the last command for quick callback (for when up arrow is clicked on empty text entry bar
+    var _lastCommand = null;
+
     // Stores the function used to send peer messages
     this.sendMessage = null;
 
@@ -331,6 +334,8 @@ var Chat = function (roomName) {
                     }
                     this._appendLine(content);
                     _lastPeerIdMessage = peerId;
+                } else {
+                    _lastCommand = message;
                 }
             } else {
                 ErrorMetric.log('Chat.addMessage => "' + peerId + '" is not a valid key');
@@ -413,13 +418,20 @@ var Chat = function (roomName) {
                     _chatTextEntry
                         .text('');
                     resizePanes = true;   
+                } else if (e.which === 38) {
+                    // TODO(last command): implement
+                    var val = _chatTextEntry.text();
+                    if (val.length === 0 && _lastCommand !== null) {
+                        _chatTextEntry
+                            .text(_lastCommand);
+                    }
                 } else {
                     // All other keystrokes, we check to see if it causes 
                     if (_lastTextEntryHeight !== _chatTextEntry.height()) {
                         resizePanes = true;
                     }
                 }
-
+                
                 if (resizePanes) {
                     _lastTextEntryHeight = _chatTextEntry.height();
                     resizeChatPanes();
