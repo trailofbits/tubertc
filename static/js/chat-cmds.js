@@ -3,16 +3,23 @@
  * Requires:
  *   Handlebars.js
  *   js/shell-quote.js
+ *   js/navbar.js
  *   js/error.js
  */
 
 var ChatCommands = {
     _cmds : {},
-    
+
     _chatObject : null,
     
     initialize : function (chatObj) {
         this._chatObject = chatObj;
+
+        // TODO: add new plugins here
+        this.registerCommand(new ListUser());
+        this.registerCommand(new CameraToggle());
+        this.registerCommand(new MicToggle());
+        this.registerCommand(new DashboardToggle());
     },
 
     registerCommand : function (obj) {
@@ -37,13 +44,15 @@ var ChatCommands = {
 
         var cmd = argv[0].toLowerCase();
         if (cmd === 'help') {
-            // TODO(ui) FIXME: make the text look more inline with our chatroom!
-            var content = '<strong>Valid Chat Commands</strong>';
-            content += '<ul>';
+            var content = '<div class="chatInternal">';
+            content += '<h1>Chat Commands</h1>\n<ul>';
+            content += '<li><h2><span class="chatIntCmdName">/help</span></h2>' +
+                       '<p>Shows this message</p></li>';
             for (var i in this._cmds) {
-                content += '<li>' + this._cmds[i].help(true) + '</li>';
+                content += '<li>' + this._cmds[i].help() + '</li>\n';
             }
-            content += '</ul>';
+            content += '</ul>\n';
+            content += '</div>';
 
             this._chatObject._appendLine(content);
             return true;
@@ -52,9 +61,17 @@ var ChatCommands = {
             if (handler !== undefined) {
                 return handler.execute(this._chatObject, argv.slice(1));
             } else {
-                ErrorMetric.log('ChatCommands.handleCommand => unknown command "' + cmd + '"');
                 return false;
             }
+        }
+    },
+
+    // Handles chat command requests (custom defined) from other peers
+    handlePeerMessage : function (type, fromPeerId, content) {
+        var obj = this._cmds[type];
+        if (obj !== undefined && obj.handleMessage !== undefined) {
+            // type must be a valid object and also obj.handleMessage must exist
+            obj.handleMessage(fromPeerId, content);
         }
     }
 };
@@ -65,41 +82,134 @@ var ChatCommands = {
  *       this.command = 'example';
  *       
  *       // This prints out the help message.
- *       //   isSummary : boolean
- *       //     Indicates whether the help message should be long or brief
  *       // This function should return formatted HTML.
- *       this.help = function (isSummary) { ... }
+ *       this.help = function () { ... }
  *       
  *       // Required function! This takes in one argument:
- *       //   argv : Array(string)
+ *       //   argv : Array(string)                        WARNING: UNSANITIZED USER INPUT
  *       //   chatObj : Chat object
  *       // This must return true if the command was successfully handled
  *       // or false if an error occurred.
+ *       //
+ *       // BUGGY: You can use chatObj.sendMessage(content) to send peer messages to the room
  *       this.execute = function (chatObj, argv) { ... }
  *
+ *       // Handles peer messages from other clients (optional, no handler will be registered if
+ *       // this function is omitted)
+ *       //   fromPeerId : string
+ *       //   content : user defined Javascript object
+ *       this.handleMessage = function (fromPeerId, content) { ... }
  *       ...
  *
  *       return this;
  *   };
  */
-var Potato = function () {
-    this.command = 'potato';
 
-    this.help = function (isSummary) {
-        // TODO: implement me
-        if (isSummary) {
-            return '<b>' + this.command + '</b> <i>peerId</i> - Sends a potato to the specified <i>peerId</i>';
-        } else {
-            return '';
-        }
+var ListUser = function () {
+    this.command = 'who';
+
+    this.help = function () {
+        return '<h2><span class="chatIntCmdName">/' + this.command + '</span></h2>' +
+               '<p>Displays a list of the current users with their associated peer IDs</p>';
     };
 
     this.execute = function (chatObj, argv) {
-        // TODO: implement me
-        console.log('Hi');
+        var itemTmpl = Handlebars.compile(
+            '<li><h2>{{peerId}}</h2><p class="chatIntIndent">({{userName}})</p></li>\n'
+        );
+
+        var content = '<div class="chatInternal">';
+        content += '<h1>User List</h1>\n';
+        content += '<ul>\n';
+
+        // TODO(input): userName is not to be trusted
+        var peerMap = chatObj.getPeerIdToUserNameMap();
+        for (var peerId in peerMap) {
+            content += itemTmpl({
+                peerId : peerId,
+                userName : peerMap[peerId]
+            });
+        }
+
+        content += '</ul>\n';
+        content += '</div>';
+        chatObj._appendLine(content);
+        
         return true;
     };
 
     return this;
 };
-ChatCommands.registerCommand(new Potato());
+
+var _toggleCmdHelp = function (_this, name) {
+    return function () {
+        return '<h2><span class="chatIntCmdName">/' + _this.command + '</span> ' + 
+               '<span class="chatIntCmdArg">newState</span></h2>' +
+               '<p>Changes the state of the ' + name + ' to <span class="chatIntCmdArg">newState</span> (boolean value)</p>';
+    };
+};
+
+var _toggleCmdExecute = function (_this, name, btn) {
+    return function (chatObj, argv) {
+        var content = '<div class="chatInternal">';
+
+        if (argv.length === 1) {
+            var state = argv[0].toLowerCase();
+            if (state === 'on') {
+                if (!btn.isSelected()) {
+                    btn.clickButton();
+                }
+                content += '<p>' + name + ' is now <b>ON</b></p>';
+            } else if (state === 'off') {
+                if (btn.isSelected()) {
+                    btn.clickButton();
+                }
+                content += '<p>' + name + ' is now <b>OFF</b></p>';
+            } else {
+                content += '<p>Invalid argument for <b>/' + _this.command + '</b></p>';
+            }
+        } else {
+            
+            content += '<p>' + name + ' is ';
+            if (btn.isSelected()) {
+                content += '<b>ON</b>';
+            } else {
+                content += '<b>OFF</b>';
+            }
+
+            content += '</p>';
+        }
+        
+        content += '</div>';
+        chatObj._appendLine(content);
+        return true;
+    };
+};
+
+var CameraToggle = function () {
+    this.command = 'camera';
+
+    this.help = _toggleCmdHelp(this, 'camera');
+    this.execute = _toggleCmdExecute(this, 'Camera', NavBar.cameraBtn);
+
+    return this;
+};
+
+var MicToggle = function () {
+    this.command = 'mic';
+
+    this.help = _toggleCmdHelp(this, 'microphone');
+    this.execute = _toggleCmdExecute(this, 'Microphone', NavBar.micBtn);
+
+    return this;
+};
+
+var DashboardToggle = function () {
+    this.command = 'dash';
+
+    this.help = _toggleCmdHelp(this, 'dashboard');
+    this.execute = _toggleCmdExecute(this, 'Dashboard', NavBar.dashBtn);
+
+    return this;
+};
+

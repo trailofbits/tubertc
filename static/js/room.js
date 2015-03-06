@@ -235,9 +235,7 @@ var vtcMain = function (params) {
                 .initialize(myPeerId, params.userName, function (message) {
                     return client.sendPeerMessage({
                         room : params.rtcName
-                    }, 'chat', {
-                        msg : message
-                    });
+                    }, 'chat', message);
                 })
                 .show();
 

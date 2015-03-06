@@ -114,3 +114,56 @@
     border-radius: 0;
     background: #ffffff;
 }
+
+/* Internal chat messages (for implementation of custom commands) */
+.chatInternal {
+    padding-top: 7px;
+    padding-bottom: 7px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    background-color: #f0f0f0;
+}
+
+.chatInternal ul {
+    padding-left: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.chatInternal li {
+    font-size: 12px;
+    list-style-type: none;
+    margin-bottom: 8px;
+}
+
+.chatInternal h1 {
+    font-size: 14px;
+    margin: 0;
+}
+
+.chatInternal h2 {
+    font-size: 13px;
+    margin: 0;
+}
+
+.chatInternal p {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.chatIntCmd {
+    margin-bottom: 3px;
+}
+
+.chatIntCmdName {
+    color: #483d8b;
+}
+
+.chatIntCmdArg {
+    color: #528b8b;
+    font-style: italic;
+}
+
+.chatIntIndent {
+    margin-left: 10px;
+}

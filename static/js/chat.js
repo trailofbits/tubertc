@@ -27,7 +27,7 @@ var getRandomColor = function () {
     return 'hsl(' + h + ', 100%, 25%)';
 };
 
-// TODO(input): make sure that roomName
+// TODO(input): make sure that roomName is santitized
 var Chat = function (roomName) {
     // An Object storing mappings of peerId : String => userName : String
     var _peerIdMap = {};
@@ -36,6 +36,9 @@ var Chat = function (roomName) {
     
     // Stores the last peerId to send a message (for Adium-like IM interface)
     var _lastPeerIdMessage = null;
+    
+    // Stores the function used to send peer messages
+    this.sendMessage = null;
 
     // Default color palette for chatTextEntry. 'Idle' means that the text entry element does
     // not contain any text worth saving.
@@ -157,6 +160,18 @@ var Chat = function (roomName) {
             }, ttl * 1000);
         }
     };
+    
+    /* Parameters: 
+     *   None
+     *
+     * Return:
+     *   Object({ peerId : string => userName : string})
+     *
+     * Returns the mapping of peerIds to usernames
+     */
+    this.getPeerIdToUserNameMap = function () {
+        return _peerIdMap;
+    };
 
     /* Parameters:
      *   peerId : String
@@ -256,7 +271,7 @@ var Chat = function (roomName) {
     };
     
     // This is called by the peer message handler in room.js. The content is a raw message Object.
-    // Originally, room.js called addMessage but since we are adding new features, this provdies
+    // Originally, room.js called addMessage but since we are adding new features, this provides
     // more versatility.
     this.handlePeerMessage = function (peerId, content) {
         if (typeof content.msg === 'string') {
@@ -266,6 +281,13 @@ var Chat = function (roomName) {
             //   }
             this.addMessage(peerId, content.msg);
         // TODO(potato): implement potato message handler here
+        } else if (typeof content.cmd === 'string') {
+            // Chat Command Message
+            //   {
+            //     cmd : string,
+            //     cmdData : Object | null
+            //   }
+            ChatCommands.handlePeerMessage(content.cmd, peerId, content.cmdData);
         } else {
             ErrorMetric.log('Chat.handlePeerMessage => invalid chat peer message from ' + peerId);
         }
@@ -339,9 +361,12 @@ var Chat = function (roomName) {
     
         this.peerId = peerId;
         this.userName = userName;
+        
+        this.sendMessage = sendMessageFn;
 
         // FIXME: it would be cool to have some text here...
         this.addNotification('Welcome! Feel free to use this to communicate.');
+        this.addNotification('To see a list of chatroom commands, type /help');
         this.userEntered(peerId, userName);
         
         // Used for detection of new lines in the chat text entry
@@ -376,7 +401,9 @@ var Chat = function (roomName) {
                 // Handles the ENTER key so we can send a chat message
                 if (e.which === 13) {
                     var msg = _chatTextEntry.text();
-                    if (sendMessageFn(msg)) {
+                    if (sendMessageFn({
+                            msg : msg
+                        })) {
                         _this.addMessage(_this.peerId, msg);
                     } else {
                         ErrorMetric.log('chatTextEntry.click() => failed to send message');
