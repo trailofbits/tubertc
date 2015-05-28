@@ -270,7 +270,8 @@ var Login = {
             // FIXME: proofread and make this better
             _loginAlert
                 .html(
-                    'Your browser <b>does not</b> support some of the APIs required.<br><br>' +
+                    'Your browser <b>does not</b> support some of the required APIs.<br>' +
+                    'tubertc will not work on your current system.<br><br>' +
                     'We recommend using <a href="http://www.google.com/chrome/">Google Chrome</a>.'
                 )
                 .slideDown();
@@ -288,7 +289,7 @@ var Login = {
             // FIXME: proofread and make this better
             _loginAlert
                 .html(
-                    'Your browser has not been extensively tested. ' +
+                    'Your browser configuration has not been extensively tested. ' +
                     'There maybe user interface artifacts or missing functionality.<br><br>' +
                     'We recommend using <a href="http://www.google.com/chrome/">Google Chrome</a>.'
                 )

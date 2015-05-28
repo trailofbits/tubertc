@@ -86,6 +86,10 @@ var vtcMain = function (params) {
             ErrorMetric.log('VTCCore.onPeerMessage => "' + peerId + '" is not a valid key');
         }
     };
+    
+    NavBar.cameraBtn.disableButton();
+    NavBar.micBtn.disableButton();
+    NavBar.dashBtn.disableButton();
 
     VTCCore
         .initialize({
@@ -93,6 +97,10 @@ var vtcMain = function (params) {
             micIsEnabled    : params.hasMic,
         })
         .onError(function (config) {
+            NavBar.cameraBtn.enableButton();
+            NavBar.micBtn.enableButton();
+            NavBar.dashBtn.enableButton();
+
             Dialog.show(config);
         })
         .onPeerMessage(function (client, peerId, msgType, content) {
@@ -216,6 +224,10 @@ var vtcMain = function (params) {
         .connect(params.userName, params.rtcName, function (client) {
             var stream = client.getLocalStream();
             var myPeerId = client.getId();
+
+            NavBar.cameraBtn.enableButton();
+            NavBar.micBtn.enableButton();
+            NavBar.dashBtn.enableButton();
 
             // XXX(debug): set the VTC client object so that instantiations of DebugConsole.getClient() in the
             //             JavaScript debugger will work successfully.
