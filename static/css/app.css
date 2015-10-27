@@ -119,3 +119,8 @@ body {
     z-index: -1;
 }
 
+#timeLabel {
+    color: #e0e0e0;
+    font-family: -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande" sans-serif;
+    font-size: 28px; /* might need changing? */
+}

@@ -73,6 +73,8 @@ $(document).ready(function () {
             content : attrDialogTmpl({})
         });
     });
+    
+    Clock.initialize();
 
     svgToInlineSvg(function () {
         NavBar.show();
