@@ -1,5 +1,5 @@
 /* Abstracts easyrtc functionality to enable easy reimplementing of this using custom WebRTC framework.
- * 
+ *
  * NOTE: This should be the only module that calls out to easyrtc API.
  *
  * Requires:
@@ -11,45 +11,45 @@
 // to support more viewports. This number should include the user itself.
 var kMaxCallersPerRoom = 15;
 
-var VTCClient = function (myId, roomName, onErrorFn) {
+var VTCClient = function(myId, roomName, onErrorFn) {
     var _id = myId;
     var _room = roomName;
-    
-    this.getId = function () {
+
+    this.getId = function() {
         return _id;
     };
 
-    this.getRoomName = function () {
+    this.getRoomName = function() {
         return _room;
     };
-    
+
     /* Parameters:
      *   id : String
      *     The peer ID to be translated
      *
      * Translates peer IDs to user names
      */
-    this.idToName = function (id) {
+    this.idToName = function(id) {
         return easyrtc.idToName(id);
     };
-    
+
     /* Parameters:
      *   id : String
      *     The peer ID of the other user/
      *
      * Returns the status of the p2p connection between the current user and the specified user.
      */
-    this.getConnectStatus = function (id) {
+    this.getConnectStatus = function(id) {
         return easyrtc.getConnectStatus(id);
     };
-    
+
     /* Parameters:
      *   kbitsPerSecond : integer
      *     Rate of video bandwidth is kilobits per second
-     *   
+     *
      *   Sets the video bandwidth.
      */
-    this.setVideoBandwidth = function (kbitsPerSecond) {
+    this.setVideoBandwidth = function(kbitsPerSecond) {
        easyrtc.setVideoBandwidth(kbitsPerSecond);
     };
 
@@ -59,20 +59,20 @@ var VTCClient = function (myId, roomName, onErrorFn) {
      *
      * Enables or disables the camera based off the value of state.
      */
-    this.enableCamera = function (state) {
+    this.enableCamera = function(state) {
         easyrtc.enableCamera(state);
     };
-    
+
     /* Parameters:
      *   state : boolean
      *     The new state of the microphone.
      *
      * Enables or disables the microphone based off of the value of state.
      */
-    this.enableMicrophone = function (state) {
+    this.enableMicrophone = function(state) {
         easyrtc.enableMicrophone(state);
     };
-    
+
     /* Parameters:
      *   dest      : Object
      *     A Object that should contain at just one of the following fields:
@@ -90,16 +90,16 @@ var VTCClient = function (myId, roomName, onErrorFn) {
      *
      * This sends a message to another peer.
      */
-    this.sendPeerMessage = function (dest, msgType, msgData, successFn) {
+    this.sendPeerMessage = function(dest, msgType, msgData, successFn) {
         var target = {};
-        if (typeof dest !== 'object' || 
+        if (typeof dest !== 'object' ||
             (typeof dest.rtcId !== 'string' && typeof dest.room !== 'string')) {
             ErrorMetric.log('VTCClient.sendPeerMessage => dest object is invalid');
             ErrorMetric.log('                          => ' + JSON.stringify(dest));
 
             return false;
         }
-        
+
         if (typeof dest.rtcId === 'string' && typeof dest.room === 'string') {
             ErrorMetric.log('VTCClient.sendPeerMessage => both rtcId and room fields provided');
 
@@ -114,19 +114,19 @@ var VTCClient = function (myId, roomName, onErrorFn) {
 
             return false;
         }
-        
-        easyrtc.sendPeerMessage(target, msgType, msgData, function (msgType, msgData) {
+
+        easyrtc.sendPeerMessage(target, msgType, msgData, function(msgType, msgData) {
             if (successFn !== undefined) {
                 successFn(msgType, msgData);
             }
-        }, function (errorCode, errorText) {
+        }, function(errorCode, errorText) {
             ErrorMetric.log('easyrtc.sendPeerMessage => failed to send peer message');
             ErrorMetric.log('                        => ' + errorCode + ': ' + errorText);
 
             if (onErrorFn !== undefined) {
                 onErrorFn({
-                    title   : 'Failed to Send Message',
-                    content : 'An error occurred while sending an internal message.<br><br>' +
+                    title: 'Failed to Send Message',
+                    content: 'An error occurred while sending an internal message.<br><br>' +
                               '<b>Error Code</b>: ' + errorCode + '<br>' +
                               '<b>Error Text</b>: ' + errorText
                 });
@@ -134,14 +134,14 @@ var VTCClient = function (myId, roomName, onErrorFn) {
         });
         return true;
     };
-    
+
     /* Returns:
      *   MediaStream
      *     MediaStream object for the local media sources.
-     * 
+     *
      * Obtains and returns the requested (via enableAudio/enableVideo) media sources.
      */
-    this.getLocalStream = function () {
+    this.getLocalStream = function() {
         return easyrtc.getLocalStream();
     };
 
@@ -153,13 +153,13 @@ var VTCClient = function (myId, roomName, onErrorFn) {
      *   stream : MediaStream
      *     This contains the MediaStream object in which videoSel will be bound to.
      *
-     * This functions binds stream to the provided videoSel. 
+     * This functions binds stream to the provided videoSel.
      *
      * HINT:
      *   Upon any DOM element manipulation of the video element, the video stream will pause. This
      *   can be remedied by calling .load() on the raw video DOM element.
      */
-    this.setVideoObjectSrc = function (videoSel, stream) {
+    this.setVideoObjectSrc = function(videoSel, stream) {
         easyrtc.setVideoObjectSrc(videoSel.get(0), stream);
     };
 
@@ -169,7 +169,7 @@ var VTCClient = function (myId, roomName, onErrorFn) {
 var VTCCore = {
     // This function is an user-defined error handler.
     // Type: function(Object({title: String, content: String}))
-    _errorFn : null,
+    _errorFn: null,
 
     // Contains the configuration of the media devices
     // Object structure:
@@ -177,21 +177,21 @@ var VTCCore = {
     //     cameraIsEnabled : <boolean>,
     //     micIsEnabled    : <boolean>
     //   }
-    config : null,
-    
+    config: null,
+
     // An instantiation of VTCClient
-    client : null,
+    client: null,
 
     // A function that checks browser support for WebRTC API. This can be called without
     // calling VTCCore.initialize
-    isBrowserSupported : function () {
+    isBrowserSupported: function() {
         return easyrtc.supportsGetUserMedia() && easyrtc.supportsPeerConnections();
     },
-    
+
     // Validates a configuration Object. If this function is given an argument, it will
     // check to ensure config is a valid configuration Object. Otherwise, it will check
     // to see if VTCCore.config is a valid configuration Object.
-    _validateConfig : function (config) {
+    _validateConfig: function(config) {
         if (config === undefined) {
             config = this.config;
         }
@@ -205,17 +205,17 @@ var VTCCore = {
             return true;
         } else {
             return false;
-        } 
+        }
     },
 
-    /* Parameters: 
+    /* Parameters:
      *   config : Object({
      *              cameraIsEnabled : <boolean>,
      *              micIsEnabled    : <boolean>
      *            })
      *     Contains three fields denoting the initial state of the media devices.
      */
-    initialize : function (config) {
+    initialize: function(config) {
         var _this = this;
         if (!this._validateConfig(config)) {
             ErrorMetric.log('VTCCore.initialize => config is invalid');
@@ -224,60 +224,60 @@ var VTCCore = {
             // Break chaining
             return null;
         }
-        
+
         this.config = config;
 
-        easyrtc.setOnError(function (errorObject) {
+        easyrtc.setOnError(function(errorObject) {
             ErrorMetric.log('easyrtc.onError => An error has occurred with easyrtc');
             ErrorMetric.log('                => code: ' + errorObject.errorCode);
             ErrorMetric.log('                => text: ' + errorObject.errorText);
-            
+
             if (_this._errorFn !== undefined) {
                 _this._errorFn({
-                    title   : 'An Error Has Occurred',
-                    content : 'There has been a problem with the VTC session, please reload the page.' + 
+                    title: 'An Error Has Occurred',
+                    content: 'There has been a problem with the VTC session, please reload the page.' +
                               '<br><br>' +
                               '<b>Error Code</b>: ' + errorObject.errorCode + '<br>' +
                               '<b>Summary</b>: ' + errorObject.errorText
                 });
             }
         });
-        
+
         return this;
     },
-    
+
     /* Parameters:
-     *   peerMessageFn : function (client : VTCClient, 
-     *                             peerId : String, 
-     *                             msgType : String, 
+     *   peerMessageFn : function (client : VTCClient,
+     *                             peerId : String,
+     *                             msgType : String,
      *                             content : Object)
      *     This is a callback function that is called when a peer message arrives.
      *
-     * This function sets a custom handler for messages sent by other peers. 
+     * This function sets a custom handler for messages sent by other peers.
      */
-    onPeerMessage : function (peerMessageFn) {
+    onPeerMessage: function(peerMessageFn) {
         var _this = this;
-        easyrtc.setPeerListener(function (peerId, msgType, content) {
+        easyrtc.setPeerListener(function(peerId, msgType, content) {
             peerMessageFn(_this.client, peerId, msgType, content);
         });
 
         return this;
     },
-    
+
     /* Parameters:
      *   streamAcceptFn : function (client : VTCClient,
-     *                              peerId : String, 
+     *                              peerId : String,
      *                              stream : MediaStream)
      *     This is a callback function that is called when a new stream is "accepted"
      *
      *   This function sets a custom handler to receive streams from other peers.
      */
-    onStreamAccept : function (streamAcceptFn) {
+    onStreamAccept: function(streamAcceptFn) {
         var _this = this;
-        easyrtc.setStreamAcceptor(function (peerId, stream) {
+        easyrtc.setStreamAcceptor(function(peerId, stream) {
             streamAcceptFn(_this.client, peerId, stream);
         });
-        
+
         return this;
     },
 
@@ -288,15 +288,15 @@ var VTCCore = {
      *
      *   Handles stream close events.
      */
-    onStreamClose : function (streamCloseFn) {
+    onStreamClose: function(streamCloseFn) {
         var _this = this;
-        easyrtc.setOnStreamClosed(function (peerId) {
+        easyrtc.setOnStreamClosed(function(peerId) {
             streamCloseFn(_this.client, peerId);
         });
 
         return this;
     },
-    
+
     /* Parameters:
      *   errorFn : function(Object({
      *               title   : String,
@@ -304,7 +304,7 @@ var VTCCore = {
      *             })
      *     Callback that is called when an error condition arises
      */
-    onError : function (errorFn) {
+    onError: function(errorFn) {
         this._errorFn = errorFn;
         return this;
     },
@@ -312,17 +312,17 @@ var VTCCore = {
     // Parameters:
     //   userName : String
     //     The name of the connecting user.
-    //   
+    //
     //   roomName : String
     //     The name of the room to be joined.
     //
     //   successFn : function(VTCClient)
     //     The callback function to be called upon successfully joining the room.
-    // 
+    //
     // Before calling this function, it is recommended to have already called onPeerMessage, onStreamAccept, and
     // onStreamClose with appropriate callback functions. It is possible that setting the callbacks after invoking
     // easyrtc.connect might cause events to be lost.
-    connect : function (userName, roomName, successFn) {
+    connect: function(userName, roomName, successFn) {
         if (!this._validateConfig()) {
             ErrorMetric.log('VTCCore.connect => config changed somehow...');
             ErrorMetric.log('                => ' + JSON.stringify(this.config));
@@ -330,10 +330,10 @@ var VTCCore = {
             // Break chaining
             return null;
         }
-        
+
         easyrtc.enableVideo(this.config.cameraIsEnabled);
         easyrtc.enableAudio(this.config.micIsEnabled);
-        
+
         // No callbacks are invoked at this point because we are not connected yet.
         easyrtc.joinRoom(roomName, null, null, null);
         if (!easyrtc.setUsername(userName)) {
@@ -342,17 +342,17 @@ var VTCCore = {
             // Break chaining
             return null;
         }
-        
+
         var _this = this;
-        easyrtc.setRoomOccupantListener(function (roomName, peerList) {
+        easyrtc.setRoomOccupantListener(function(roomName, peerList) {
             var peersToCall = Object.keys(peerList);
-            var callPeers = function (i) {
+            var callPeers = function(i) {
                 var peerId = peersToCall[i];
-                easyrtc.call(peerId, function () {
+                easyrtc.call(peerId, function() {
                     if (i > 0) {
                         callPeers(i - 1);
                     }
-                }, function (errorCode, errorText) {
+                }, function(errorCode, errorText) {
                     ErrorMetric.log('easyrtc.call => failed to call ' + peerId);
                     ErrorMetric.log('             => ' + errorCode + ': ' + errorText);
 
@@ -361,8 +361,8 @@ var VTCCore = {
                     }
                 });
             };
-            
-            var peersCount = peersToCall.length; 
+
+            var peersCount = peersToCall.length;
             if (peersCount > 0) {
                 if (peersCount < kMaxCallersPerRoom) {
                     callPeers(peersToCall.length - 1);
@@ -372,11 +372,11 @@ var VTCCore = {
                     //                 to enforce these limits of the server side.
                     if (_this._errorFn !== undefined) {
                         _this._errorFn({
-                            title        : 'Room "' + roomName + '" is full.',
-                            content      : 'The videoconferencing room <b>' + roomName + '</b> has reached capacity.<br><br>' +
+                            title: 'Room "' + roomName + '" is full.',
+                            content: 'The videoconferencing room <b>' + roomName + '</b> has reached capacity.<br><br>' +
                                            'The maximum amount of people in a room is ' + kMaxCallersPerRoom + ', please ' +
                                            'selected another room by reloading the page.',
-                            forceRefresh : true
+                            forceRefresh: true
                         });
                     }
                 }
@@ -384,37 +384,37 @@ var VTCCore = {
 
             easyrtc.setRoomOccupantListener(null);
         });
-        
-        easyrtc.initMediaSource(function () {
-            easyrtc.connect('tubertc', function (myId) {
+
+        easyrtc.initMediaSource(function() {
+            easyrtc.connect('tubertc', function(myId) {
                 _this.client = new VTCClient(myId, roomName, _this._errorFn);
 
                 if (successFn !== undefined) {
                     successFn(_this.client);
                 }
-            }, function (errorCode, errorText) {
+            }, function(errorCode, errorText) {
                 ErrorMetric.log('easyrtc.connect => failed to connect');
                 ErrorMetric.log('                => ' + errorCode + ': ' + errorText);
-                
+
                 // FIXME: proofread and make this text better
                 if (_this._errorFn !== undefined) {
                     _this._errorFn({
-                        title   : 'An Error Has Occurred',
-                        content : 'We are unable to join the video teleconferencing session.<br><br>' +
+                        title: 'An Error Has Occurred',
+                        content: 'We are unable to join the video teleconferencing session.<br><br>' +
                                   '<b>Error Code</b>: ' + errorCode + '<br>' +
                                   '<b>Error Text</b>: ' + errorText
                     });
                 }
             });
-        }, function (errorCode, errorText) {
+        }, function(errorCode, errorText) {
             ErrorMetric.log('easyrtc.initMediaSource => unable to initialize media source');
-            ErrorMetric.log('                        => ' + errorCode + ': '+ errorText);
-            
+            ErrorMetric.log('                        => ' + errorCode + ': ' + errorText);
+
             // FIXME: proofread and make this text better
             if (_this._errorFn !== undefined) {
                 _this._errorFn({
-                    title   : 'Unable to Initialize Media Sources',
-                    content : 'We are unable to gain access to your media sources. ' +
+                    title: 'Unable to Initialize Media Sources',
+                    content: 'We are unable to gain access to your media sources. ' +
                               'Did you forget to grant us permission to use the camera/microphone?<br><br>' +
                               '<b>Error Code</b>: ' + errorCode + '<br>' +
                               '<b>Error Text</b>: ' + errorText
@@ -424,13 +424,13 @@ var VTCCore = {
 
         return this;
     },
-    
+
     // Returns the VTCClient instance
-    getClient : function () {
+    getClient: function() {
         return this.client;
     },
 
-    finalize : function () {
+    finalize: function() {
         var client = this.client;
         if (client !== null) {
             easyrtc.hangupAll();

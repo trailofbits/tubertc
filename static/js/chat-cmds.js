@@ -8,11 +8,11 @@
  */
 
 var ChatCommands = {
-    _cmds : {},
+    _cmds: {},
 
-    _chatObject : null,
-    
-    initialize : function (chatObj) {
+    _chatObject: null,
+
+    initialize: function(chatObj) {
         this._chatObject = chatObj;
 
         // TODO: add new plugins here
@@ -22,13 +22,13 @@ var ChatCommands = {
         this.registerCommand(new DashboardToggle());
     },
 
-    registerCommand : function (obj) {
+    registerCommand: function(obj) {
         var cmd = obj.command.toLowerCase();
         this._cmds[cmd] = obj;
     },
 
     // Must return true or false to indicate whether the command was handled or not.
-    handleCommand : function (message) {
+    handleCommand: function(message) {
         if (message.length < 1) {
             ErrorMetric.log('ChatCommands.handleCommand => message too small');
             ErrorMetric.log('                              msg: "' + message + '"');
@@ -67,7 +67,7 @@ var ChatCommands = {
     },
 
     // Handles chat command requests (custom defined) from other peers
-    handlePeerMessage : function (type, fromPeerId, content) {
+    handlePeerMessage: function(type, fromPeerId, content) {
         var obj = this._cmds[type];
         if (obj !== undefined && obj.handleMessage !== undefined) {
             // type must be a valid object and also obj.handleMessage must exist
@@ -80,11 +80,11 @@ var ChatCommands = {
  *
  *   var ExampleCommand = function () {
  *       this.command = 'example';
- *       
+ *
  *       // This prints out the help message.
  *       // This function should return formatted HTML.
  *       this.help = function () { ... }
- *       
+ *
  *       // Required function! This takes in one argument:
  *       //   argv : Array(string)                        WARNING: UNSANITIZED USER INPUT
  *       //   chatObj : Chat object
@@ -105,15 +105,15 @@ var ChatCommands = {
  *   };
  */
 
-var ListUser = function () {
+var ListUser = function() {
     this.command = 'who';
 
-    this.help = function () {
+    this.help = function() {
         return '<h2><span class="chatIntCmdName">/' + this.command + '</span></h2>' +
                '<p>Displays a list of the current users with their associated peer IDs</p>';
     };
 
-    this.execute = function (chatObj, argv) {
+    this.execute = function(chatObj, argv) {
         var itemTmpl = Handlebars.compile(
             '<li><h2>{{peerId}}</h2><p class="chatIntIndent">({{userName}})</p></li>\n'
         );
@@ -126,31 +126,31 @@ var ListUser = function () {
         var peerMap = chatObj.getPeerIdToUserNameMap();
         for (var peerId in peerMap) {
             content += itemTmpl({
-                peerId : peerId,
-                userName : peerMap[peerId]
+                peerId: peerId,
+                userName: peerMap[peerId]
             });
         }
 
         content += '</ul>\n';
         content += '</div>';
         chatObj._appendLine(content);
-        
+
         return true;
     };
 
     return this;
 };
 
-var _toggleCmdHelp = function (_this, name) {
-    return function () {
-        return '<h2><span class="chatIntCmdName">/' + _this.command + '</span> ' + 
+var _toggleCmdHelp = function(_this, name) {
+    return function() {
+        return '<h2><span class="chatIntCmdName">/' + _this.command + '</span> ' +
                '<span class="chatIntCmdArg">newState</span></h2>' +
                '<p>Changes the state of the ' + name + ' to <span class="chatIntCmdArg">newState</span> (boolean value)</p>';
     };
 };
 
-var _toggleCmdExecute = function (_this, name, btn) {
-    return function (chatObj, argv) {
+var _toggleCmdExecute = function(_this, name, btn) {
+    return function(chatObj, argv) {
         var content = '<div class="chatInternal">';
 
         if (argv.length === 1) {
@@ -169,7 +169,7 @@ var _toggleCmdExecute = function (_this, name, btn) {
                 content += '<p>Invalid argument for <b>/' + _this.command + '</b></p>';
             }
         } else {
-            
+
             content += '<p>' + name + ' is ';
             if (btn.isSelected()) {
                 content += '<b>ON</b>';
@@ -179,14 +179,14 @@ var _toggleCmdExecute = function (_this, name, btn) {
 
             content += '</p>';
         }
-        
+
         content += '</div>';
         chatObj._appendLine(content);
         return true;
     };
 };
 
-var CameraToggle = function () {
+var CameraToggle = function() {
     this.command = 'camera';
 
     this.help = _toggleCmdHelp(this, 'camera');
@@ -195,7 +195,7 @@ var CameraToggle = function () {
     return this;
 };
 
-var MicToggle = function () {
+var MicToggle = function() {
     this.command = 'mic';
 
     this.help = _toggleCmdHelp(this, 'microphone');
@@ -204,7 +204,7 @@ var MicToggle = function () {
     return this;
 };
 
-var DashboardToggle = function () {
+var DashboardToggle = function() {
     this.command = 'dash';
 
     this.help = _toggleCmdHelp(this, 'dashboard');

@@ -25,24 +25,24 @@ var kBroadcastRMSThreshold = 0.08;
 
 var AudioMeter = {
     // Stores a mapping of peerId with objects needed to update and teardown associated items
-    _map : {},
-    
+    _map: {},
+
     // This will be set when init() is called and should be non-null
-    _client : null,
-    
-    _animateFillMeter : function (fillMeter, rms) {
+    _client: null,
+
+    _animateFillMeter: function(fillMeter, rms) {
         fillMeter
             .stop()
             .animate({
-                width : (rms * 100) + '%'
-            }, 250, 
-            function () {
+                width: (rms * 100) + '%'
+            }, 250,
+            function() {
                 // Make the meter "bounce" back to 0
                 fillMeter
                     .stop()
                     .animate({
-                        width : '0%'
-                    }, 250);    
+                        width: '0%'
+                    }, 250);
             });
     },
 
@@ -50,7 +50,7 @@ var AudioMeter = {
      *   client : VTCClient
      *     VTCClient object of the current WebRTC session
      */
-    init : function (client) {
+    init: function(client) {
         this._client = client;
     },
 
@@ -59,12 +59,12 @@ var AudioMeter = {
      *     Peer ID that sent the associated message
      *
      *   content : Object({
-     *               rms : float  
+     *               rms : float
      *             })
      *     Contains the decibel percentage for use with populating the "width"
      *     property of a DIV element.
      */
-    handlePeerMessage : function (peerId, content) {
+    handlePeerMessage: function(peerId, content) {
         if (peerId !== this._client.getId()) {
             var item = this._map[peerId];
             if (item !== undefined) {
@@ -87,25 +87,25 @@ var AudioMeter = {
      *
      *   meterFullElem : $(DIVElement)
      *     DIV element representing the decibel amount (0 to 100%)
-     *  
+     *
      *   isLocalStream : boolean
      *     This indicates that the current AudioMeter to be created is for the local
      *     stream
      *
      * Creates a new AudioMeter for the MediaStream for peerId
      */
-    create : function (peerId, stream, meterFillElem, isLocalStream) {
+    create: function(peerId, stream, meterFillElem, isLocalStream) {
         var _this = this;
         var audioContext = null;
         var mediaStreamSource = null;
         var processor = null;
         var eventListenerId = null;
 
-        var _broadcastRms = function (rms) {
+        var _broadcastRms = function(rms) {
             _this._client.sendPeerMessage({
-                room : _this._client.getRoomName()
+                room: _this._client.getRoomName()
             }, 'audio-meter', {
-                rms : rms
+                rms: rms
             });
         };
 
@@ -116,14 +116,14 @@ var AudioMeter = {
 
             mediaStreamSource.connect(processor);
             processor.connect(audioContext.destination);
-            
-            processor.onaudioprocess = function (evt) {
+
+            processor.onaudioprocess = function(evt) {
                 var buffer = evt.inputBuffer;
                 if (buffer.numberOfChannels > 0) {
                     var inputData = buffer.getChannelData(0);
                     var inputDataLength = inputData.length;
                     var total = 0;
-                    
+
                     // We calculate the average of every X to prevent CPU fans from kicking in
                     // on laptops!
                     for (var i = 0; i < inputDataLength; i += kSampleAverageInterval) {
@@ -132,7 +132,7 @@ var AudioMeter = {
 
                     var rms = Math.sqrt((kSampleAverageInterval * total) / inputDataLength);
                     _this._animateFillMeter(meterFillElem, rms);
-                    
+
                     // Only send our rms data if we are not muted.
                     if (NavBar.micBtn.isSelected() && rms > kBroadcastRMSThreshold) {
                         _broadcastRms(rms);
@@ -142,10 +142,10 @@ var AudioMeter = {
         }
 
         this._map[peerId] = {
-            streamSource    : mediaStreamSource,
-            processor       : processor,
-            fillMeter       : meterFillElem,
-            eventListenerId : eventListenerId
+            streamSource: mediaStreamSource,
+            processor: processor,
+            fillMeter: meterFillElem,
+            eventListenerId: eventListenerId
         };
     },
 
@@ -153,12 +153,12 @@ var AudioMeter = {
      *   peerId : string
      *     Peer ID of the AudioMeter to destroy
      */
-    destroy : function (peerId) {
+    destroy: function(peerId) {
         var item = this._map[peerId];
         if (item.streamSource !== null && item.processor !== null) {
             item.streamSource.disconnect(item.processor);
         }
-        
+
         if (item.eventListenerId !== null) {
             NavBar.micBtn.removeToggleEventListener(item.eventListenerId);
         }

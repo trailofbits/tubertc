@@ -16,7 +16,7 @@
  *         "dashModeEnabled" : <bool>
  *       }
  *   + Bind the Join button with a handler that performs the following actions:
- *     - Verifies that userName and roomName are valid values, if not, use visual indication 
+ *     - Verifies that userName and roomName are valid values, if not, use visual indication
  *       and focus to direct user to the problematic field
  *   + Update localStorage fields with the new values.
  *
@@ -28,11 +28,11 @@
  *   Chance.js
  */
 
-var generateRoomName = function () {
+var generateRoomName = function() {
     return chance.word() + '-' + chance.hash().substring(0, 8);
 };
 
-var toRtcRoomName = function (roomName) {
+var toRtcRoomName = function(roomName) {
     return roomName
             .replace(/[^\w\s]/gi, '')
             .replace(/ /gi, '_');
@@ -42,24 +42,24 @@ var toRtcRoomName = function (roomName) {
 var Query = {
     /* DO NOT TRUST OUTPUT FROM THIS FUNCTION
      */
-    getRoomName : function () {
+    getRoomName: function() {
         var queryStart = '?room=';
         var queryRaw = document.location.search;
         if (queryRaw.length <= queryStart.length) {
             return null;
         }
-        
+
         if (queryRaw.indexOf(queryStart) !== 0) {
             ErrorMetric.log('Query.getRoomName => Invalid querystring: ' + queryRaw);
             return null;
         }
-        
+
         return unescape(queryRaw.substring(6));
     }
 };
 
 var StorageCookie = {
-    /* The Object structure for our StorageCookie should look like the dictionary below:    
+    /* The Object structure for our StorageCookie should look like the dictionary below:
      *   {
      *     "userName"        : <string>,
      *     "cameraIsEnabled" : <bool>,
@@ -67,14 +67,14 @@ var StorageCookie = {
      *     "dashModeEnabled" : <bool>
      *   }
      */
-    _validate : function (dict) {
-        return (typeof dict.userName === 'string' && 
+    _validate: function(dict) {
+        return (typeof dict.userName === 'string' &&
                 typeof dict.cameraIsEnabled === 'boolean' &&
                 typeof dict.micIsEnabled === 'boolean' &&
                 typeof dict.dashModeEnabled === 'boolean');
     },
 
-    set : function (config) {
+    set: function(config) {
         if (this._validate(config)) {
             localStorage.tubertc = JSON.stringify(config);
             return true;
@@ -84,7 +84,7 @@ var StorageCookie = {
             return false;
         }
     },
-    
+
     /* Parameters:
      *   key : String
      *     Key part of the key-value pair.
@@ -93,10 +93,10 @@ var StorageCookie = {
      *     This value can be of any type and is returned whenever key is referenced.
      *
      *   This function assumes the existence of localStorage.tubertc. If it doesn't exist,
-     *   it will fail. Otherwise, it will find the "key" in localStorage.tubertc and 
+     *   it will fail. Otherwise, it will find the "key" in localStorage.tubertc and
      *   update it to the new value.
      */
-    setValue : function (key, value) {
+    setValue: function(key, value) {
         var config = this.get();
         if (config === null) {
             ErrorMetric.log('StorageCookie.setValue => StorageCookie.get had invalid return value');
@@ -114,7 +114,7 @@ var StorageCookie = {
 
     /* DO NOT TRUST THE RETURNED OBJECT: The userName field needs to be sanitized.
      */
-    get : function () {
+    get: function() {
         var rawConfig = localStorage.tubertc;
         if (rawConfig !== undefined) {
             // TODO: are we certain we can trust JSON.parse to parse localStorage?
@@ -140,7 +140,7 @@ var StorageCookie = {
 
     /* DO NOT TRUST userName: it needs to be sanitized before use!
      */
-    getValue : function (key) {
+    getValue: function(key) {
         var config = this.get();
         if (config !== null) {
             if (config[key] === undefined) {
@@ -164,8 +164,8 @@ var _userNameEntry = $('#userNameEntry');
 var _roomNameEntry = $('#roomNameEntry');
 
 var Login = {
-    _completionFn : null,
-    
+    _completionFn: null,
+
     /* Returns:
      *   status : (String|null)
      *     The return status value has three possible states which mean the following:
@@ -176,7 +176,7 @@ var Login = {
      * This function checks to ensure that the current browser has the support needed
      * to successfully use tubertc
      */
-    _browserCompatCheck : function () {
+    _browserCompatCheck: function() {
         var userAgent = navigator.userAgent;
 
         if (!('Notification' in window)) {
@@ -188,7 +188,7 @@ var Login = {
 
         if (!('localStorage' in window)) {
             ErrorMetric.log('_browserCompatCheck => browser does not support LocalStorage');
-            ErrorMetric.log('                    => userAgent: ' + userAgent);   
+            ErrorMetric.log('                    => userAgent: ' + userAgent);
 
             return null;
         }
@@ -199,7 +199,7 @@ var Login = {
 
             return null;
         }
-        
+
         // FIXME: We only have tested Chrome, need to refactor this once more browsers are tested
         if ('chrome' in window) {
             return 'full';
@@ -208,7 +208,7 @@ var Login = {
         }
     },
 
-    _validate : function () {
+    _validate: function() {
         var userName = $.trim(_userNameEntry.val());
         var roomName = $.trim(_roomNameEntry.val());
 
@@ -229,7 +229,7 @@ var Login = {
             _roomNameEntry.focus();
             return false;
         }
-        
+
         return true;
     },
 
@@ -240,14 +240,14 @@ var Login = {
      *       micBtn    : <StatefulButton>,
      *       dashBtn   : <StatefulButton>
      *     }
-     * 
+     *
      * Return:
      *   Login
      *     This returns itself for chaining purposes.
      *
      * This function is responsible for setting up the handlers for the initial "page" form.
      */
-    initialize : function (config) {
+    initialize: function(config) {
         var _this = this;
         if (typeof config.cameraBtn !== 'object' ||
             typeof config.micBtn !== 'object' ||
@@ -260,13 +260,13 @@ var Login = {
             // Break chaining to indicate error
             return null;
         }
-        
+
         var compatStatus = this._browserCompatCheck();
         if (compatStatus === null) {
             _userNameEntry.prop('disabled', true);
             _roomNameEntry.prop('disabled', true);
             _joinBtn.prop('disabled', true);
-            
+
             // FIXME: proofread and make this better
             _loginAlert
                 .html(
@@ -275,7 +275,7 @@ var Login = {
                     'We recommend using <a href="http://www.google.com/chrome/">Google Chrome</a>.'
                 )
                 .slideDown();
-            
+
             // Disable buttons since the app is disabled anyways.
             config.cameraBtn.disableButton();
             config.micBtn.disableButton();
@@ -296,7 +296,7 @@ var Login = {
                 .slideDown();
             ErrorMetric.log('Login.initialize => ' + navigator.userAgent + ' is untested');
         }
-        
+
         var userName = StorageCookie.getValue('userName');
         var roomName = Query.getRoomName();
 
@@ -315,23 +315,23 @@ var Login = {
             _roomNameEntry
                 .val(generateRoomName());
         }
-        
+
         var scCameraEnabled = StorageCookie.getValue('cameraIsEnabled');
         var scMicEnabled = StorageCookie.getValue('micIsEnabled');
         var scDashMode = StorageCookie.getValue('dashModeEnabled');
-        var _setInitialBtnState = function (initValue, btn) {
+        var _setInitialBtnState = function(initValue, btn) {
             if (initValue !== null && initValue !== btn.isSelected()) {
                 btn.toggle();
             }
         };
-        
+
         // Set button's initial state (from localStorage)
         _setInitialBtnState(scCameraEnabled, config.cameraBtn);
         _setInitialBtnState(scMicEnabled, config.micBtn);
         _setInitialBtnState(scDashMode, config.dashBtn);
-        
+
         // Obtain the list of video sources, if none exist, disable the camera button
-        easyrtc.getVideoSourceList(function (list) {
+        easyrtc.getVideoSourceList(function(list) {
             if (list.length === 0) {
                 _setInitialBtnState(false, config.cameraBtn);
                 config.cameraBtn.disableButton();
@@ -343,7 +343,7 @@ var Login = {
             }
         });
 
-        _userNameEntry.keypress(function (e) {
+        _userNameEntry.keypress(function(e) {
             // Detect when ENTER button is pressed
             if (e.which === 13) {
                 if (roomName !== null) {
@@ -356,45 +356,45 @@ var Login = {
             }
         });
 
-        _roomNameEntry.keypress(function (e) {
+        _roomNameEntry.keypress(function(e) {
             // Detect when ENTER button is pressed
             if (e.which === 13) {
                 _joinBtn.click();
             }
         });
 
-        _joinBtn.click(function () {
+        _joinBtn.click(function() {
             if (_this._validate()) {
                 _loginAlert
                     .stop(true, false)
                     .slideUp();
-                
+
                 var params = {
-                    userName        : _userNameEntry.val(),
-                    roomName        : _roomNameEntry.val(),
-                    rtcName         : toRtcRoomName(_roomNameEntry.val()),
-                    cameraIsEnabled : config.cameraBtn.isSelected(),
-                    hasCamera       : config.cameraBtn.isEnabled(),
-                    micIsEnabled    : config.micBtn.isSelected(),
-                    hasMic          : config.micBtn.isEnabled(),
-                    dashIsEnabled   : config.dashBtn.isSelected()
+                    userName: _userNameEntry.val(),
+                    roomName: _roomNameEntry.val(),
+                    rtcName: toRtcRoomName(_roomNameEntry.val()),
+                    cameraIsEnabled: config.cameraBtn.isSelected(),
+                    hasCamera: config.cameraBtn.isEnabled(),
+                    micIsEnabled: config.micBtn.isSelected(),
+                    hasMic: config.micBtn.isEnabled(),
+                    dashIsEnabled: config.dashBtn.isSelected()
                 };
 
                 var trtcConfig = {
-                    userName        : params.userName,
-                    cameraIsEnabled : params.cameraIsEnabled,
-                    micIsEnabled    : params.micIsEnabled,
-                    dashModeEnabled : params.dashIsEnabled
+                    userName: params.userName,
+                    cameraIsEnabled: params.cameraIsEnabled,
+                    micIsEnabled: params.micIsEnabled,
+                    dashModeEnabled: params.dashIsEnabled
                 };
                 StorageCookie.set(trtcConfig);
 
                 if (_this._completionFn !== null) {
-                    $('#loginContent').fadeOut(function () {
+                    $('#loginContent').fadeOut(function() {
                         _this._completionFn(params);
                     });
                 } else {
                     ErrorMetric.log('joinBtn.click => _completionFn not set');
-                    
+
                     // FIXME: this case should not happen since we immediately call
                     //        done() to set the completion handler
                     Dialog.show('An Error Has Occurred', 'tubertc has broke!');
@@ -417,7 +417,7 @@ var Login = {
      *                    micIsEnabled    : <boolean>,
      *                    hasMic          : <boolean>,
      *                    dashModeEnabled : <boolean>
-     *                  }) 
+     *                  })
      *     This function is called when the "Join Room" button is clicked and all the input is validated.
      *     At this point, both the userName and roomName are considered UNTRUSTED and should be sanitized
      *     using Handlebars.
@@ -426,7 +426,7 @@ var Login = {
      *   Login
      *     Returns itself for chaining purposes.
      */
-    done : function (completionFn) {
+    done: function(completionFn) {
         this._completionFn = completionFn;
         return this;
     }

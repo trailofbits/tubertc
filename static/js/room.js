@@ -13,7 +13,7 @@
  */
 
 // Entry point for when the VTC chat is ready to start (after user clicks Join Room button)
-var vtcMain = function (params) {
+var vtcMain = function(params) {
     // XXX(debug): If debugging mode is enabled (DebugConsole is a valid function), instantiate a new instance of
     //             DebugConsole
     var dbgListener = null;
@@ -24,32 +24,32 @@ var vtcMain = function (params) {
     // TODO(input): verify that passing params.roomName to .text() is not susceptible to XSS/etc
     $('#roomNameField')
         .text(params.roomName)
-        .fadeIn(function () {
+        .fadeIn(function() {
             // Change the browser's URL bar so that people can use it to give out
             // links to other future callers
             history.pushState({}, '', '/?room=' + escape(params.roomName));
-            
+
             // Fade in the vtcRoom container used for placing the videos
-            $('#vtcRoom').fadeIn();   
+            $('#vtcRoom').fadeIn();
         });
-    
+
     // Disables camera if the camera button is disabled (because no camera was found)
     if (!params.hasCamera) {
         NavBar.cameraBtn.disableButton();
     }
-    
+
     // Disables mic if the mic button is disabled (because no mic was found)
     if (!params.hasMic) {
         NavBar.micBtn.disableButton();
     }
-    
+
     // Setup default VTC user interface state
     if (params.dashIsEnabled) {
         trtc_dash.showDashMode();
     } else {
         trtc_dash.showHangoutsMode();
     }
-    
+
     // FIXME: For some reason, media-presence peer messages arrive before onStreamAccepted. This causes media-presence
     //        to be handled correctly since no peerId exists in idToViewPort. To deal with this, we need a queue to
     //        store all the messages for execution later.
@@ -57,22 +57,22 @@ var vtcMain = function (params) {
 
     // Instantiate the Chat object
     var chatRoom = new Chat(params.roomName);
-       
+
     // Maps peerIds to Viewport objects
     var idToViewPort = {};
 
     // Helper for sending media presence messages
-    var sendMediaPresence = function (client, mediaType, mediaEnabled) {
+    var sendMediaPresence = function(client, mediaType, mediaEnabled) {
         client.sendPeerMessage({
-            room : params.rtcName
+            room: params.rtcName
         }, 'media-presence', {
-            type : mediaType,
-            enabled : mediaEnabled
+            type: mediaType,
+            enabled: mediaEnabled
         });
     };
-    
-    // Helper for handling media presence messages. 
-    var handleMediaPresence = function (client, peerId, content) {
+
+    // Helper for handling media presence messages.
+    var handleMediaPresence = function(client, peerId, content) {
         var viewport = idToViewPort[peerId];
         if (viewport !== undefined) {
             if (content.type === 'camera') {
@@ -86,27 +86,27 @@ var vtcMain = function (params) {
             ErrorMetric.log('VTCCore.onPeerMessage => "' + peerId + '" is not a valid key');
         }
     };
-    
+
     NavBar.cameraBtn.disableButton();
     NavBar.micBtn.disableButton();
     NavBar.dashBtn.disableButton();
 
     VTCCore
         .initialize({
-            cameraIsEnabled : params.hasCamera,
-            micIsEnabled    : params.hasMic,
+            cameraIsEnabled: params.hasCamera,
+            micIsEnabled: params.hasMic,
         })
-        .onError(function (config) {
+        .onError(function(config) {
             NavBar.cameraBtn.enableButton();
             NavBar.micBtn.enableButton();
             NavBar.dashBtn.enableButton();
 
             Dialog.show(config);
         })
-        .onPeerMessage(function (client, peerId, msgType, content) {
+        .onPeerMessage(function(client, peerId, msgType, content) {
             if (msgType === 'chat') {
                 chatRoom.handlePeerMessage(peerId, content);
-            } else if (msgType === 'media-presence' && 
+            } else if (msgType === 'media-presence' &&
                        typeof content.type === 'string' &&
                        typeof content.enabled === 'boolean') {
                 /* 'media-presence' peerMessage
@@ -150,7 +150,7 @@ var vtcMain = function (params) {
                  */
                 if (peerId !== client.getId()) {
                     // Toggle the micBtn only if the requested microphone state is false (microphone disabled)
-                    // and the current state is enabled. 
+                    // and the current state is enabled.
                     //
                     // XXX: probably not a good idea to have remote unmute capabilities
                     if (!content.enabled && content.enabled !== NavBar.micBtn.isSelected()) {
@@ -171,10 +171,10 @@ var vtcMain = function (params) {
                 ErrorMetric.log('            => content: ' + JSON.stringify(content));
             }
         })
-        .onStreamAccept(function (client, peerId, stream) {
+        .onStreamAccept(function(client, peerId, stream) {
             var peerName = client.idToName(peerId);
             chatRoom.userEntered(peerId, peerName);
-            
+
             // Create a new viewport and unmute the VideoElement
             var port = trtc_dash.createGridForNewUser(peerName);
             port.videoSrc.prop('muted', false);
@@ -185,7 +185,7 @@ var vtcMain = function (params) {
             }
 
             idToViewPort[peerId] = port;
-            
+
             // Handle deferred requests
             var peerIdMediaPresenceQueue = mediaPresenceMap[peerId];
             if (peerIdMediaPresenceQueue !== undefined) {
@@ -200,18 +200,18 @@ var vtcMain = function (params) {
             if (!NavBar.cameraBtn.isSelected()) {
                 sendMediaPresence(client, 'camera', false);
             }
-            
+
             if (!NavBar.micBtn.isSelected()) {
                 sendMediaPresence(client, 'mic', false);
             }
         })
-        .onStreamClose(function (client, peerId) {
+        .onStreamClose(function(client, peerId) {
             chatRoom.userLeft(peerId);
-            
+
             var port = idToViewPort[peerId];
             if (port !== undefined) {
                 trtc_dash.removeUserWithGrid(port);
-                
+
                 if (typeof AudioMeter === 'object') {
                     AudioMeter.destroy(peerId);
                 }
@@ -221,7 +221,7 @@ var vtcMain = function (params) {
                 ErrorMetric.log('vtcMain => failed to find viewport for ' + peerId);
             }
         })
-        .connect(params.userName, params.rtcName, function (client) {
+        .connect(params.userName, params.rtcName, function(client) {
             var stream = client.getLocalStream();
             var myPeerId = client.getId();
 
@@ -233,20 +233,20 @@ var vtcMain = function (params) {
             //             JavaScript debugger will work successfully.
             if (dbgListener !== null) {
                 DebugConsole.setVtcObject({
-                    roomList : idToViewPort,
-                    client   : client
+                    roomList: idToViewPort,
+                    client: client
                 });
             }
-            
+
             // Initialize AudioMeter namespace, this is needed because we need sendPeerMessage functionality
             if (typeof AudioMeter === 'object') {
                 AudioMeter.init(client);
             }
 
             chatRoom
-                .initialize(myPeerId, params.userName, function (message) {
+                .initialize(myPeerId, params.userName, function(message) {
                     return client.sendPeerMessage({
-                        room : params.rtcName
+                        room: params.rtcName
                     }, 'chat', message);
                 })
                 .show();
@@ -258,13 +258,13 @@ var vtcMain = function (params) {
                 .css('display', 'none')
                 .addClass('video_mirror');
             client.setVideoObjectSrc(viewport.videoSrc, stream);
-            
+
             if (typeof AudioMeter === 'object') {
                 AudioMeter.create(myPeerId, stream, viewport.audioMeterFill, true);
             }
 
             idToViewPort[myPeerId] = viewport;
-            
+
             // Only send initial state if they differ from the assumed state (which is enabled)
             if (!params.cameraIsEnabled) {
                 client.enableCamera(false);
@@ -281,34 +281,34 @@ var vtcMain = function (params) {
             }
 
             // Binds actions to the Enable/Disable Camera button
-            NavBar.cameraBtn.handle(function () {
+            NavBar.cameraBtn.handle(function() {
                 client.enableCamera(true);
                 sendMediaPresence(client, 'camera', true);
-        
-                viewport.showCamera(true);    
-            }, function () {
+
+                viewport.showCamera(true);
+            }, function() {
                 client.enableCamera(false);
                 sendMediaPresence(client, 'camera', false);
 
                 viewport.showCamera(false);
             });
-            
+
             // Binds actions to the Enable/Disable Microphone button
-            NavBar.micBtn.handle(function () {
+            NavBar.micBtn.handle(function() {
                 client.enableMicrophone(true);
                 sendMediaPresence(client, 'mic', true);
 
                 viewport.showMic(true);
-            }, function () {
+            }, function() {
                 client.enableMicrophone(false);
                 sendMediaPresence(client, 'mic', false);
 
                 viewport.showMic(false);
             });
 
-            NavBar.dashBtn.handle(function () {
+            NavBar.dashBtn.handle(function() {
                 trtc_dash.showDashMode();
-            }, function () {
+            }, function() {
                 trtc_dash.showHangoutsMode();
             });
     });

@@ -6,7 +6,7 @@
 var ErrorMetric = {
     // Provides configuration for where to send error telemetry data
     // TODO: actually implement the backend
-    config : {
+    config: {
         telemetryUrl: '/telemetry'
     },
 
@@ -14,7 +14,7 @@ var ErrorMetric = {
      *   message : String
      *     A string representing a message of an error condition
      */
-    log : function (message) {
+    log: function(message) {
         // TODO: using AJAX, post the message to config.telemetryUrl
         console.log('[error] ' + message);
     }
@@ -22,7 +22,7 @@ var ErrorMetric = {
 
 // Global error catcher that will pipe errors to a centralized databse
 // TODO: send errors via AJAX to a database
-$(window).error(function (e) {
+$(window).error(function(e) {
     var evt = e.originalEvent;
     console.log('[error] ' + evt.filename + ':' + evt.lineno);
     console.log('[error]   ' + evt.message);

@@ -55,24 +55,24 @@ if (debugMode) {
 }
 
 // Setup main index page (this changes depending on whether or not debugging is enabled in settings.json).
-tubertcApp.get('/', function (req, res) {
+tubertcApp.get('/', function(req, res) {
     var pageTitle = 'tubertc';
     var extraScripts = '';
-    
+
     // If debug mode is enabled, load our debugging script (and add [debug] in the title)
     if (debugMode) {
         pageTitle += ' [debug]';
         extraScripts = '<script type="text/javascript"  src="/telemetry/debug.js"></script>';
     }
-    
+
     if (enableAudioMeter) {
         pageTitle += '+am';
         extraScripts += '<script type="text/javascript" src="/js/audiometer.js"></script>';
     }
 
     res.send(indexTmpl({
-        title     : pageTitle,
-        debugBody : extraScripts
+        title: pageTitle,
+        debugBody: extraScripts
     }));
 });
 
@@ -84,8 +84,8 @@ var ssl = nconf.get('ssl');
 if (ssl !== undefined && ssl.key !== undefined && ssl.cert !== undefined) {
     webServer = require('https').createServer(
         {
-            key  : fs.readFileSync(ssl.key),
-            cert : fs.readFileSync(ssl.cert)
+            key: fs.readFileSync(ssl.key),
+            cert: fs.readFileSync(ssl.cert)
         },
         tubertcApp
     ).listen(serverPort);
@@ -98,11 +98,11 @@ if (ssl !== undefined && ssl.key !== undefined && ssl.cert !== undefined) {
 // Set log level according to debugMode, on production, log level is on error only
 if (debugMode) {
     var ioOpts = {
-        "log level" : 3
+        'log level' : 3
     };
 } else {
     var ioOpts = {
-        "log level" : 0
+        'log level' : 0
     };
 }
 
@@ -126,19 +126,19 @@ if (iceServers !== undefined) {
 else {
     easyrtc.setOption('appIceServers', [
     	{
-            url : "stun:stun.l.google.com:19302"
+            url: 'stun:stun.l.google.com:19302'
         },
     	{
-            url : "stun:stun.sipgate.net"
+            url: 'stun:stun.sipgate.net'
         },
     	{
-            url : "stun:217.10.68.152"
+            url: 'stun:217.10.68.152'
         },
     	{
-            url : "stun:stun.sipgate.net:10000"
+            url: 'stun:stun.sipgate.net:10000'
         },
     	{
-            url : "stun:217.10.68.152:10000"
+            url: 'stun:217.10.68.152:10000'
         }
     ]);
 }

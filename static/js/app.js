@@ -14,16 +14,16 @@
  *
  * (see http://stackoverflow.com/questions/11978995/how-to-change-color-of-svg-image-using-css-jquery-svg-image-replacement)
  */
-var svgToInlineSvg = function (completionFn) {
+var svgToInlineSvg = function(completionFn) {
     var deferredObjs = [];
 
-    $('img.svg').each(function () {
+    $('img.svg').each(function() {
         var $img = jQuery(this);
         var imgID = $img.attr('id');
         var imgClass = $img.attr('class');
         var imgURL = $img.attr('src');
 
-        deferredObjs.push(jQuery.get(imgURL, function (data) {
+        deferredObjs.push(jQuery.get(imgURL, function(data) {
             var $svg = jQuery(data).find('svg');
             if (typeof imgID !== 'undefined') {
                 $svg = $svg.attr('id', imgID);
@@ -37,11 +37,11 @@ var svgToInlineSvg = function (completionFn) {
     });
 
     // Wait for all the AJAX operations to finish before we call the "finished" callback
-    $.when.apply($, deferredObjs).done(function () {
+    $.when.apply($, deferredObjs).done(function() {
         if (completionFn !== undefined) {
             completionFn();
         }
-    });    
+    });
 };
 
 // About dialog template
@@ -65,26 +65,26 @@ var attrDialogTmpl = Handlebars.compile(
 );
 
 // Main entry point
-$(document).ready(function () {
+$(document).ready(function() {
     NavBar.initialize();
-    NavBar.attrBtn.onClick(function () {
+    NavBar.attrBtn.onClick(function() {
         Dialog.show({
-            title   : 'About',
-            content : attrDialogTmpl({})
+            title: 'About',
+            content: attrDialogTmpl({})
         });
     });
-    
+
     Clock.initialize();
 
-    svgToInlineSvg(function () {
+    svgToInlineSvg(function() {
         NavBar.show();
         Login
             .initialize({
-                cameraBtn : NavBar.cameraBtn,
-                micBtn    : NavBar.micBtn,
-                dashBtn   : NavBar.dashBtn
+                cameraBtn: NavBar.cameraBtn,
+                micBtn: NavBar.micBtn,
+                dashBtn: NavBar.dashBtn
             })
-            .done(function (params) {
+            .done(function(params) {
                 // This is called if the userName and roomName are valid and we are ready to join
                 // the chat. At this point, when call vtcMain()
                 vtcMain(params);
