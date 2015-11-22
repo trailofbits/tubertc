@@ -3,7 +3,7 @@
     "version"      : "2.0.0",
     "description"  : "Tuber-time Communications",
     "author"       : "yying",
-    "license"      : "BSD2",
+    "license"      : "MIT",
     
     "repository" : {
         "type" : "git",
@@ -21,12 +21,12 @@
         "easyrtc"    : "*",
         "express"    : "*",
         "nconf"      : "*",
-        "socket.io"  : "0.9.x",
-        "handlebars" : "2.0.x"
+        "socket.io"  : "*",
+        "handlebars" : "*"
     },
 
     "engines"       : {
-        "node" : "~0.10"
+        "node" : "5.x"
     },
 
     "scripts" : {
