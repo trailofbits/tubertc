@@ -27,7 +27,7 @@ install_nodejs () {
     if [ "$1" = "1" ]; then
         DOWNLOAD=1
     fi
-    
+
     if [ "$DOWNLOAD" = "0" ]; then
         log "Checking if node is installed..."
         node -v 2>&1 > /dev/null
@@ -72,12 +72,12 @@ install_nodejs () {
 
     FILENAME="`basename $NODEJS_URL`"
     BASENAME=${FILENAME%.tar.gz}
-    
+
     if [ ! -d $BASENAME ]; then
         log "Cannot find $BASENAME directory in $PWD"
         DOWNLOAD=1
     fi
-    
+
     if [ "$DOWNLOAD" = "1" ]; then
         log "Downloading node.js from $NODEJS_URL"
         curl $NODEJS_URL 2> /dev/null | tar zxf -
@@ -85,7 +85,7 @@ install_nodejs () {
     else
         log "Found node.js instance at $PWD/$BASENAME"
     fi
-    
+
     NODEJS_ROOT=$PWD/$BASENAME
 
     return 1
@@ -153,4 +153,3 @@ if [ "$SPAWN_BROWSER" = "1" ]; then
 fi
 
 fg
-
