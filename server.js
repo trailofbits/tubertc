@@ -1,9 +1,13 @@
+/**
+ * @file tuber-time web server.
+ * @version 2.0.0
+ */
+var easyrtc = require('easyrtc');
+var express = require('express');
 var fs = require('fs');
+var Handlebars = require('handlebars');
 var io = require('socket.io');
 var nconf = require('nconf');
-var express = require('express');
-var easyrtc = require('easyrtc');
-var Handlebars = require('handlebars');
 
 var webServer = null;
 
@@ -13,9 +17,7 @@ var webServer = null;
 //   3. settings.json file
 nconf.argv()
      .env()
-     .file({ file:
-		 'settings.json'
-	 });
+     .file({ file: 'settings.json' });
 
 // Web application setup (for setting up routes)
 var tubertcApp = express();
@@ -24,7 +26,7 @@ var tubertcApp = express();
 var indexSource = fs.readFileSync(__dirname + '/templates/index.html', 'utf8');
 var indexTmpl = Handlebars.compile(indexSource);
 
-// Setup web servers according to configuration file
+// Set up web servers according to configuration file
 
 // By default, debugMode is on. Deployment requires the existence of a settings.json
 // configuration file
@@ -43,7 +45,7 @@ if (enableAudioMeter === undefined) {
     }
 }
 
-// Setup routes for static resources
+// Set up routes for static resources
 tubertcApp.use('/js', express.static(__dirname + '/static/js'));
 tubertcApp.use('/css', express.static(__dirname + '/static/css'));
 tubertcApp.use('/audio', express.static(__dirname + '/static/audio'));
@@ -54,7 +56,7 @@ if (debugMode) {
     tubertcApp.use('/telemetry', express.static(__dirname + '/static/telemetry'));
 }
 
-// Setup main index page (this changes depending on whether or not debugging is enabled in settings.json).
+// Set up main index page (this changes depending on whether or not debugging is enabled in settings.json).
 tubertcApp.get('/', function(req, res) {
     var pageTitle = 'tubertc';
     var extraScripts = '';
@@ -81,6 +83,7 @@ var serverPort = process.env.PORT || nconf.get('port') || 8080;
 
 // By default, HTTP is used
 var ssl = nconf.get('ssl');
+
 if (ssl !== undefined && ssl.key !== undefined && ssl.cert !== undefined) {
     webServer = require('https').createServer(
         {
@@ -90,25 +93,22 @@ if (ssl !== undefined && ssl.key !== undefined && ssl.cert !== undefined) {
         tubertcApp
     ).listen(serverPort);
 } else {
-    webServer = require('http').createServer(
-        tubertcApp
-    ).listen(serverPort);
+    webServer = require('http')
+        .createServer(tubertcApp)
+        .listen(serverPort);
 }
 
 // Set log level according to debugMode, on production, log level is on error only
+var ioOpts;
 if (debugMode) {
-    var ioOpts = {
-        'log level' : 3
-    };
+    ioOpts = { 'log level': 3 };
 } else {
-    var ioOpts = {
-        'log level' : 0
-    };
+    ioOpts = { 'log level': 0 };
 }
 
 var socketServer = io.listen(webServer, ioOpts);
 
-// Setup easyrtc specific options
+// Set up easyrtc specific options
 easyrtc.setOption('demosEnable', false);
 easyrtc.setOption('updateCheckEnable', false);
 
@@ -122,22 +122,21 @@ if (debugMode) {
 var iceServers = nconf.get('appIceServers');
 if (iceServers !== undefined) {
     easyrtc.setOption('appIceServers', iceServers);
-}
-else {
+} else {
     easyrtc.setOption('appIceServers', [
-    	{
+        {
             url: 'stun:stun.l.google.com:19302'
         },
-    	{
+        {
             url: 'stun:stun.sipgate.net'
         },
-    	{
+        {
             url: 'stun:217.10.68.152'
         },
-    	{
+        {
             url: 'stun:stun.sipgate.net:10000'
         },
-    	{
+        {
             url: 'stun:217.10.68.152:10000'
         }
     ]);
