@@ -1,36 +1,57 @@
-/* Provides an interface for debugging WebRTC and numerous other aspects of
- * tubertc.
+/**
+ * @file Provides an interface for debugging WebRTC
+ * and numerous other aspects of tubertc.
  *
- * Requires:
- *   js/vtc.js
- *   js/error.js
+ * @requires module:js/vtc
+ * @requires module:js/error
+ * @todo Treat the DebugConsole as a command line program. Add help and ideally
+ *       print error message and verbose help messages if things are not what
+ *       is expected (like calling function with wrong arguments, etc.)
  */
 
-// TODO: Treat the DebugConsole as a command line program. Add help and ideally
-//       print error message and verbose help messages if things are not what
-//       is expected (like calling function with wrong arguments, etc.)
-
 var DebugConsole = {
-    // Handles calling callbacks upon transaction completion.  
-    _txid : 0,
-    _transactionMap : {},
-    _getTxid : function () {
+    // Handles calling callbacks upon transaction completion.
+    _txid: 0,
+
+    _transactionMap: {},
+
+    /**
+     * Gets the next transaction ID.
+     *
+     * @returns {Number} The next transaction ID.
+     * @private
+     */
+    _getTxid: function () {
         return this._txid++;
     },
-    _registerTransaction : function (id, completionFn) {
+
+    /**
+     * Registers a transaction.
+     *
+     * @param {Number} id - The transaction ID.
+     * @param {Function} completionFn - Callback to execute
+     * on completion.
+     * @returns {undefined} undefined
+     * @private
+     */
+    _registerTransaction: function (id, completionFn) {
         this._transactionMap[id] = completionFn;
     },
 
-    // Handles requests from other DebugConsole clients.
-    Listener : function () {
+    /**
+     * Handles requests from other DebugConsole clients.
+     *
+     * @class
+     */
+    Listener: function () {
         this.handlePeerMessage = function (client, peerId, content) {
             if (typeof content.opcode === 'string') {
                 if (content.opcode === 'testP2PConnection' &&
                     typeof content.id === 'number') {
                     var roomList = DebugConsole._getRoomUserList();
                     var roomConnectStatus = {
-                        myPeerId : client.getId(),
-                        data     : {}
+                        myPeerId: client.getId(),
+                        data: {}
                     };
 
                     // Go through each peerId in the roomList and get the connect status for each
@@ -40,15 +61,15 @@ var DebugConsole = {
                             roomConnectStatus.data[roomList[i]] = client.getConnectStatus(roomList[i]);
                         }
                     }
-                    
+
                     ErrorMetric.log('[testP2PConnection] {' + peerId + '} request handled');
 
                     client.sendPeerMessage({
-                        rtcId : peerId
+                        rtcId: peerId
                     }, 'debug', {
-                        id     : content.id,
-                        opcode : "response",
-                        data   : roomConnectStatus
+                        id: content.id,
+                        opcode: "response",
+                        data: roomConnectStatus
                     });
                 } else if (content.opcode === 'response' &&
                            content.data !== undefined &&
@@ -75,28 +96,51 @@ var DebugConsole = {
 
         return this;
     },
-    
-    /* Stores the VTCClient Object and idToViewPort Object for use with DebugConsole.Client
+
+    _vtcObj: null,
+
+    /**
+     * Stores the VTCClient Object and idToViewPort
+     * object for use with DebugConsole.Client.
      * Format:
      *   {
-     *     roomList : {
-     *       peerId : String => ViewPort
+     *     roomList: {
+     *       peerId: String => ViewPort
      *     },
-     *     client : VTCClient
+     *     client: VTCClient
      *   }
+     *
+     * @param {Object} client - VTCClient.
+     * @returns {undefined} undefined
+     * @public
      */
-    _vtcObj : null,
-    setVtcObject : function (client) {
+    setVtcObject: function (client) {
         this._vtcObj = client;
     },
-    
-    _getRoomUserList : function () {
+
+    /**
+     * Gets the room list associated with the VTC client.
+     *
+     * @returns {Array<String>} An array of peerIDs
+     * of all users in the current room.
+     * @private
+     */
+    _getRoomUserList: function () {
         return Object.keys(this._vtcObj.roomList);
     },
 
-    // ENTRY: In the debugger console, call this function to get an instance of the Client object.
-    //        The Client object provides debugging capabilities.
-    getClient : function () {
+    /**
+     * Gets the VTCClient object.
+     *
+     * In the debugger console, call this function
+     * to get an instance of the Client object.
+     * The Client object provides debugging capabilities.
+     *
+     * @returns {Object} The VTCClient. Returns `null` if
+     * the Client object has not been set.
+     * @public
+     */
+    getClient: function () {
         if (this._vtcObj === null) {
             ErrorMetric.log('DebugConsole.getClient => _vtcObj is not set!');
             return null;
@@ -105,19 +149,31 @@ var DebugConsole = {
         return new this.Client(this._vtcObj);
     },
 
-    // The class that implements the "client" capbilities of the tubertc debugger.
-    Client : function (clientObj) {
-        /* Parameters:
-         *   None
-         * 
-         * Returns:
-         *   An Array of peerIds of all users in the current room.
+    /**
+     * The class that implements the "client"
+     * capabilities of the tubertc debugger.
+     *
+     * @class
+     */
+    Client: function () {
+        /**
+         * Gets the room list associated with the VTC client.
+         *
+         * @returns {Array<String>} An array of peerIDs
+         * of all users in the current room.
          */
         this.getRoomUserList = function () {
             return DebugConsole._getRoomUserList();
         };
-        
-        // Remotely mutes a peerId on the call
+
+        /**
+         * Remotely mutes a peerId on the call.
+         *
+         * @param {String} peerId - The ID of the peer to mute.
+         * @returns {Boolean|undefined} Boolean `false` if the
+         * peerId is `undefined`; otherwise, mutes the peer
+         * and returns `undefined`.
+         */
         this.remoteMute = function (peerId) {
             if (peerId === undefined) {
                 console.log('Usage: \n');
@@ -130,16 +186,26 @@ var DebugConsole = {
 
                 return false;
             }
-            
+
             var client = DebugConsole._vtcObj.client;
             client.sendPeerMessage({
-                rtcId : peerId
+                rtcId: peerId
             }, 'mic-control', {
-                enabled : false
+                enabled: false
             });
         };
 
-        // Returns the P2P connection status between the current user and the peerId
+        /**
+         * Returns the P2P connection status between
+         * the current user and the peerId.
+         *
+         * @param {String} peerId - The ID of the peer
+         * for which we want status information.
+         * @returns {Boolean|String} Boolean `false` if the
+         * peerId is `undefined`; otherwise, returns a string
+         * describing the peer's status.
+         * @public
+         */
         this.getP2PConnectStatusTo = function (peerId) {
             if (peerId === undefined) {
                 console.log('Usage: \n');
@@ -157,7 +223,20 @@ var DebugConsole = {
 
             return DebugConsole._vtcObj.client.getConnectStatus(peerId);
         };
-        
+
+        /**
+         * Gets P2P diagnostic information a particular peer.
+         *
+         * @param {String} peerId - The ID of the peer
+         * for which we want status information.
+         * @param {Function} completionFn - Callback to execute
+         * on completion.
+         * @returns {Boolean|undefined} Boolean `false` if the
+         * peerId or callback are missing; otherwise, sends a
+         * request to the specific peerId for its connection
+         * status in relation to other callers.
+         * @public
+         */
         this.getP2PDiagnosticForPeerId = function (peerId, completionFn) {
             if (peerId === undefined || completionFn === undefined) {
                 console.log('Usage: \n');
@@ -183,14 +262,23 @@ var DebugConsole = {
             var client = DebugConsole._vtcObj.client;
             var txid = DebugConsole._getTxid();
             client.sendPeerMessage({
-                rtcId : peerId
+                rtcId: peerId
             }, 'debug', {
-                opcode : "testP2PConnection",
-                id     : txid,
+                opcode: "testP2PConnection",
+                id: txid,
             });
             DebugConsole._registerTransaction(txid, completionFn);
         };
-        
+
+        /**
+         * Gets P2P diagnostic information for all peers in the room
+         * and passes an aggregate of that information to the completionFn.
+         *
+         * @param {Function} completionFn - Callback to execute on completion.
+         * @returns {Boolean|Object} Boolean `false` if no completionFn is passed.
+         * Otherwise, returns the current DebugConsole instance.
+         * @public
+         */
         this.getP2PDiagnostics = function (completionFn) {
             if (completionFn === undefined) {
                 console.log('Usage: \n');
@@ -213,7 +301,7 @@ var DebugConsole = {
             });
             var roomSize = roomList.length;
             var results = [];
-            
+
             var appendDataFn = function (data) {
                 results.push(data);
 
@@ -226,16 +314,15 @@ var DebugConsole = {
                 this.getP2PDiagnosticForPeerId(roomList[i], appendDataFn);
             }
         };
-        
-        // TODO: Have a pretty print of the data returned by getP2PDiagnostics showing
+
+        // @todo: Have a pretty print of the data returned by getP2PDiagnostics showing
         //       the pairs of peerIds and their connection status:
         //
         //       {
-        //         toPeerId   : String,
-        //         fromPeerId : String
-        //         status     : String
+        //         toPeerId: String,
+        //         fromPeerId: String,
+        //         status: String
         //       }
-
         return this;
     }
 };

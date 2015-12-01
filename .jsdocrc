@@ -1,0 +1,14 @@
+{
+  "tags": {
+    "allowUnknownTags": false,
+    "dictionaries": ["jsdoc", "closure"]
+  },
+  "source": {
+    "includePattern": ".+\\.js$",
+    "excludePattern": ".+\\.spec.js$"
+  },
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false
+  }
+}
