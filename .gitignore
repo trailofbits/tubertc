@@ -37,3 +37,6 @@ node_modules
 *.env
 *.swp
 .idea
+
+# Documentation
+doc/

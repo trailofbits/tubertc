@@ -46,14 +46,14 @@ if (enableAudioMeter === undefined) {
 }
 
 // Set up routes for static resources
-tubertcApp.use('/js', express.static(__dirname + '/static/js'));
-tubertcApp.use('/css', express.static(__dirname + '/static/css'));
-tubertcApp.use('/audio', express.static(__dirname + '/static/audio'));
-tubertcApp.use('/images', express.static(__dirname + '/static/images'));
+tubertcApp.use('/js', express.static(__dirname + '/public/js'));
+tubertcApp.use('/css', express.static(__dirname + '/public/css'));
+tubertcApp.use('/audio', express.static(__dirname + '/public/audio'));
+tubertcApp.use('/images', express.static(__dirname + '/public/images'));
 
 // Add a route for telemetry scripts
 if (debugMode) {
-    tubertcApp.use('/telemetry', express.static(__dirname + '/static/telemetry'));
+    tubertcApp.use('/telemetry', express.static(__dirname + '/public/telemetry'));
 }
 
 // Set up main index page (this changes depending on whether or not debugging is enabled in settings.json).

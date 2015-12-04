@@ -25,13 +25,18 @@
         "handlebars": "*"
     },
 
+    "devDependencies": {
+      "jsdoc": "3.3.3"
+    },
+
     "engines": {
         "node": "5.x"
     },
 
     "scripts": {
-        "start": "node server.js",
+        "doc": "./node_modules/.bin/jsdoc -r public --destination doc --readme README.md -c .jsdocrc",
         "lint": "eslint --ext .js -c .eslintrc .",
+        "start": "node server.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     }
 }
