@@ -1,18 +1,24 @@
-/* Defines the main tubertc application logic.
+/**
+ * @file Defines the main tubertc application logic.
  *
- * Requires:
- *   js/navbar.js
- *   js/login.js
- *   js/dialog.js
- *   js/room.js
- *   Handlebars.js
+ * @requires module:js/navbar
+ * @requires module:js/login
+ * @requires module:js/dialog
+ * @requires module:js/room
+ * @requires Handlebars.js
  */
 
-/* Replace all SVG images in the ".navBar" with inline SVGs so that we can style SVG elements
- * using CSS. This function also takes a completion function to execute after completion of
- * SVG inlining.
+'use strict';
+
+/**
+ * Replaces all SVG images in the ".navBar" with inline SVGs that we
+ * can style SVG elements using CSS.
  *
- * (see http://stackoverflow.com/questions/11978995/how-to-change-color-of-svg-image-using-css-jquery-svg-image-replacement)
+ * @see http://stackoverflow.com/questions/11978995/how-to-change-color-of-svg-image-using-css-jquery-svg-image-replacement)
+ *
+ * @param {Function} completionFn - A completion function to execute
+ * after completion of SVG inlining.
+ * @returns {undefined} undefined
  */
 var svgToInlineSvg = function(completionFn) {
     var deferredObjs = [];
@@ -44,11 +50,11 @@ var svgToInlineSvg = function(completionFn) {
     });
 };
 
-// About dialog template
+// The "About" dialog template
 var attrDialogTmpl = Handlebars.compile(
-    // TODO: add some blob of text/image here
-    // FIXME: modify attribution information here
-    // TODO: check the LICENSE for each of the used frameworks to figure out if there
+    // @todo Add some blob of text/image here
+    // @todo FIXME: modify attribution information here
+    // @todo Check the LICENSE for each of the used frameworks to figure out if there
     //       are any instances of being not compliant
     '<div style="text-align: center">' +
     '  <img style="width: 176px; height: 203px;" src="/images/about_tubertc.svg" alt="[about]">' +

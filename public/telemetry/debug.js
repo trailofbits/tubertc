@@ -9,6 +9,8 @@
  *       is expected (like calling function with wrong arguments, etc.)
  */
 
+'use strict';
+
 var DebugConsole = {
     // Handles calling callbacks upon transaction completion.
     _txid: 0,
@@ -21,7 +23,7 @@ var DebugConsole = {
      * @returns {Number} The next transaction ID.
      * @private
      */
-    _getTxid: function () {
+    _getTxid: function() {
         return this._txid++;
     },
 
@@ -34,7 +36,7 @@ var DebugConsole = {
      * @returns {undefined} undefined
      * @private
      */
-    _registerTransaction: function (id, completionFn) {
+    _registerTransaction: function(id, completionFn) {
         this._transactionMap[id] = completionFn;
     },
 
@@ -43,8 +45,8 @@ var DebugConsole = {
      *
      * @class
      */
-    Listener: function () {
-        this.handlePeerMessage = function (client, peerId, content) {
+    Listener: function() {
+        this.handlePeerMessage = function(client, peerId, content) {
             if (typeof content.opcode === 'string') {
                 if (content.opcode === 'testP2PConnection' &&
                     typeof content.id === 'number') {
@@ -68,7 +70,7 @@ var DebugConsole = {
                         rtcId: peerId
                     }, 'debug', {
                         id: content.id,
-                        opcode: "response",
+                        opcode: 'response',
                         data: roomConnectStatus
                     });
                 } else if (content.opcode === 'response' &&
@@ -114,7 +116,7 @@ var DebugConsole = {
      * @returns {undefined} undefined
      * @public
      */
-    setVtcObject: function (client) {
+    setVtcObject: function(client) {
         this._vtcObj = client;
     },
 
@@ -125,7 +127,7 @@ var DebugConsole = {
      * of all users in the current room.
      * @private
      */
-    _getRoomUserList: function () {
+    _getRoomUserList: function() {
         return Object.keys(this._vtcObj.roomList);
     },
 
@@ -140,7 +142,7 @@ var DebugConsole = {
      * the Client object has not been set.
      * @public
      */
-    getClient: function () {
+    getClient: function() {
         if (this._vtcObj === null) {
             ErrorMetric.log('DebugConsole.getClient => _vtcObj is not set!');
             return null;
@@ -155,14 +157,14 @@ var DebugConsole = {
      *
      * @class
      */
-    Client: function () {
+    Client: function() {
         /**
          * Gets the room list associated with the VTC client.
          *
          * @returns {Array<String>} An array of peerIDs
          * of all users in the current room.
          */
-        this.getRoomUserList = function () {
+        this.getRoomUserList = function() {
             return DebugConsole._getRoomUserList();
         };
 
@@ -174,7 +176,7 @@ var DebugConsole = {
          * peerId is `undefined`; otherwise, mutes the peer
          * and returns `undefined`.
          */
-        this.remoteMute = function (peerId) {
+        this.remoteMute = function(peerId) {
             if (peerId === undefined) {
                 console.log('Usage: \n');
                 console.log('  Client.remoteMute(\n');
@@ -206,7 +208,7 @@ var DebugConsole = {
          * describing the peer's status.
          * @public
          */
-        this.getP2PConnectStatusTo = function (peerId) {
+        this.getP2PConnectStatusTo = function(peerId) {
             if (peerId === undefined) {
                 console.log('Usage: \n');
                 console.log('  Client.getP2PConnectStatusTo(\n');
@@ -237,7 +239,7 @@ var DebugConsole = {
          * status in relation to other callers.
          * @public
          */
-        this.getP2PDiagnosticForPeerId = function (peerId, completionFn) {
+        this.getP2PDiagnosticForPeerId = function(peerId, completionFn) {
             if (peerId === undefined || completionFn === undefined) {
                 console.log('Usage: \n');
                 console.log('  Client.getP2PDiagnosticForPeerId(\n');
@@ -264,8 +266,8 @@ var DebugConsole = {
             client.sendPeerMessage({
                 rtcId: peerId
             }, 'debug', {
-                opcode: "testP2PConnection",
-                id: txid,
+                opcode: 'testP2PConnection',
+                id: txid
             });
             DebugConsole._registerTransaction(txid, completionFn);
         };
@@ -279,7 +281,7 @@ var DebugConsole = {
          * Otherwise, returns the current DebugConsole instance.
          * @public
          */
-        this.getP2PDiagnostics = function (completionFn) {
+        this.getP2PDiagnostics = function(completionFn) {
             if (completionFn === undefined) {
                 console.log('Usage: \n');
                 console.log('  Client.getP2PDiagnostics(\n');
@@ -296,13 +298,13 @@ var DebugConsole = {
             }
 
             var myId = DebugConsole._vtcObj.client.getId();
-            var roomList = DebugConsole._getRoomUserList().filter(function (elem) {
+            var roomList = DebugConsole._getRoomUserList().filter(function(elem) {
                 return elem !== myId;
             });
             var roomSize = roomList.length;
             var results = [];
 
-            var appendDataFn = function (data) {
+            var appendDataFn = function(data) {
                 results.push(data);
 
                 if (results.length === roomSize) {

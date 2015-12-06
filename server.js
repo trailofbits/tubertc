@@ -2,6 +2,9 @@
  * @file tuber-time web server.
  * @version 2.0.0
  */
+
+'use strict';
+
 var easyrtc = require('easyrtc');
 var express = require('express');
 var fs = require('fs');
@@ -142,4 +145,4 @@ if (iceServers !== undefined) {
     ]);
 }
 
-var rtcServer = easyrtc.listen(tubertcApp, socketServer);
+easyrtc.listen(tubertcApp, socketServer);
