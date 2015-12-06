@@ -2,7 +2,18 @@
   "ecmaFeatures": {
   },
   "env": {
+    "browser": true,
+    "jquery": true,
     "node": true
+  },
+  "globals": {
+    "Clock": false,
+    "Dialog": false,
+    "ErrorMetric": false,
+    "Handlebars": false,
+    "Login": false,
+    "NavBar": false,
+    "vtcMain": false
   },
   "rules": {
     "brace-style": 2,

@@ -1,2 +1,4 @@
-.git
+.git/
+doc/
 node_modules/
+public/js/vendor/
