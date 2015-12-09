@@ -1,16 +1,18 @@
-/* Defines the audio meter that measures audio activity for each WebRTC
- * MediaStream.
+/**
+ * @file Defines the audio meter that measures
+ * audio activity for each WebRTC MediaStream.
  *
- * Requires:
- *   js/error.js
- *   js/navbar.js
+ * @requires module:js/error
+ * @requires module:js/navbar
  *
  * This is currently an experimental feature that can be enabled/disabled.
  *
- * Because of problems with Chrome's WebAudio/WebRTC implementation,
- * (see https://code.google.com/p/chromium/issues/detail?id=121673), we are currently using
- * socket.io to alert the other callers of our sound state.
+ * Because of problems with Chrome's WebAudio/WebRTC implementation, we are
+ * currently using socket.io to alert the other callers of our sound state.
+ * @see https://code.google.com/p/chromium/issues/detail?id=121673
  */
+
+'use strict';
 
 // This specifies how many audio samples to process at once. This must be a power of 2 with
 // the maximum amount of samples at 16384. The bigger the buffer, the less often onaudioprocess
@@ -30,6 +32,16 @@ var AudioMeter = {
     // This will be set when init() is called and should be non-null
     _client: null,
 
+    /**
+     * Animates the fill meter.
+     *
+     * @param {Object} fillMeter - Fill meter object
+     * (a `<div>` element).
+     * @param {Number} rms - Root mean square (measure
+     * of audio power).
+     * @returns {undefined} undefined
+     * @private
+     */
     _animateFillMeter: function(fillMeter, rms) {
         fillMeter
             .stop()
@@ -46,23 +58,33 @@ var AudioMeter = {
             });
     },
 
-    /* Parameters:
-     *   client : VTCClient
-     *     VTCClient object of the current WebRTC session
+    /**
+     * Initializes the audio meter.
+     *
+     * @param {Object} client - VTCClient object of
+     * the current WebRTC session.
+     * @returns {undefined} undefined
+     * @public
      */
     init: function(client) {
         this._client = client;
     },
 
-    /* Parameters:
-     *   peerId : string
-     *     Peer ID that sent the associated message
+    /**
+     * Handles the peer message.
      *
-     *   content : Object({
-     *               rms : float
-     *             })
-     *     Contains the decibel percentage for use with populating the "width"
-     *     property of a DIV element.
+     * @param {String} peerId - Peer ID that sent
+     * the associated message.
+     * @param {Object} content - Contains the decibel
+     * percentage for use with populating the "width"
+     * property of a `<div>` element:
+     *
+     *    content: {
+     *        rms : float
+     *    }
+     *
+     * @returns {undefined} undefined
+     * @public
      */
     handlePeerMessage: function(peerId, content) {
         if (peerId !== this._client.getId()) {
@@ -78,21 +100,20 @@ var AudioMeter = {
         }
     },
 
-    /* Parameters:
-     *   peerId : string
-     *     Peer ID of the provided MediaStream object
+    /**
+     * Creates a new AudioMeter for the MediaStream for
+     * a given peerId.
      *
-     *   stream : MediaStream
-     *     MediaStream containing the audio and video information of the user.
-     *
-     *   meterFullElem : $(DIVElement)
-     *     DIV element representing the decibel amount (0 to 100%)
-     *
-     *   isLocalStream : boolean
-     *     This indicates that the current AudioMeter to be created is for the local
-     *     stream
-     *
-     * Creates a new AudioMeter for the MediaStream for peerId
+     * @param {String} peerId - Peer ID of the provided
+     * MediaStream object.
+     * @param {Object} stream - MediaStream instance containing
+     * the audio and video information of the user.
+     * @param {Object} meterFillElem - HTML `<div>` element
+     * representing the decibel amount (0 to 100%)
+     * @param {Boolean} isLocalStream - True if the AudioMeter
+     * to be created is for the local stream, false otherwise.
+     * @returns {undefined} undefined
+     * @public
      */
     create: function(peerId, stream, meterFillElem, isLocalStream) {
         var _this = this;
@@ -149,9 +170,14 @@ var AudioMeter = {
         };
     },
 
-    /* Parameters:
-     *   peerId : string
-     *     Peer ID of the AudioMeter to destroy
+    /**
+     * Destroys the AudioMeter associated
+     * with the provided Peer ID.
+     *
+     * @param {String} peerId - The peer ID of
+     * the AudioMeter to destroy.
+     * @returns {undefined} undefined
+     * @public
      */
     destroy: function(peerId) {
         var item = this._map[peerId];
