@@ -14,6 +14,7 @@
     "Handlebars": false,
     "Login": false,
     "NavBar": false,
+    "SoundClip": false,
     "vtcMain": false
   },
   "rules": {
