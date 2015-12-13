@@ -57,11 +57,12 @@ var Clock = {
      * @public
      */
     update: function() {
+        var _this = this;
         var date = new Date();
         var timeString = twoDigitNum(date.getHours()) + ':' + twoDigitNum(date.getMinutes());
         this.timeLabel.text(timeString);
         setTimeout(function() {
-            this.update();
+            _this.update();
         }, this.UPDATE_INTERVAL * 1000);
     }
 };
