@@ -1,11 +1,13 @@
-/* Defines a namespace for modal dialogues.
+/**
+ * @file Defines a namespace for modal dialogues.
  *
- * See css/dialog.css and index.html (look for DIV.modalDialog*) for HTML
- * and CSS implementation details.
+ * @see css/dialog.css and index.html (look for DIV.modalDialog*)
+ * for HTML and CSS implementation details.
  *
- * Requires:
- *   js/error.js
+ * @requires module:js/error
  */
+
+'use strict';
 
 // jQuery selectors
 var _appPage = $('.appPage');
@@ -17,6 +19,13 @@ var Dialog = {
     // Stores a list of queued messages to display to the user
     _queued: [],
 
+    /**
+     * Sets the content in the modal dialog.
+     *
+     * @param {Object} config - Configuration object.
+     * @returns {undefined} undefined
+     * @private
+     */
     _setDialogContent: function(config) {
         $('#modalDialogTitle').text(config.title);
         $('#modalDialogContent').html(config.content);
@@ -36,23 +45,28 @@ var Dialog = {
         _modalDialog.fadeIn();
     },
 
+    /**
+     * Centers the modal dialog vertically in the window.
+     *
+     * @returns {undefined} undefined
+     * @private
+     */
     _centerVertically: function() {
         // The subtract 15 comes from the padding property of #modalDialog
         var newTop = ($(window).height() / 2) - (_modalDialog.height() / 2) - 15;
         _modalDialog.css('top', newTop + 'px');
     },
 
-    /* Parameters:
-     *   config - an Object that contains the following properties:
-     *              title : String
-     *                The title of the modal dialog
+    /**
+     * Shows the dialog.
      *
-     *              content : HTML
-     *                The main content of the modal dialog
-     *
-     *              forceRefresh : boolean
-     *                This is for "fatal" error messages and adds a refresh button instead
-     *                of a close dialog button.
+     * @param {Object} config - Configuration object.
+     * @param {String} config.title - The title of the modal dialog.
+     * @param {String} config.content - Main HTML content of the modal dialog.
+     * @param {Boolean} config.forceRefresh - For "fatal" error messages. Adds
+     * a refresh button instead of a close dialog button.
+     * @returns {undefined} undefined
+     * @public
      */
     show: function(config) {
         if (config.title === undefined) {
@@ -74,6 +88,7 @@ var Dialog = {
     }
 };
 
+// Handles closing the modal dialog.
 _modalDialogClose.click(function() {
     if (Dialog._queued.length > 0) {
         // Fade out and in to denote a new message arrived
@@ -83,7 +98,6 @@ _modalDialogClose.click(function() {
         });
     } else {
         _modalDialog.fadeOut();
-
         _appPage.css('pointer-events', 'auto');
     }
 });
