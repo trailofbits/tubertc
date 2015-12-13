@@ -45,9 +45,9 @@ var vtcMain = function(params) {
 
     // Setup default VTC user interface state
     if (params.dashIsEnabled) {
-        trtc_dash.showDashMode();
+        trtcDash.showDashMode();
     } else {
-        trtc_dash.showHangoutsMode();
+        trtcDash.showHangoutsMode();
     }
 
     // FIXME: For some reason, media-presence peer messages arrive before onStreamAccepted. This causes media-presence
@@ -176,7 +176,7 @@ var vtcMain = function(params) {
             chatRoom.userEntered(peerId, peerName);
 
             // Create a new viewport and unmute the VideoElement
-            var port = trtc_dash.createGridForNewUser(peerName);
+            var port = trtcDash.createGridForNewUser(peerName);
             port.videoSrc.prop('muted', false);
             client.setVideoObjectSrc(port.videoSrc, stream);
 
@@ -210,7 +210,7 @@ var vtcMain = function(params) {
 
             var port = idToViewPort[peerId];
             if (port !== undefined) {
-                trtc_dash.removeUserWithGrid(port);
+                trtcDash.removeUserWithGrid(port);
 
                 if (typeof AudioMeter === 'object') {
                     AudioMeter.destroy(peerId);
@@ -253,7 +253,7 @@ var vtcMain = function(params) {
 
             // Create a viewport for ourself and make it mirrored, hide it initially to ensure
             // a smooth transition if camera is initially disabled
-            var viewport = trtc_dash.createGridForNewUser();
+            var viewport = trtcDash.createGridForNewUser();
             viewport.videoSrc
                 .css('display', 'none')
                 .addClass('video_mirror');
@@ -307,9 +307,9 @@ var vtcMain = function(params) {
             });
 
             NavBar.dashBtn.handle(function() {
-                trtc_dash.showDashMode();
+                trtcDash.showDashMode();
             }, function() {
-                trtc_dash.showHangoutsMode();
+                trtcDash.showHangoutsMode();
             });
     });
 };
