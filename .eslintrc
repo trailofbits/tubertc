@@ -8,12 +8,14 @@
   },
   "globals": {
     "AudioMeter": false,
+    "ChatCommands": false,
     "Clock": false,
     "Dialog": false,
     "ErrorMetric": false,
     "Handlebars": false,
     "Login": false,
     "NavBar": false,
+    "ShellQuote": false,
     "SoundClip": false,
     "vtcMain": false
   },
