@@ -61,7 +61,7 @@
     "no-with": 2,
     "one-var": [2, "never"],
     "operator-assignment": [2, "always"],
-    "quotes": [2, "single"],
+    "quotes": [2, "single", "avoid-escape"],
     "quote-props": [2, "as-needed", { keywords: true }],
     "radix": 2,
     "semi": [2, "always"],
