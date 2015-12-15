@@ -46,22 +46,24 @@ install_nodejs () {
         log "Ignoring node/npm command check, downloading node.js"
     fi
 
+    NODEJS_SHASUM_URL="https://nodejs.org/dist/v0.10.41/SHASUMS.txt"
+
     log "Detecting architecture and platform..."
     if [ $PLATFORM = "Darwin" ]; then
         if [ $ARCH = "x86_64" ]; then
             log "64-bit Mac OS X detected"
-            NODEJS_URL="http://nodejs.org/dist/v0.10.35/node-v0.10.35-darwin-x64.tar.gz"
+            NODEJS_URL="https://nodejs.org/dist/v0.10.41/node-v0.10.41-darwin-x64.tar.gz"
         elif [ $ARCH = "i686" ]; then
             log "32-bit Mac OS X detected"
-            NODEJS_URL="http://nodejs.org/dist/v0.10.35/node-v0.10.35-darwin-x86.tar.gz"
+            NODEJS_URL="https://nodejs.org/dist/v0.10.41/node-v0.10.41-darwin-x86.tar.gz"
         fi
     elif [ $PLATFORM = "Linux" ]; then
         if [ $ARCH = "x86_64" ]; then
             log "64-bit Linux detected"
-            NODEJS_URL="http://nodejs.org/dist/v0.10.35/node-v0.10.35-linux-x64.tar.gz"
+            NODEJS_URL="https://nodejs.org/dist/v0.10.41/node-v0.10.41-linux-x64.tar.gz"
         elif [ $ARCH = "i686" ]; then
             log "32-bit Linux detected"
-            NODEJS_URL="http://nodejs.org/dist/v0.10.35/node-v0.10.35-linux-x86.tar.gz"
+            NODEJS_URL="https://nodejs.org/dist/v0.10.41/node-v0.10.41-linux-x86.tar.gz"
         fi
     fi
 
@@ -80,7 +82,17 @@ install_nodejs () {
 
     if [ "$DOWNLOAD" = "1" ]; then
         log "Downloading node.js from $NODEJS_URL"
-        curl $NODEJS_URL 2> /dev/null | tar zxf -
+        curl $NODEJS_URL -o "$BASENAME" 2> /dev/null 
+        curl $NODEJS_SHASUM_URL -o SHASUMS.txt 2> /dev/null
+
+        EXPECTED_HASH=`grep $BASENAME SHASUMS.txt | awk '{print $1}'`
+        SHA1_HASH=`shasum $BASENAME | awk '{print $1}'`
+
+        if [ "$SHA1_HASH" != "$EXPECTED_HASH" ]; then
+           error "ERROR: SHA1 sums do not match Expected $EXPECTED_HASH got $SHA1_HASH"
+           exit 1
+        fi
+        tar zxf $BASENAME
         log "Download complete, extracted into $PWD/$BASENAME"
     else
         log "Found node.js instance at $PWD/$BASENAME"
@@ -92,6 +104,7 @@ install_nodejs () {
 }
 
 FORCE_NODEJS_DOWNLOAD=0
+INSTALL_AND_EXIT=0
 SPAWN_BROWSER=0
 
 # Shell script argument parsing from https://gist.github.com/jehiah/855086
@@ -106,6 +119,10 @@ while [ "$1" != "" ]; do
             ;;
         -f | --force)
             FORCE_NODEJS_DOWNLOAD=1
+            ;;
+        -i | --install)
+            FORCE_NODEJS_DOWNLOAD=1
+            INSTALL_AND_EXIT=1
             ;;
         --run)
             SPAWN_BROWSER=1
@@ -132,6 +149,11 @@ npm install
 if [ ! "$?" = "0" ]; then
     error "Failed to resolve node.js dependencies!"
     exit 1
+fi
+
+if [ "$INSTALL_AND_EXIT" = "1" ]; then
+  log "Installed tubertc and dependncies"
+  exit 0
 fi
 
 log "Running TubeRTC"
