@@ -8,6 +8,7 @@
   },
   "globals": {
     "AudioMeter": false,
+    "chance": false,
     "Chat": false,
     "ChatCommands": false,
     "Clock": false,
