@@ -1,17 +1,25 @@
-/* Defines the chat panel UI elements.
+/**
+ * @file Defines the chat panel UI elements.
  *
- * Requires:
- *   Handlebars.js
- *   js/chat-cmds.js
- *   js/sound.js
- *   js/error.js
+ * @requires Handlebars.js
+ * @requires module:js/chat-cmds
+ * @requires module:js/sound
+ * @requires module:js/error
  */
+
+'use strict';
 
 // jQuery selectors
 var _chatTextEntry = $('#chatTextEntry');
 var _chatControlPane = $('.chatControlPane');
 var _chatHistoryPane = $('.chatHistoryPane');
 
+/**
+ * Resizes the chat panes.
+ *
+ * @returns {undefined} undefined
+ * @public
+ */
 var resizeChatPanes = function() {
     // outerHeight() includes padding but not margin, margin-top is 2px (see chat.css)
     var chatTextEntryHeight = _chatTextEntry.outerHeight() + 2;
@@ -22,13 +30,27 @@ var resizeChatPanes = function() {
     _chatHistoryPane.css('height', historyPaneHeight + 'px');
 };
 
+/**
+ * Generates a random color.
+ *
+ * @returns {String} A string representing
+ * a random HSL color.
+ * @public
+ */
 var getRandomColor = function() {
     var h = Math.floor((Math.random() * 360) / 24) * 24;
     return 'hsl(' + h + ', 100%, 25%)';
 };
 
-// TODO(input): make sure that roomName is santitized
+/**
+ * Creates a new chat instance.
+ *
+ * @param {String} roomName - The room name.
+ * @class
+ */
 var Chat = function(roomName) {
+    // @todo (input): make sure that roomName is sanitized
+
     // An Object storing mappings of peerId : String => userName : String
     var _peerIdMap = {};
 
@@ -51,6 +73,13 @@ var Chat = function(roomName) {
     // Default time-to-live for notifications (in seconds)
     this.kDefaultNotificationTimeout = 3;
 
+    /**
+     * Appends a line to the chat history.
+     *
+     * @param {String} content - Chat content.
+     * @returns {undefined} undefined
+     * @private
+     */
     this._appendLine = function(content) {
         _chatHistoryPane
             .append(content)
@@ -102,7 +131,12 @@ var Chat = function(roomName) {
         '<div class="chatMessage">{{msg}}</div>'
     );
 
-    // Returns a time stamp of the hours, minutes, and seconds
+    /**
+     * Returns a timestamp of the hours, minutes, and seconds.
+     *
+     * @returns {String} the timestamp.
+     * @public
+     */
     var getTimeStamp = function() {
         var date = new Date();
         var hours = '' + date.getHours();
@@ -120,6 +154,15 @@ var Chat = function(roomName) {
         return hours + ':' + min + ':' + secs;
     };
 
+    /**
+     * Generates a unique color.
+     *
+     * @param {String} peerId - The peer for whom
+     * we want to apply a unique color.
+     * @returns {String} A string representing
+     * a random HSL color.
+     * @private
+     */
     this._generateUniqueColor = function(peerId) {
         var tries = 5;
         var hsvColor = getRandomColor();
@@ -143,6 +186,16 @@ var Chat = function(roomName) {
         return hsvColor;
     };
 
+    /**
+     * Generates a chat notification.
+     *
+     * @param {String} title - Notification title.
+     * @param {String} msg - Notification message/content.
+     * @param {Number} ttl - Number of seconds to wait
+     * before closing the notification.
+     * @returns {undefined} undefined
+     * @private
+     */
     this._notify = function(title, msg, ttl) {
         if (this.showNotifications) {
             var notification = new Notification(title, {
@@ -164,33 +217,35 @@ var Chat = function(roomName) {
         }
     };
 
-    /* Parameters:
-     *   None
+    /**
+     * Maps peerIds to usernames.
      *
-     * Return:
-     *   Object({ peerId : string => userName : string})
-     *
-     * Returns the mapping of peerIds to usernames
+     * @returns {Object} A mapping of peerId => username,
+     * _i.e._ { peerId : string => userName : string }
+     * @public
      */
     this.getPeerIdToUserNameMap = function() {
         return _peerIdMap;
     };
 
-    /* Parameters:
-     *   peerId : String
-     *     The RTC peer ID of the user that entered the chatroom
+    /**
+     * Handles notification when a user enters the room.
      *
-     *   userName : String
-     *     The name of the user that entered the chatroom
+     * @param {String} peerId - The RTC peer ID of the
+     * user that entered the chatroom.
+     * @param {String} userName - The name of the user
+     * that entered the chatroom.
+     * @returns {Object} The current Chat instance.
+     * @public
      */
     this.userEntered = function(peerId, userName) {
         var _this = this;
 
-        // TODO: should we give self a special color?
+        // @todo Should we give self a special color?
         if (this.peerId !== null) {
             var hsvColor = this._generateUniqueColor(peerId);
 
-            // TODO(input): both userName and roomName come from user-supplied values, are they safe?
+            // @todo (input): both userName and roomName come from user-supplied values, are they safe?
             var content = this.userEnteredTmpl({
                 color: hsvColor,
                 user: userName,
@@ -213,12 +268,15 @@ var Chat = function(roomName) {
         return this;
     };
 
-    /* Parameters:
-     *   peerId : String
-     *     The peerId of the user that left the chatroom
+    /**
+     * Removes peerId from the chat. We don't use usernames
+     * because they can collide. Peer IDs are much more unique
+     * and map to user names.
      *
-     * Removes peerId from the chat. We don't use usernames because they can collide. Peer IDs are much
-     * more unique and map to user names.
+     * @param {String} peerId - The peerId of the user that
+     * left the chatroom.
+     * @returns {Object} The current Chat instance.
+     * @public
      */
     this.userLeft = function(peerId) {
         var _this = this;
@@ -227,7 +285,7 @@ var Chat = function(roomName) {
 
             var hsvColor = this.peerColorMap[peerId];
             if (hsvColor !== undefined) {
-                // TODO(input): roomName and userName are from tainted user input
+                // @todo (input): roomName and userName are from tainted user input
                 var content = this.userLeftTmpl({
                     color: hsvColor,
                     user: userName,
@@ -258,9 +316,13 @@ var Chat = function(roomName) {
         return this;
     };
 
-    /* Parameters:
-     *   message : String
-     *     The notification message to be added to the Chat interface
+    /**
+     * Adds a notification to the chat.
+     *
+     * @param {String} message - The notification
+     * message to be added to the Chat interface.
+     * @returns {Object} The current Chat instance.
+     * @public
      */
     this.addNotification = function(message) {
         var _this = this;
@@ -273,9 +335,17 @@ var Chat = function(roomName) {
         return this;
     };
 
-    // This is called by the peer message handler in room.js. The content is a raw message Object.
-    // Originally, room.js called addMessage but since we are adding new features, this provides
-    // more versatility.
+    /**
+     * Handles peer messages; called by the peer message handler in `room.js.`
+     * The content is a raw message object. Originally, `room.js` called
+     * `.addMessage()`, but since we are adding new features, this provides
+     * more versatility.
+     *
+     * @param {String} peerId - The peer ID whose message we're handling.
+     * @param {String} content - The message content.
+     * @returns {undefined} undefined
+     * @public
+     */
     this.handlePeerMessage = function(peerId, content) {
         if (typeof content.msg === 'string') {
             // New Chat Message message
@@ -283,7 +353,7 @@ var Chat = function(roomName) {
             //     msg : string
             //   }
             this.addMessage(peerId, content.msg);
-        // TODO(potato): implement potato message handler here
+        // @todo (potato): implement potato message handler here
         } else if (typeof content.cmd === 'string') {
             // Chat Command Message
             //   {
@@ -296,21 +366,30 @@ var Chat = function(roomName) {
         }
     };
 
-    // This function deals with handling chat commands (if valid). If a valid chat command is encountered,
-    // this function returns true.
+    /**
+     * Handles chat commands (if valid). If a valid chat command is encountered,
+     * this function returns true.
+     *
+     * @param {String} message - Chat command.
+     * @returns {Boolean} True if the command provided
+     * was valid, false otherwise.
+     * @private
+     */
     var _handleChatCommand = function(message) {
         return ChatCommands.handleCommand(message);
     };
 
-    /* Parameters:
-     *   peerId : String
-     *     The peer ID of the user that sent a message.
+    /**
+     * Adds a message to the chat.
      *
-     *   message : String
-     *     The contents of the message sent by peerId.
+     * @param {String} peerId - The peer ID of the
+     * user that sent a message.
+     * @param {String} message - The contents of the
+     * message sent by peerId.
+     * @returns {Object} The current Chat instance.
+     * @public
      */
     this.addMessage = function(peerId, message) {
-        var _this = this;
         if (this.peerId !== null) {
             var userName = _peerIdMap[peerId];
             var hsvColor = this.peerColorMap[peerId];
@@ -318,7 +397,7 @@ var Chat = function(roomName) {
                 var content = null;
 
                 if (!_handleChatCommand(message)) {
-                    // TODO(input): userName and message come from user input
+                    // @todo (input): userName and message come from user input
                     if (_lastPeerIdMessage !== peerId) {
                         content = this.messageTmpl({
                             color: hsvColor,
@@ -347,19 +426,18 @@ var Chat = function(roomName) {
         return this;
     };
 
-    /* Parameter:
-     *   peerId : String
-     *     The peer ID of the current user.
+    /**
+     * Sets up the user controls, binds the user name, and registers a callback for
+     * the Chat UI. This connects the components such that messages can be sent out.
      *
-     *   userName : String
-     *     The name of the current user.
-     *
-     *   sendMessageFn : function(message) => {true, false}
-     *     A callback that gets passed the message from the text entry field. This should tie-in
-     *     with a backend that does the busy work of actually sending the message.
-     *
-     * This function sets up the user controls, binds the user name, and registers a call back
-     * for the Chat UI. This connects the components such that messages can get sent out.
+     * @param {String} peerId - The peer ID of the current user.
+     * @param {String} userName - The name of the current user.
+     * @param {Function} sendMessageFn - A callback that gets passed the message
+     * from the text entry field. Takes a message string and returns a boolean
+     * (true on success, false on failure). This should tie-in with a backend that
+     * does the busy work of actually sending the message.
+     * @returns {Object} The current Chat instance.
+     * @public
      */
     this.initialize = function(peerId, userName, sendMessageFn) {
         var _this = this;
@@ -369,7 +447,7 @@ var Chat = function(roomName) {
 
         this.sendMessage = sendMessageFn;
 
-        // FIXME: it would be cool to have some text here...
+        // @todo FIXME: it would be cool to have some text here...
         this.addNotification('Welcome! Feel free to use this to communicate.');
         this.addNotification('To see a list of chatroom commands, type /help');
         this.userEntered(peerId, userName);
@@ -407,8 +485,8 @@ var Chat = function(roomName) {
                 if (e.which === 13) {
                     var msg = _chatTextEntry.text();
                     if (sendMessageFn({
-                            msg: msg
-                        })) {
+                        msg: msg
+                    })) {
                         _this.addMessage(_this.peerId, msg);
                     } else {
                         ErrorMetric.log('chatTextEntry.click() => failed to send message');
@@ -419,7 +497,7 @@ var Chat = function(roomName) {
                         .text('');
                     resizePanes = true;
                 } else if (e.which === 38) {
-                    // TODO(last command): implement
+                    // @todo (last command): implement
                     var val = _chatTextEntry.text();
                     if (val.length === 0 && _lastCommand !== null) {
                         _chatTextEntry
@@ -453,7 +531,12 @@ var Chat = function(roomName) {
         return this;
     };
 
-    // Slides the chat panel down
+    /**
+     * Slides the chat panel down.
+     *
+     * @returns {Object} The current Chat instance.
+     * @public
+     */
     this.show = function() {
         $('.chatPanel')
             .stop(false, true)
