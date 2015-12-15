@@ -1,10 +1,17 @@
-/* Defines the items and connects the logic of the navigation bar.
+/**
+ * @file Defines the items and connects the logic of the navigation bar.
  *
- * Requires:
- *   js/error.js
+ * @requires module:js/error
  */
 
-// Defines a normal button
+'use strict';
+
+/**
+ * Defines a normal button.
+ *
+ * @param {String} id - CSS ID selector.
+ * @class
+ */
 var Button = function(id) {
     var idSel = $(id);
     var _kDefaultColor = '#cccccc';
@@ -15,10 +22,23 @@ var Button = function(id) {
     this.clickFn = null;
 
     var _this = this;
+
+    /**
+     * Fills the element with the default color.
+     *
+     * @returns {undefined} undefined
+     * @private
+     */
     var _paintColor = function() {
         idSel.css('fill', _kDefaultColor);
     };
 
+    /**
+     * Disables the button.
+     *
+     * @returns {undefined} undefined
+     * @public
+     */
     this.disableButton = function() {
         _buttonIsEnabled = false;
         idSel
@@ -26,6 +46,12 @@ var Button = function(id) {
             .css('fill', _kDisabledColor);
     };
 
+    /**
+     * Enables the button.
+     *
+     * @returns {undefined} undefined
+     * @public
+     */
     this.enableButton = function() {
         _buttonIsEnabled = true;
         idSel
@@ -33,9 +59,13 @@ var Button = function(id) {
             .css('fill', _kDefaultColor);
     };
 
-    /* Parameters:
-     *   clickFn : function()
-     *     Callback function that is called upon clicking the button
+    /**
+     * Click handler.
+     *
+     * @param {Function} clickFn - Callback function
+     * that is called upon clicking the button.
+     * @returns {undefined} undefined
+     * @public
      */
     this.onClick = function(clickFn) {
         this.clickFn = clickFn;
@@ -68,7 +98,14 @@ var Button = function(id) {
     return this;
 };
 
-// Defines a button that acts like a checkbox
+/**
+ * Defines a button that acts like a checkbox.
+ *
+ * @param {String} id - CSS ID selector.
+ * @param {Boolean} selected - True if selected,
+ * false otherwise.
+ * @class
+ */
 var StatefulButton = function(id, selected) {
     var idSel = $(id);
     var _kSelectedColor = '#009966';
@@ -85,6 +122,13 @@ var StatefulButton = function(id, selected) {
     }
 
     var _this = this;
+
+    /**
+     * Fills the element with the appropriate color.
+     *
+     * @returns {undefined} undefined
+     * @private
+     */
     var _paintColor = function() {
         if (_this.selected) {
             idSel.css('fill', _kSelectedColor);
@@ -96,30 +140,43 @@ var StatefulButton = function(id, selected) {
     var _toggleCallbacks = {};
     var _currentToggleId = 0;
 
+    /**
+     * Invokes all toggle listener callbacks.
+     *
+     * @param {Boolean} newState - The new state
+     * to provide to the callbacks.
+     * @returns {undefined} undefined
+     * @private
+     */
     var _invokeToggleListenerCallbacks = function(newState) {
-        for (var i in _toggleCallbacks) {
-            _toggleCallbacks[i](newState);
+        for (var cb in _toggleCallbacks) {
+            if (_toggleCallbacks.hasOwnProperty(cb)) {
+                _toggleCallbacks[cb](newState);
+            }
         }
     };
 
-    /*
-     * Parameters:
-     *   handler : function (newState)
-     *     Callback function that gets called on a toggle with the new state as the argument
+    /**
+     * Adds a toggle event listener.
      *
-     * Return:
-     *   number
-     *     The ID of the just registered event listener callback (to be used with removeToggleEventListener)
+     * @param {Function} handler - Callback function that gets
+     * called on a toggle with the new state as the argument.
+     * @returns {Number} The ID of the just registered event
+     * listener callback (to be used with removeToggleEventListener).
+     * @public
      */
     this.addToggleEventListener = function(handler) {
         _toggleCallbacks[_currentToggleId] = handler;
         return _currentToggleId++;
     };
 
-    /*
-     * Parameters:
-     *   id : number
-     *     ID of the toggle event listener to delete
+    /**
+     * Removes a toggle event listener.
+     *
+     * @param {Number} id - ID of the toggle
+     * event listener to delete.
+     * @returns {undefined} undefined
+     * @public
      */
     this.removeToggleEventListener = function(id) {
         if (_toggleCallbacks[id] !== undefined) {
@@ -129,6 +186,12 @@ var StatefulButton = function(id, selected) {
         }
     };
 
+    /**
+     * Disables the button.
+     *
+     * @returns {undefined} undefined
+     * @public
+     */
     this.disableButton = function() {
         _buttonIsEnabled = false;
         idSel
@@ -136,10 +199,23 @@ var StatefulButton = function(id, selected) {
             .attr('title', 'Button is disabled');
     };
 
+    /**
+     * Checks whether the button is enabled.
+     *
+     * @returns {Boolean} True if enabled,
+     * false otherwise.
+     * @public
+     */
     this.isEnabled = function() {
         return _buttonIsEnabled;
     };
 
+    /**
+     * Enables the button.
+     *
+     * @returns {undefined} undefined
+     * @public
+     */
     this.enableButton = function() {
         _buttonIsEnabled = true;
         idSel
@@ -147,11 +223,22 @@ var StatefulButton = function(id, selected) {
             .removeAttr('title');
     };
 
+    /**
+     * Clicks the button.
+     *
+     * @returns {undefined} undefined
+     * @public
+     */
     this.clickButton = function() {
         idSel.click();
     };
 
-    /* Toggles the state of the button and repaints the button's icon color
+    /**
+     * Toggles the state of the button and
+     * repaints the button's icon color.
+     *
+     * @returns {undefined} undefined
+     * @public
      */
     this.toggle = function() {
         if (_buttonIsEnabled) {
@@ -166,19 +253,30 @@ var StatefulButton = function(id, selected) {
         }
     };
 
-    /* Parameters:
-     *   selectedFn  : function()
-     *     Callback that is invoked when the button is clicked and the new state is SELECTED.
+    /**
+     * Handler that registers functions for button
+     * selection and deselection.
      *
-     *   unselectedFn : function()
-     *     Callback that is invoked when the button is clicked and the new state is UNSELECTED.
+     * @param {Function} selectedFn - Callback that
+     * is invoked when the button is clicked and the
+     * new state is SELECTED.
+     * @param {Function} unselectedFn - Callback that
+     * is invoked when the button is clicked and the
+     * new state is UNSELECTED.
+     * @returns {undefined} undefined
+     * @public
      */
     this.handle = function(selectedFn, unselectedFn) {
         this.selectedFn = selectedFn;
         this.unselectedFn = unselectedFn;
     };
 
-    /* Returns the current state of the button
+    /**
+     * Returns the current state of the button.
+     *
+     * @returns {Boolean} True if selected,
+     * false otherwise.
+     * @public
      */
     this.isSelected = function() {
         return this.selected;
@@ -229,7 +327,12 @@ var NavBar = {
     dashBtn: null,
     attrBtn: null,
 
-    // Initializes the navBar buttons
+    /**
+     * Initializes the navBar buttons.
+     *
+     * @returns {undefined} undefined
+     * @public
+     */
     initialize: function() {
         this.cameraBtn = new StatefulButton('#cameraBtn', true);
         this.micBtn = new StatefulButton('#micBtn', true);
@@ -237,7 +340,12 @@ var NavBar = {
         this.attrBtn = new Button('#attrBtn');
     },
 
-    // Fades in the navBar
+    /**
+     * Fades in the navBar.
+     *
+     * @returns {undefined} undefined
+     * @public
+     */
     show: function() {
         $('.navBar').fadeIn();
     }
