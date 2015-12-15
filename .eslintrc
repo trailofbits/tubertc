@@ -13,6 +13,7 @@
     "Clock": false,
     "DebugConsole": flase,
     "Dialog": false,
+    "easyrtc": false,
     "ErrorMetric": false,
     "Handlebars": false,
     "Login": false,
