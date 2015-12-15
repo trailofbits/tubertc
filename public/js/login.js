@@ -1,4 +1,5 @@
-/* This handles the following:
+/**
+ * @file This handles the following:
  *   + Parsing of the query string for a roomName (if it exists)
  *   + Checking localStorage to determine the following information:
  *     - Is a userName key set with a valid value? If so, autopopulate the username field with this
@@ -20,18 +21,32 @@
  *       and focus to direct user to the problematic field
  *   + Update localStorage fields with the new values.
  *
- * Requires:
- *   js/error.js
- *   js/navbar.js
- *   js/dialog.js
- *   js/vtc.js
- *   Chance.js
+ * @requires module:js/error
+ * @requires module:js/navbar
+ * @requires module:js/dialog
+ * @requires module:js/vtc
+ * @requires Chance.js
  */
 
+'use strict';
+
+/**
+ * Generates a random room name.
+ *
+ * @returns {String} A random room name.
+ * @public
+ */
 var generateRoomName = function() {
     return chance.word() + '-' + chance.hash().substring(0, 8);
 };
 
+/**
+ * Converts a room name to an RTC room name.
+ *
+ * @param {String} roomName - The room name.
+ * @returns {String} A room name suitable for RTC.
+ * @public
+ */
 var toRtcRoomName = function(roomName) {
     return roomName
             .replace(/[^\w\s]/gi, '')
@@ -40,7 +55,12 @@ var toRtcRoomName = function(roomName) {
 
 // Provides a namespace to parse the room name from the querystring
 var Query = {
-    /* DO NOT TRUST OUTPUT FROM THIS FUNCTION
+    /**
+     * Gets a room name.
+     * DO NOT TRUST OUTPUT FROM THIS FUNCTION
+     *
+     * @returns {String} The room name.
+     * @public
      */
     getRoomName: function() {
         var queryStart = '?room=';
@@ -59,13 +79,20 @@ var Query = {
 };
 
 var StorageCookie = {
-    /* The Object structure for our StorageCookie should look like the dictionary below:
-     *   {
-     *     "userName"        : <string>,
-     *     "cameraIsEnabled" : <bool>,
-     *     "micIsEnabled"    : <bool>,
-     *     "dashModeEnabled" : <bool>
-     *   }
+    // The Object structure for our StorageCookie should look like the dictionary below:
+    //   {
+    //     "userName"        : <string>,
+    //     "cameraIsEnabled" : <bool>,
+    //     "micIsEnabled"    : <bool>,
+    //     "dashModeEnabled" : <bool>
+    //   }
+
+    /**
+     * Validates the StorageCookie.
+     *
+     * @param {Object} dict - StorageCookie configuration object.
+     * @returns {Boolean} True if valid, false otherwise.
+     * @private
      */
     _validate: function(dict) {
         return (typeof dict.userName === 'string' &&
@@ -74,6 +101,13 @@ var StorageCookie = {
                 typeof dict.dashModeEnabled === 'boolean');
     },
 
+    /**
+     * Sets the StorageCookie.
+     *
+     * @param {Object} config - StorageCookie configuration object.
+     * @returns {Boolean} True if successful, false otherwise.
+     * @public
+     */
     set: function(config) {
         if (this._validate(config)) {
             localStorage.tubertc = JSON.stringify(config);
@@ -85,16 +119,17 @@ var StorageCookie = {
         }
     },
 
-    /* Parameters:
-     *   key : String
-     *     Key part of the key-value pair.
+    /**
+     * Sets a value on the storage cookie. This function assumes the
+     * existence of `localStorage.tubertc`. If it doesn't exist, it will
+     * fail. Otherwise, it will find the "key" in `localStorage.tubertc`
+     * and update it to the new value.
      *
-     *   value : *
-     *     This value can be of any type and is returned whenever key is referenced.
-     *
-     *   This function assumes the existence of localStorage.tubertc. If it doesn't exist,
-     *   it will fail. Otherwise, it will find the "key" in localStorage.tubertc and
-     *   update it to the new value.
+     * @param {String} key - Key part of the key-value pair.
+     * @param {*} value - This value can be of any type and
+     * is returned whenever key is referenced.
+     * @returns {Boolean} True if successful, false otherwise.
+     * @public
      */
     setValue: function(key, value) {
         var config = this.get();
@@ -112,7 +147,12 @@ var StorageCookie = {
         }
     },
 
-    /* DO NOT TRUST THE RETURNED OBJECT: The userName field needs to be sanitized.
+    /**
+     * Gets the StorageCookie.
+     * DO NOT TRUST THE RETURNED OBJECT: The userName field needs to be sanitized.
+     *
+     * @returns {Object} The StorageCookie dict if successful, `null` otherwise.
+     * @public
      */
     get: function() {
         var rawConfig = localStorage.tubertc;
@@ -138,7 +178,14 @@ var StorageCookie = {
         }
     },
 
-    /* DO NOT TRUST userName: it needs to be sanitized before use!
+    /**
+     * Gets the value associated with the key.
+     * DO NOT TRUST userName: it needs to be sanitized before use!
+     *
+     * @param {String} key - The key to look up.
+     * @returns {*} The value associated with the key, or `null`
+     * if either the key is invalid or `StorageCookie.get()` fails.
+     * @public
      */
     getValue: function(key) {
         var config = this.get();
@@ -166,15 +213,16 @@ var _roomNameEntry = $('#roomNameEntry');
 var Login = {
     _completionFn: null,
 
-    /* Returns:
-     *   status : (String|null)
-     *     The return status value has three possible states which mean the following:
-     *       'full'     - All APIs are supported and browser is well tested
-     *       'untested' - All APIs are supported but browser is not as well tested
-     *       null       - Some required APIs are not supported
+    /**
+     * Checks to ensure that the current browser has
+     * the support needed to successfully use tubertc.
      *
-     * This function checks to ensure that the current browser has the support needed
-     * to successfully use tubertc
+     * @returns {String|null} The return status value. It has three possible
+     * states, which mean the following:
+     * 'full'     - All APIs are supported and browser is well tested
+     * 'untested' - All APIs are supported but browser is not as well tested
+     * null       - Some required APIs are not supported
+     * @private
      */
     _browserCompatCheck: function() {
         var userAgent = navigator.userAgent;
@@ -200,7 +248,7 @@ var Login = {
             return null;
         }
 
-        // FIXME: We only have tested Chrome, need to refactor this once more browsers are tested
+        // @todo FIXME: We only have tested Chrome, need to refactor this once more browsers are tested
         if ('chrome' in window) {
             return 'full';
         } else {
@@ -208,6 +256,13 @@ var Login = {
         }
     },
 
+    /**
+     * Validates the user and room names.
+     *
+     * @returns {Boolean} True if user name and
+     * room name are valid, false otherwise.
+     * @private
+     */
     _validate: function() {
         var userName = $.trim(_userNameEntry.val());
         var roomName = $.trim(_roomNameEntry.val());
@@ -233,19 +288,18 @@ var Login = {
         return true;
     },
 
-    /* Parameters:
-     *   config : Object
-     *     {
-     *       cameraBtn : <StatefulButton>,
-     *       micBtn    : <StatefulButton>,
-     *       dashBtn   : <StatefulButton>
-     *     }
+    /**
+     * Sets up the handlers for the initial "page" form.
      *
-     * Return:
-     *   Login
-     *     This returns itself for chaining purposes.
+     * @param {Object} config - Configuration object of the form:
+     * {
+     *     cameraBtn : <StatefulButton>,
+     *     micBtn    : <StatefulButton>,
+     *     dashBtn   : <StatefulButton>
+     * }
      *
-     * This function is responsible for setting up the handlers for the initial "page" form.
+     * @returns {Object} The current Login instance for chaining purposes.
+     * @public
      */
     initialize: function(config) {
         var _this = this;
@@ -267,7 +321,7 @@ var Login = {
             _roomNameEntry.prop('disabled', true);
             _joinBtn.prop('disabled', true);
 
-            // FIXME: proofread and make this better
+            // @todo FIXME: proofread and make this better
             _loginAlert
                 .html(
                     'Your browser <b>does not</b> support some of the required APIs.<br>' +
@@ -286,7 +340,7 @@ var Login = {
             // Break chaining to indicate error
             return null;
         } else if (compatStatus === 'untested') {
-            // FIXME: proofread and make this better
+            // @todo FIXME: proofread and make this better
             _loginAlert
                 .html(
                     'Your browser configuration has not been extensively tested. ' +
@@ -301,7 +355,7 @@ var Login = {
         var roomName = Query.getRoomName();
 
         if (userName !== null) {
-            // TODO: verify that this doesn't introduce XSS
+            // @todo Verify that this doesn't introduce XSS
             _userNameEntry.val(userName);
         }
 
@@ -336,7 +390,7 @@ var Login = {
                 _setInitialBtnState(false, config.cameraBtn);
                 config.cameraBtn.disableButton();
 
-                // FIXME: maybe add a different sort of notification, like a tooltip?
+                // @todo FIXME: maybe add a different sort of notification, like a tooltip?
                 _loginMsg
                     .html('Disabling camera because not a camera could be found.')
                     .slideDown();
@@ -395,8 +449,8 @@ var Login = {
                 } else {
                     ErrorMetric.log('joinBtn.click => _completionFn not set');
 
-                    // FIXME: this case should not happen since we immediately call
-                    //        done() to set the completion handler
+                    // @todo FIXME: this case should not happen since we immediately call
+                    //              done() to set the completion handler
                     Dialog.show('An Error Has Occurred', 'tubertc has broke!');
                 }
             } else {
@@ -407,24 +461,24 @@ var Login = {
         return this;
     },
 
-    /* Parameters:
-     *   completionFn : function({
-     *                    userName        : <String>,
-     *                    roomName        : <String>,
-     *                    rtcName         : <String>,
-     *                    cameraIsEnabled : <boolean>,
-     *                    hasCamera       : <boolean>,
-     *                    micIsEnabled    : <boolean>,
-     *                    hasMic          : <boolean>,
-     *                    dashModeEnabled : <boolean>
-     *                  })
-     *     This function is called when the "Join Room" button is clicked and all the input is validated.
-     *     At this point, both the userName and roomName are considered UNTRUSTED and should be sanitized
-     *     using Handlebars.
+    /**
+     * Completion handler, called when the "Join Room" button is clicked and all the input is validated.
+     * At this point, both the userName and roomName are considered UNTRUSTED and should be sanitized
+     * using Handlebars.
      *
-     * Return:
-     *   Login
-     *     Returns itself for chaining purposes.
+     * @param {Function} completionFn - Completion callback of the form:
+     * function({
+     *     userName        : <String>,
+     *     roomName        : <String>,
+     *     rtcName         : <String>,
+     *     cameraIsEnabled : <boolean>,
+     *     hasCamera       : <boolean>,
+     *     micIsEnabled    : <boolean>,
+     *     hasMic          : <boolean>,
+     *     dashModeEnabled : <boolean>
+     * })
+     * @returns {Object} The current Login instance for chaining purposes.
+     * @public
      */
     done: function(completionFn) {
         this._completionFn = completionFn;
