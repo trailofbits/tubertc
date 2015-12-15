@@ -1,27 +1,36 @@
-/* Defines the VTC room logic.
+/**
+ * @file Defines the VTC room logic.
  *
- * Requires:
- *   js/chat.js
- *   js/error.js
- *   js/navbar.js
- *   js/dialog.js
- *   js/viewports.js
- *   js/audiometer.js
- *   Handlebars.js
+ * @requires module:js/chat
+ * @requires module:js/error
+ * @requires module:js/navbar
+ * @requires module:js/dialog
+ * @requires module:js/viewports
+ * @requires module:js/audiometer
+ * @requires Handlebars.js
  *
- *   telemetry/debug.js (optional)
+ * telemetry/debug.js is optional.
  */
 
-// Entry point for when the VTC chat is ready to start (after user clicks Join Room button)
+'use strict';
+
+/**
+ * Entry point for when the VTC chat is ready to start
+ * (after user clicks Join Room button).
+ *
+ * @param {Object} params - Initialization parameters.
+ * @returns {undefined} undefined
+ * @public
+ */
 var vtcMain = function(params) {
-    // XXX(debug): If debugging mode is enabled (DebugConsole is a valid function), instantiate a new instance of
-    //             DebugConsole
+    // @todo XXX(debug): If debugging mode is enabled (DebugConsole is a valid function),
+    // instantiate a new instance of DebugConsole
     var dbgListener = null;
     if (typeof DebugConsole === 'object' && typeof DebugConsole.Listener === 'function') {
         dbgListener = new DebugConsole.Listener();
     }
 
-    // TODO(input): verify that passing params.roomName to .text() is not susceptible to XSS/etc
+    // @todo (input): verify that passing params.roomName to .text() is not susceptible to XSS/etc
     $('#roomNameField')
         .text(params.roomName)
         .fadeIn(function() {
@@ -43,16 +52,16 @@ var vtcMain = function(params) {
         NavBar.micBtn.disableButton();
     }
 
-    // Setup default VTC user interface state
+    // Set up default VTC user interface state
     if (params.dashIsEnabled) {
         trtcDash.showDashMode();
     } else {
         trtcDash.showHangoutsMode();
     }
 
-    // FIXME: For some reason, media-presence peer messages arrive before onStreamAccepted. This causes media-presence
-    //        to be handled correctly since no peerId exists in idToViewPort. To deal with this, we need a queue to
-    //        store all the messages for execution later.
+    // @todo FIXME: For some reason, media-presence peer messages arrive before onStreamAccepted. This causes media-presence
+    //              to be handled correctly since no peerId exists in idToViewPort. To deal with this, we need a queue to
+    //              store all the messages for execution later.
     var mediaPresenceMap = {};
 
     // Instantiate the Chat object
@@ -61,7 +70,16 @@ var vtcMain = function(params) {
     // Maps peerIds to Viewport objects
     var idToViewPort = {};
 
-    // Helper for sending media presence messages
+    /**
+     * Helper for sending media presence messages.
+     *
+     * @param {Object} client - Client instance.
+     * @param {String} mediaType - The media type.
+     * @param {Boolean} mediaEnabled - True if
+     * enabled, false otherwise.
+     * @returns {undefined} undefined
+     * @private
+     */
     var sendMediaPresence = function(client, mediaType, mediaEnabled) {
         client.sendPeerMessage({
             room: params.rtcName
@@ -71,7 +89,15 @@ var vtcMain = function(params) {
         });
     };
 
-    // Helper for handling media presence messages.
+    /**
+     * Helper for handling media presence messages.
+     *
+     * @param {Object} client - Client instance.
+     * @param {String} peerId - The current peer ID.
+     * @param {Object} content - Media presence message content.
+     * @returns {undefined} undefined
+     * @private
+     */
     var handleMediaPresence = function(client, peerId, content) {
         var viewport = idToViewPort[peerId];
         if (viewport !== undefined) {
@@ -94,7 +120,7 @@ var vtcMain = function(params) {
     VTCCore
         .initialize({
             cameraIsEnabled: params.hasCamera,
-            micIsEnabled: params.hasMic,
+            micIsEnabled: params.hasMic
         })
         .onError(function(config) {
             NavBar.cameraBtn.enableButton();
@@ -109,17 +135,16 @@ var vtcMain = function(params) {
             } else if (msgType === 'media-presence' &&
                        typeof content.type === 'string' &&
                        typeof content.enabled === 'boolean') {
-                /* 'media-presence' peerMessage
-                 *   Example format:
-                 *     {
-                 *       type    : <String>,
-                 *       enabled : <boolean>
-                 *     }
-                 *
-                 *   Possible types:
-                 *     'camera' : indicates a change in the camera status from a peer
-                 *     'mic'    : indicates a change in the mic status from a peer
-                 */
+                // 'media-presence' peerMessage
+                //   Example format:
+                //     {
+                //       type    : <String>,
+                //       enabled : <boolean>
+                //     }
+                //
+                //   Possible types:
+                //     'camera' : indicates a change in the camera status from a peer
+                //     'mic'    : indicates a change in the mic status from a peer
                 if (idToViewPort[peerId] !== undefined) {
                     handleMediaPresence(client, peerId, content);
                 } else {
@@ -130,29 +155,29 @@ var vtcMain = function(params) {
                     mediaPresenceMap[peerId].push(content);
                 }
             } else if (msgType === 'debug') {
-                // XXX(debug): handle debug messages
+                // @todo XXX(debug): handle debug messages
                 if (dbgListener !== null) {
                     dbgListener.handlePeerMessage(client, peerId, content);
                 } else {
                     ErrorMetric.log('peerMessage => debug message got in non-debug mode!');
                 }
             } else if (msgType === 'mic-control' && typeof content.enabled === 'boolean') {
-                // FIXME XXX XXX: Might be an issue with this feature. The ability to remotely
-                //                mute/unmute people might not be so cool (namely the unmute part).
-                //                For now, leave it in, but think about disabling the unmute feature
-                //                or having a config flag to deal with it.
+                // @todo FIXME XXX XXX: Might be an issue with this feature. The ability to remotely
+                //                      mute/unmute people might not be so cool (namely the unmute part).
+                //                      For now, leave it in, but think about disabling the unmute feature
+                //                      or having a config flag to deal with it.
 
-                /* 'mic-control' peerMessage
-                 *   Example format:
-                 *     {
-                 *       enabled : boolean
-                 *     }
-                 */
+                // 'mic-control' peerMessage
+                //   Example format:
+                //     {
+                //       enabled : boolean
+                //     }
+                //
                 if (peerId !== client.getId()) {
                     // Toggle the micBtn only if the requested microphone state is false (microphone disabled)
                     // and the current state is enabled.
                     //
-                    // XXX: probably not a good idea to have remote unmute capabilities
+                    // @todo XXX: probably not a good idea to have remote unmute capabilities
                     if (!content.enabled && content.enabled !== NavBar.micBtn.isSelected()) {
                         // clickButton is called because this causes the mute overlay to show up
                         NavBar.micBtn.clickButton();
@@ -163,7 +188,7 @@ var vtcMain = function(params) {
             } else if (msgType === 'audio-meter') {
                 AudioMeter.handlePeerMessage(peerId, content);
             } else {
-                // FIXME: right now we don't have other messages to take care of
+                // @todo FIXME: right now we don't have other messages to take care of
                 ErrorMetric.log('peerMessage => got a peer message that is unexpected');
                 ErrorMetric.log('            => peerId:  ' + peerId);
                 ErrorMetric.log('            =>   name: ' + client.idToName(peerId));
@@ -196,7 +221,7 @@ var vtcMain = function(params) {
                 delete mediaPresenceMap[peerId];
             }
 
-            // XXX: send status from navbar buttons
+            // @todo XXX: send status from navbar buttons
             if (!NavBar.cameraBtn.isSelected()) {
                 sendMediaPresence(client, 'camera', false);
             }
@@ -229,8 +254,8 @@ var vtcMain = function(params) {
             NavBar.micBtn.enableButton();
             NavBar.dashBtn.enableButton();
 
-            // XXX(debug): set the VTC client object so that instantiations of DebugConsole.getClient() in the
-            //             JavaScript debugger will work successfully.
+            // @todo XXX(debug): set the VTC client object so that instantiations of DebugConsole.getClient() in the
+            //                   JavaScript debugger will work successfully.
             if (dbgListener !== null) {
                 DebugConsole.setVtcObject({
                     roomList: idToViewPort,
@@ -311,5 +336,5 @@ var vtcMain = function(params) {
             }, function() {
                 trtcDash.showHangoutsMode();
             });
-    });
+        });
 };

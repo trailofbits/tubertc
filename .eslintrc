@@ -8,8 +8,10 @@
   },
   "globals": {
     "AudioMeter": false,
+    "Chat": false,
     "ChatCommands": false,
     "Clock": false,
+    "DebugConsole": flase,
     "Dialog": false,
     "ErrorMetric": false,
     "Handlebars": false,
@@ -17,6 +19,8 @@
     "NavBar": false,
     "ShellQuote": false,
     "SoundClip": false,
+    "trtcDash": false,
+    "VTCCore": false,
     "vtcMain": false
   },
   "rules": {
