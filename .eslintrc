@@ -11,6 +11,7 @@
     "ChatCommands": false,
     "Clock": false,
     "Dialog": false,
+    "easyrtc": false,
     "ErrorMetric": false,
     "Handlebars": false,
     "Login": false,
