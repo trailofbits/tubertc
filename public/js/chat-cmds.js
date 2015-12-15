@@ -1,7 +1,7 @@
 /**
  * @file Defines custom chat commands.
  *
- * @requires module:Handlebars
+ * @requires Handlebars.js
  * @requires module:js/shell-quote
  * @requires module:js/navbar
  * @requires module:js/error
