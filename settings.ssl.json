@@ -1,6 +1,6 @@
 {
-    "ssl": {"key": /opt/tubertc/server.key",
-            "cert": /opt/tubertc/server.crt"},
+    "ssl": {"key": "/opt/tubertc/server.key",
+            "cert": "/opt/tubertc/server.crt"},
     "port": 8080,
     "debug": true,
     "enableAudioMeter": true,
