@@ -52,4 +52,4 @@ Chrome 47 and higher block non-TLS access to WebRTC. Trying accessing Tuber with
 
 ### Some users can't send or receive audio/video
 
-Tuber has trouble talking with users behind NAT. Supporting these NAT requires a [properly configured and tested STUN/TURN server](https://github.com/trailofbits/tubertc/issues/8). As it stands, Tuber works fine on most corporate LANs but, due to this issue, has trouble working reliably on the open internet.
+Tuber has trouble talking with users behind NAT. Supporting users behind NAT requires a [properly configured and tested STUN/TURN server](https://github.com/trailofbits/tubertc/issues/8). As it stands, Tuber works fine on most corporate LANs but, due to this issue, has trouble working reliably on the open internet.
