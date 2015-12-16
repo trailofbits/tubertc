@@ -11,7 +11,7 @@ Peer-to-peer video chat that works. It's tuber-time!
 * Video chat with up to 15 people (limited only by user interface)
 * Buttons to selectively mute audio and turn off video
 * Client and server written in a single language: JavaScript
-* Supported without client software by browsers with [WebRTC](http://caniuse.com/rtcpeerconnection)
+* Supported without client software by browsers with [WebRTC](http://caniuse.com/#feat=rtcpeerconnection)
 
 ## Anti-Features
 * Does not require client software
@@ -25,7 +25,7 @@ Peer-to-peer video chat that works. It's tuber-time!
 * [Handlebars](http://handlebarsjs.com/)
 * [nconf](https://www.npmjs.org/package/nconf)
 * [socket.io](https://www.npmjs.org/package/socket.io)
-* [NodeJS](http://nodejs.org/)
+* [NodeJS](https://nodejs.org/)
 
 ## Install to Heroku
 tubertc supports Heroku as a demonstration platform. Deployment can be done via the one-click [Deploy to Heroku](https://heroku.com/deploy?template=https://github.com/trailofbits/tubertc) button or the commands below:
