@@ -17,11 +17,6 @@
         },
         {
             "url": "stun:217.10.68.152:10000"
-        },
-        {
-            "url": "turn:104.236.58.250:3478?transport=tcp",
-            "username": "tuber",
-            "credential": "isuckatpasswords"
         }
     ]
 }
