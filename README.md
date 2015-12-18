@@ -54,7 +54,7 @@ The server port, debug level, and SSL settings are configured via the `settings.
 
 ### I'm using Chrome and I get a PermissionDeniedError
 
-Chrome 47 and higher block non-TLS access to WebRTC. Trying accessing Tuber with HTTPS. If you would like to help us develop Tuber, please consider writing [tools that assist with the creation and installation of TLS certificates](https://github.com/trailofbits/tubertc/issues/54) for local installations.
+Chrome 47 and higher block non-TLS access to WebRTC. Try accessing Tuber with HTTPS. If you would like to help us develop Tuber, please consider writing [tools that assist with the creation and installation of TLS certificates](https://github.com/trailofbits/tubertc/issues/54) for local installations.
 
 ### Some users can't send or receive audio/video
 

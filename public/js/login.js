@@ -214,12 +214,60 @@ var Login = {
     _completionFn: null,
 
     /**
+     * Check to see if the visitor is browsing a non-TLS instance of tuber
+     * with Chrome 47 and above.
+     *
+     * @returns {true|false} The return status value. This is the status of the
+     *                       check.
+     * @private
+     */
+    _checkIfNonTlsAndChromeAbove47: function() {
+        var userAgent = navigator.userAgent;
+        if (window.location.protocol !== 'https:' &&
+            (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')) {
+            var browserString = null;
+            var browserVersion = null;
+            var browserVersionString = null;
+            var browserStartIdx = userAgent.indexOf('Chrome/');
+            if (browserStartIdx === -1) {
+                browserStartIdx = userAgent.indexOf('Chromium/');
+            }
+            if (browserStartIdx === -1) {
+                // Could not find Chrome or Chromium in user agent...
+                // At this point, we should assume that it might be newer than 47
+                return true;
+            }
+            var browserEndIdx = userAgent.indexOf(' ', browserStartIdx);
+            if (browserEndIdx === -1) {
+                browserString = userAgent.substring(browserStartIdx);
+            } else {
+                browserString = userAgent.substring(browserStartIdx, browserEndIdx);
+            }
+            browserVersionString = browserString.split('/')[1];
+            if (browserVersionString.indexOf('.') !== -1) {
+                browserVersion = parseInt(browserVersionString.split('.')[0], 10);
+            } else {
+                browserVersion = parseInt(browserVersionString, 10);
+            }
+
+            // Chrome/Chromium 47 introduces a policy requiring SSL for getUserMedia requests to
+            // work correctly.
+            if (browserVersion >= 47) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    /**
      * Checks to ensure that the current browser has
      * the support needed to successfully use tubertc.
      *
      * @returns {String|null} The return status value. It has three possible
      * states, which mean the following:
      * 'full'     - All APIs are supported and browser is well tested
+     * 'ssl'      - All APIs are supported but the current tuber instance is
+     *              non-TLS and the viewing browser is Chrome 47+
      * 'untested' - All APIs are supported but browser is not as well tested
      * null       - Some required APIs are not supported
      * @private
@@ -250,6 +298,9 @@ var Login = {
 
         // @todo FIXME: We only have tested Chrome, need to refactor this once more browsers are tested
         if ('chrome' in window) {
+            if (Login._checkIfNonTlsAndChromeAbove47()) {
+                return 'ssl';
+            }
             return 'full';
         } else {
             return 'untested';
@@ -344,11 +395,20 @@ var Login = {
             _loginAlert
                 .html(
                     'Your browser configuration has not been extensively tested. ' +
-                    'There maybe user interface artifacts or missing functionality.<br><br>' +
+                    'There may be user interface artifacts or missing functionality.<br><br>' +
                     'We recommend using <a href="http://www.google.com/chrome/">Google Chrome</a>.'
                 )
                 .slideDown();
             ErrorMetric.log('Login.initialize => ' + navigator.userAgent + ' is untested');
+        } else if (compatStatus === 'ssl') {
+            // @todo FIXME: proofread and make this better
+            _loginAlert
+                .html(
+                    'Starting with Chrome 47 and higher, WebRTC will cease to function on non-TLS sites.'
+                )
+                .slideDown();
+            ErrorMetric.log('Login.initialize => ' + navigator.userAgent + ' requires SSL for getUserMedia ' +
+                            'to work');
         }
 
         var userName = StorageCookie.getValue('userName');
