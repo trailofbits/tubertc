@@ -21,7 +21,7 @@
         "easyrtc": "*",
         "express": "*",
         "nconf": "*",
-        "socket.io": "*",
+        "socket.io": "1.0.*",
         "handlebars": "*"
     },
 
