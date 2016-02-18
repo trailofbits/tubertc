@@ -79,6 +79,7 @@ $(document).ready(function() {
             content: attrDialogTmpl({})
         });
     });
+    NavBar.soundBtn.disableButton();
 
     Clock.initialize();
 

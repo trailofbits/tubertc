@@ -326,6 +326,7 @@ var NavBar = {
     micBtn: null,
     dashBtn: null,
     attrBtn: null,
+    soundBtn: null,
 
     /**
      * Initializes the navBar buttons.
@@ -337,6 +338,7 @@ var NavBar = {
         this.cameraBtn = new StatefulButton('#cameraBtn', true);
         this.micBtn = new StatefulButton('#micBtn', true);
         this.dashBtn = new StatefulButton('#dashBtn');
+        this.soundBtn = new StatefulButton('#soundBtn', true);
         this.attrBtn = new Button('#attrBtn');
     },
 

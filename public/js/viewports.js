@@ -177,6 +177,32 @@ var Viewport = function(peerName, dashboard) {
     };
 
     /**
+     * Enables the sound for the encapsulated video object
+     *
+     * @returns {undefined} undefined
+     * @public
+     */
+    this.enableSound = function() {
+        var video = _this.videoSrc[0];
+        video.muted = false;
+        _this.localMuteIcon.removeClass('trtc_local_mute_muted');
+        _this.isLocallyMuted = false;
+    };
+
+    /**
+     * Disables the sound for the encapsulated video object
+     *
+     * @returns {undefined} undefined
+     * @public
+     */
+    this.disableSound = function() {
+        var video = _this.videoSrc[0];
+        video.muted = true;
+        _this.localMuteIcon.addClass('trtc_local_mute_muted');
+        _this.isLocallyMuted = true;
+    };
+
+    /**
      * Sets up the viewport icons.
      *
      * @returns {undefined} undefined
@@ -211,15 +237,11 @@ var Viewport = function(peerName, dashboard) {
 
         if (!this.isSelf) {
             _this.localMuteIcon.click(function() {
-                var video = _this.videoSrc[0];
                 if (_this.isLocallyMuted) {
-                    video.muted = false;
-                    _this.localMuteIcon.removeClass('trtc_local_mute_muted');
+                    _this.enableSound();
                 } else {
-                    video.muted = true;
-                    _this.localMuteIcon.addClass('trtc_local_mute_muted');
+                    _this.disableSound();
                 }
-                _this.isLocallyMuted = !_this.isLocallyMuted;
             });
         }
     };

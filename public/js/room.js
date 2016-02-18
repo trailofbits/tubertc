@@ -116,6 +116,7 @@ var vtcMain = function(params) {
     NavBar.cameraBtn.disableButton();
     NavBar.micBtn.disableButton();
     NavBar.dashBtn.disableButton();
+    NavBar.soundBtn.disableButton();
 
     VTCCore
         .initialize({
@@ -126,6 +127,7 @@ var vtcMain = function(params) {
             NavBar.cameraBtn.enableButton();
             NavBar.micBtn.enableButton();
             NavBar.dashBtn.enableButton();
+            NavBar.soundBtn.enableButton();
 
             Dialog.show(config);
         })
@@ -253,6 +255,7 @@ var vtcMain = function(params) {
             NavBar.cameraBtn.enableButton();
             NavBar.micBtn.enableButton();
             NavBar.dashBtn.enableButton();
+            NavBar.soundBtn.enableButton();
 
             // @todo XXX(debug): set the VTC client object so that instantiations of DebugConsole.getClient() in the
             //                   JavaScript debugger will work successfully.
@@ -335,6 +338,29 @@ var vtcMain = function(params) {
                 trtcDash.showDashMode();
             }, function() {
                 trtcDash.showHangoutsMode();
+            });
+
+            NavBar.soundBtn.handle(function() {
+                for (var peerId in idToViewPort) {
+                    if (peerId !== myPeerId) {
+                        idToViewPort[peerId].enableSound();
+                    }
+                }
+
+                if (!NavBar.micBtn.isSelected()) {
+                    NavBar.micBtn.clickButton();
+                }
+            }, function() {
+                // @todo FIXME: this is copied from above, ideally modularize this foreach loop
+                for (var peerId in idToViewPort) {
+                    if (peerId !== myPeerId) {
+                        idToViewPort[peerId].disableSound();
+                    }
+                }
+
+                if (NavBar.micBtn.isSelected()) {
+                    NavBar.micBtn.clickButton();
+                }
             });
         });
 };
