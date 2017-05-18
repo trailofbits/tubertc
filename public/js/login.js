@@ -452,7 +452,7 @@ var Login = {
 
                 // @todo FIXME: maybe add a different sort of notification, like a tooltip?
                 _loginMsg
-                    .html('Disabling camera because not a camera could be found.')
+                    .html('Disabling camera functionality because a camera could not be found.')
                     .slideDown();
             }
         });
