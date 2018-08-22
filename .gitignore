@@ -40,3 +40,8 @@ node_modules
 
 # Documentation
 doc/
+
+# Specific files
+package-lock.json
+node-v*
+SHASUMS256.txt

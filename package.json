@@ -4,19 +4,16 @@
     "description": "Tuber-time Communications",
     "author": "yying",
     "license": "MIT",
-
     "repository": {
         "type": "git",
         "url": "https://github.com/trailofbits/tubertc.git"
     },
-
     "keywords": [
         "node",
         "webrtc",
         "easyrtc",
         "video"
     ],
-
     "dependencies": {
         "easyrtc": "*",
         "express": "*",
@@ -24,15 +21,12 @@
         "socket.io": "*",
         "handlebars": "*"
     },
-
     "devDependencies": {
-      "jsdoc": "3.3.3"
+        "jsdoc": "3.3.3"
     },
-
     "engines": {
         "node": "5.x"
     },
-
     "scripts": {
         "doc": "./node_modules/.bin/jsdoc -r public --destination doc --readme README.md -c .jsdocrc",
         "lint": "eslint --ext .js -c .eslintrc .",
