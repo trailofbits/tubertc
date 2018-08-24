@@ -407,17 +407,22 @@ var VTCCore = {
             var peersToCall = Object.keys(peerList);
             var callPeers = function(i) {
                 var peerId = peersToCall[i];
-                easyrtc.call(peerId, function() {
-                    if (i > 0) {
-                        callPeers(i - 1);
-                    }
+
+                easyrtc.call(peerId, function(otherCaller, mediaType) {
+                    // NOTE: This is called for each mediaType that is accepted
                 }, function(errorCode, errorText) {
                     ErrorMetric.log('easyrtc.call => failed to call ' + peerId);
                     ErrorMetric.log('             => ' + errorCode + ': ' + errorText);
-
+                    
+                    // NOTE: The failure should not affect the recursion 
                     if (i > 0) {
                         callPeers(i - 1);
                     }
+                }, function(wasAccepted, otherUser) {
+                    // NOTE: This is called once per success
+                    if (i > 0) {
+                        callPeers(i - 1);
+                    } 
                 });
             };
 
