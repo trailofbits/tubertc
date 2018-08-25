@@ -45,25 +45,23 @@ install_nodejs () {
     else
         log "Ignoring node/npm command check, downloading node.js"
     fi
-
-    NODEJS_SHASUM_URL="https://nodejs.org/dist/v0.10.41/SHASUMS.txt"
+    
+    NODEJS_VERSION="v8.11.4"
+    NODEJS_SHASUM_URL="https://nodejs.org/dist/${NODEJS_VERSION}/SHASUMS256.txt"
 
     log "Detecting architecture and platform..."
     if [ $PLATFORM = "Darwin" ]; then
         if [ $ARCH = "x86_64" ]; then
             log "64-bit Mac OS X detected"
-            NODEJS_URL="https://nodejs.org/dist/v0.10.41/node-v0.10.41-darwin-x64.tar.gz"
-        elif [ $ARCH = "i686" ]; then
-            log "32-bit Mac OS X detected"
-            NODEJS_URL="https://nodejs.org/dist/v0.10.41/node-v0.10.41-darwin-x86.tar.gz"
+            NODEJS_URL="https://nodejs.org/dist/${NODEJS_VERSION}/node-${NODEJS_VERSION}-darwin-x64.tar.gz"
         fi
     elif [ $PLATFORM = "Linux" ]; then
         if [ $ARCH = "x86_64" ]; then
             log "64-bit Linux detected"
-            NODEJS_URL="https://nodejs.org/dist/v0.10.41/node-v0.10.41-linux-x64.tar.gz"
+            NODEJS_URL="https://nodejs.org/dist/${NODEJS_VERSION}/node-${NODEJS_VERSION}-linux-x64.tar.gz"
         elif [ $ARCH = "i686" ]; then
             log "32-bit Linux detected"
-            NODEJS_URL="https://nodejs.org/dist/v0.10.41/node-v0.10.41-linux-x86.tar.gz"
+            NODEJS_URL="https://nodejs.org/dist/${NODEJS_VERSION}/node-${NODEJS_VERSION}-linux-x86.tar.gz"
         fi
     fi
 
@@ -82,17 +80,17 @@ install_nodejs () {
 
     if [ "$DOWNLOAD" = "1" ]; then
         log "Downloading node.js from $NODEJS_URL"
-        curl $NODEJS_URL -o "$BASENAME" 2> /dev/null 
-        curl $NODEJS_SHASUM_URL -o SHASUMS.txt 2> /dev/null
+        curl $NODEJS_URL -o "$FILENAME" 2> /dev/null 
+        curl $NODEJS_SHASUM_URL -o SHASUMS256.txt 2> /dev/null
 
-        EXPECTED_HASH=`grep $BASENAME SHASUMS.txt | awk '{print $1}'`
-        SHA1_HASH=`shasum $BASENAME | awk '{print $1}'`
+        EXPECTED_HASH=`grep $FILENAME SHASUMS256.txt | awk '{print $1}'`
+        SHA256_HASH=`shasum -a 256 $FILENAME | awk '{print $1}'`
 
-        if [ "$SHA1_HASH" != "$EXPECTED_HASH" ]; then
-           error "ERROR: SHA1 sums do not match Expected $EXPECTED_HASH got $SHA1_HASH"
+        if [ "$SHA256_HASH" != "$EXPECTED_HASH" ]; then
+           error "ERROR: SHA256 sums do not match Expected $EXPECTED_HASH got $SHA256_HASH"
            exit 1
         fi
-        tar zxf $BASENAME
+        tar zxf $FILENAME
         log "Download complete, extracted into $PWD/$BASENAME"
     else
         log "Found node.js instance at $PWD/$BASENAME"
