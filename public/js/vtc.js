@@ -401,7 +401,13 @@ var VTCCore = {
         }
 
         var _this = this;
+        var _roomName = roomName;
         easyrtc.setRoomOccupantListener(function(roomName, peerList) {
+            if (roomName !== _roomName) {
+                // NOTE: Ignore if the room name is not the one we requested
+                return;
+            }
+
             var peersToCall = Object.keys(peerList);
             var onCallError = function(errorCode, errorText) {
                 ErrorMetric.log("easyrtc.call => [error] failed to call " + peerId);
