@@ -393,8 +393,6 @@ var VTCCore = {
         easyrtc.enableVideo(this.config.cameraIsEnabled);
         easyrtc.enableAudio(this.config.micIsEnabled);
 
-        // No callbacks are invoked at this point because we are not connected yet.
-        easyrtc.joinRoom(roomName, null, null, null);
         if (!easyrtc.setUsername(userName)) {
             ErrorMetric.log('VTCCore.connect => could not set username to ' + userName);
 
@@ -405,31 +403,19 @@ var VTCCore = {
         var _this = this;
         easyrtc.setRoomOccupantListener(function(roomName, peerList) {
             var peersToCall = Object.keys(peerList);
-            var callPeers = function(i) {
-                var peerId = peersToCall[i];
-
-                easyrtc.call(peerId, function(otherCaller, mediaType) {
-                    // NOTE: This is called for each mediaType that is accepted
-                }, function(errorCode, errorText) {
-                    ErrorMetric.log('easyrtc.call => failed to call ' + peerId);
-                    ErrorMetric.log('             => ' + errorCode + ': ' + errorText);
-                    
-                    // NOTE: The failure should not affect the recursion 
-                    if (i > 0) {
-                        callPeers(i - 1);
-                    }
-                }, function(wasAccepted, otherUser) {
-                    // NOTE: This is called once per success
-                    if (i > 0) {
-                        callPeers(i - 1);
-                    } 
-                });
+            var onCallError = function(errorCode, errorText) {
+                ErrorMetric.log("easyrtc.call => [error] failed to call " + peerId);
+                ErrorMetric.log("easyrtc.call => " + errorCode + ': ' + errorText);
             };
 
             var peersCount = peersToCall.length;
             if (peersCount > 0) {
                 if (peersCount < kMaxCallersPerRoom) {
-                    callPeers(peersToCall.length - 1);
+                    for (var i = 0; i < peersToCall.length; i++) {
+                        var peerId = peersToCall[i];
+
+                        easyrtc.call(peerId, null, onCallError, null);
+                    }
                 } else {
                     // NOTE (security): This check and many others do not prevent users from force joining
                     //                  a room by running JavaScript. It might be a good idea in the future
@@ -451,11 +437,22 @@ var VTCCore = {
 
         easyrtc.initMediaSource(function() {
             easyrtc.connect('tubertc', function(myId) {
-                _this.client = new VTCClient(myId, roomName, _this._errorFn);
+                easyrtc.joinRoom(roomName, null, function(roomName) {
+                    _this.client = new VTCClient(myId, roomName, _this._errorFn);
 
-                if (successFn !== undefined) {
-                    successFn(_this.client);
-                }
+                    if (successFn !== undefined) {
+                        successFn(_this.client);
+                    }
+                }, function(errorCode, errorText, roomName) {
+                    if (_this._errorFn !== undefined) {
+                        _this._errorFn({
+                            title: 'Failed to join room',
+                            content: 'We are unable to join the video teleconference room.<br><br>' +
+                                     '<b>Error Code</b>: ' + errorCode + '<br>' +
+                                     '<b>Error Text</b>: ' + errorText
+                        })
+                    }
+                });
             }, function(errorCode, errorText) {
                 ErrorMetric.log('easyrtc.connect => failed to connect');
                 ErrorMetric.log('                => ' + errorCode + ': ' + errorText);
