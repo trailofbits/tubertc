@@ -336,7 +336,7 @@ var NavBar = {
     initialize: function() {
         this.cameraBtn = new StatefulButton('#cameraBtn', true);
         this.micBtn = new StatefulButton('#micBtn', true);
-        this.dashBtn = new StatefulButton('#dashBtn');
+        this.dashBtn = new StatefulButton('#dashBtn', true);
         this.attrBtn = new Button('#attrBtn');
     },
 
