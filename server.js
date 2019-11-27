@@ -5,7 +5,7 @@
 
 'use strict';
 
-var easyrtc = require('easyrtc');
+var easyrtc = require('open-easyrtc');
 var express = require('express');
 var fs = require('fs');
 var Handlebars = require('handlebars');
