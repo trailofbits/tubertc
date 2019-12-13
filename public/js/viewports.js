@@ -416,64 +416,52 @@ var Dashboard = function() {
      * @public
      */
     this.gridForViewportNumber = function(viewports) {
-        // @todo Programmatically generate the configuration
-        // object rather than rely on a `case` statement.
-        var layout = {};
-
-        switch (viewports) {
-        case 0:
-            layout = { rows: 0, grid: [] };
-            break;
-        case 1:
-            layout = { rows: 1, grid: [1] };
-            break;
-        case 2:
-            layout = { rows: 1, grid: [2] };
-            break;
-        case 3:
-            layout = { rows: 1, grid: [3] };
-            break;
-        case 4:
-            layout = { rows: 2, grid: [2, 2] };
-            break;
-        case 5:
-            layout = { rows: 2, grid: [2, 3] };
-            break;
-        case 6:
-            layout = { rows: 2, grid: [3, 3] };
-            break;
-        case 7:
-            layout = { rows: 2, grid: [3, 4] };
-            break;
-        case 8:
-            layout = { rows: 2, grid: [4, 4] };
-            break;
-        case 9:
-            layout = { rows: 3, grid: [3, 3, 3] };
-            break;
-        case 10:
-            layout = { rows: 3, grid: [3, 4, 3] };
-            break;
-        case 11:
-            layout = { rows: 3, grid: [4, 3, 4] };
-            break;
-        case 12:
-            layout = { rows: 3, grid: [4, 4, 4] };
-            break;
-        case 13:
-            layout = { rows: 3, grid: [4, 5, 4] };
-            break;
-        case 14:
-            layout = { rows: 3, grid: [5, 4, 5] };
-            break;
-        case 15:
-            layout = { rows: 3, grid: [5, 5, 5] };
-            break;
-        default:
-            break;
+        if(viewports === 0) {
+            return { 
+                rows: 0, 
+                grid: [] 
+            }
         }
-
-        return layout;
+    
+        const maxItemCountInRow = 5;
+        let rowCount;
+        let grid = []; 
+    
+        // this is the case viewports is too large. Currently it is 25 which is 5*5
+        // In this case, simply renders maxItemCountInRow(currently 5) items in one row
+        if(viewports > Math.pow(maxItemCountInRow, 2)) {
+            rowCount = Math.ceil(viewports / maxItemCountInRow);
+            for(let i=0; i<rowCount-1; i++) {
+                grid.push(maxItemCountInRow);
+            }
+            grid.push(viewports-maxItemCountInRow*(rowCount-1))
+            return {
+                rows: rowCount,
+                grid
+            }
+        }
+    
+        // handle if viewports is between 1 and 25
+        rowCount = Math.floor(Math.sqrt(viewports));
+    
+        for(let i=0; i<rowCount; i++) {
+            grid.push(rowCount);
+        }
+    
+        const restItemCount = viewports - Math.pow(rowCount, 2);
+    
+        for(let i=0; i<restItemCount; i++) {
+            if(i >= rowCount){
+                grid.push(restItemCount - rowCount);
+                rowCount++;
+                break;
+            }
+            grid[i]++;
+        }
+        return {
+            rows: rowCount,
+            grid
+        }
     };
 
     /**
