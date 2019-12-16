@@ -15,14 +15,14 @@
         "video"
     ],
     "dependencies": {
-        "easyrtc": "*",
+        "open-easyrtc": "*",
         "express": "*",
         "nconf": "*",
         "socket.io": "*",
         "handlebars": "*"
     },
     "devDependencies": {
-        "jsdoc": "3.3.3"
+        "jsdoc": "^3.6.3"
     },
     "engines": {
         "node": "5.x"
