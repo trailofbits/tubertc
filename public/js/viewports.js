@@ -157,6 +157,43 @@ var Viewport = function(peerName, dashboard) {
     };
 
     /**
+     * Shows the share icon.
+     *
+     * @param {Boolean} state - True if we show
+     * the share, false otherwise.
+     * @returns {undefined} undefined
+     * @public
+     */
+    this.showShare = async function(state) {
+        if(state) {
+            var displayMediaOptions = {
+                video: {
+                  cursor: "always"
+                },
+                audio: false
+              };
+    
+            try {
+    
+                const stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+                this.videoSrc[0].srcObject =  stream 
+                stream.getVideoTracks()[0].addEventListener('ended', () => {
+                    document.getElementById("shareBtn").click();
+                });
+                return stream;
+            } catch(err) {
+                console.error("Error: " + err);
+                return null;
+            }
+        } else {
+            const tracks = this.videoSrc[0].srcObject.getTracks();
+            tracks.forEach(track => track.stop());
+            this.videoSrc[0].srcObject = null;
+        }
+        
+    };
+
+    /**
      * Shows the microphone icon.
      *
      * @param {Boolean} state - True if we show

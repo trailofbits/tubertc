@@ -87,6 +87,7 @@ $(document).ready(function() {
         Login
             .initialize({
                 cameraBtn: NavBar.cameraBtn,
+                shareBtn: NavBar.shareBtn,
                 micBtn: NavBar.micBtn,
                 dashBtn: NavBar.dashBtn
             })

@@ -114,6 +114,7 @@ var vtcMain = function(params) {
     };
 
     NavBar.cameraBtn.disableButton();
+    NavBar.shareBtn.disableButton();
     NavBar.micBtn.disableButton();
     NavBar.dashBtn.disableButton();
 
@@ -124,6 +125,7 @@ var vtcMain = function(params) {
         })
         .onError(function(config) {
             NavBar.cameraBtn.enableButton();
+            NavBar.shareBtn.enableButton();
             NavBar.micBtn.enableButton();
             NavBar.dashBtn.enableButton();
 
@@ -251,6 +253,7 @@ var vtcMain = function(params) {
             var myPeerId = client.getId();
 
             NavBar.cameraBtn.enableButton();
+            NavBar.shareBtn.enableButton();
             NavBar.micBtn.enableButton();
             NavBar.dashBtn.enableButton();
 
@@ -316,6 +319,17 @@ var vtcMain = function(params) {
                 sendMediaPresence(client, 'camera', false);
 
                 viewport.showCamera(false);
+            });
+
+            // Binds actions to the Enable/Disable Share button
+            NavBar.shareBtn.handle(async function() {
+                await viewport.showShare(true);
+                if(stream) {
+                    client.enableShare(true, stream.id);
+                }
+            }, async function() {
+                await viewport.showShare(false);
+                client.enableShare(false, null);
             });
 
             // Binds actions to the Enable/Disable Microphone button

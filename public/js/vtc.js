@@ -95,6 +95,19 @@ var VTCClient = function(myId, roomName, onErrorFn) {
     };
 
     /**
+     * Enables or disables the share based on the value of `state`.
+     *
+     * @param {Boolean} state - The new state of the camera.
+     * @returns {undefined} undefined
+     * @public
+     */
+    this.enableShare = function(state, mediaId) {
+        console.log('check media', state, mediaId)
+        easyrtc.setScreenCapture(true, mediaId);
+    };
+
+
+    /**
      * Enables or disables the microphone based on the value of `state`.
      *
      * @param {Boolean} state - The new state of the microphone.
