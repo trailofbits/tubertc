@@ -71,10 +71,10 @@
 .trtc_muted {
     display: none;
     position: absolute;
-    top: 25%;
-    left: 25%;
-    height: 50%;
-    width: 50%;
+    top: 30px;
+    right: 15px;
+    height: 50px;
+    width: 50px;
     object-fit: contain;
     opacity: 0.3;
 }
