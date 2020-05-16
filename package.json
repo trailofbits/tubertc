@@ -1,36 +1,36 @@
 {
-    "name": "tubertc",
-    "version": "2.0.0",
-    "description": "Tuber-time Communications",
-    "author": "yying",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/trailofbits/tubertc.git"
-    },
-    "keywords": [
-        "node",
-        "webrtc",
-        "easyrtc",
-        "video"
-    ],
-    "dependencies": {
-        "open-easyrtc": "*",
-        "express": "*",
-        "nconf": "*",
-        "socket.io": "*",
-        "handlebars": "*"
-    },
-    "devDependencies": {
-        "jsdoc": "^3.6.3"
-    },
-    "engines": {
-        "node": "5.x"
-    },
-    "scripts": {
-        "doc": "./node_modules/.bin/jsdoc -r public --destination doc --readme README.md -c .jsdocrc",
-        "lint": "eslint --ext .js -c .eslintrc .",
-        "start": "node server.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
-    }
+  "name": "tubertc",
+  "version": "2.0.0",
+  "description": "Tuber-time Communications",
+  "author": "yying",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trailofbits/tubertc.git"
+  },
+  "keywords": [
+    "node",
+    "webrtc",
+    "easyrtc",
+    "video"
+  ],
+  "dependencies": {
+    "open-easyrtc": "^2.0.5",
+    "express": "^4.17.1",
+    "nconf": "^0.10.0",
+    "socket.io": "^2.3.0",
+    "handlebars": "^4.7.6"
+  },
+  "devDependencies": {
+    "jsdoc": "^3.6.3"
+  },
+  "engines": {
+    "node": ">10.x"
+  },
+  "scripts": {
+    "doc": "./node_modules/.bin/jsdoc -r public --destination doc --readme README.md -c .jsdocrc",
+    "lint": "eslint --ext .js -c .eslintrc .",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
 }
