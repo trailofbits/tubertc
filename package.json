@@ -18,7 +18,7 @@
         "open-easyrtc": "*",
         "express": "*",
         "nconf": "*",
-        "socket.io": "*",
+        "socket.io": "^2.0.0",
         "handlebars": "*"
     },
     "devDependencies": {
